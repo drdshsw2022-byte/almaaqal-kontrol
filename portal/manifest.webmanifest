@@ -1,0 +1,95 @@
+{
+  "id": "./",
+  "name": "بوابة قسم هندسة الأمن السيبراني · جامعة المعقل الدولية",
+  "short_name": "بوابة المعقل",
+  "description": "إعلانات القسم ومواعيد الامتحانات وتطبيق الجامعة ومنصة الاختبارات ونظام اللجنة الامتحانية في مكان واحد.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "any",
+  "background_color": "#060A17",
+  "theme_color": "#0C1224",
+  "categories": [
+    "education",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "الإعلانات ومواعيد الامتحانات",
+      "short_name": "الإعلانات",
+      "url": "./#news",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "منصة الاختبارات",
+      "short_name": "الاختبارات",
+      "url": "./#ex",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "نظام اللجنة الامتحانية (الكنترول)",
+      "short_name": "الكنترول",
+      "url": "https://drdshsw2022-byte.github.io/almaaqal-kontrol/kontrol/",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "تحميل التطبيق",
+      "short_name": "التطبيق",
+      "url": "./#dl",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}

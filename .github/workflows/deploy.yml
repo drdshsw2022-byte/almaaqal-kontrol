@@ -33,7 +33,7 @@ jobs:
           FB_AUTH_DOMAIN: ${{ secrets.FB_AUTH_DOMAIN }}
         run: |
           mkdir -p _site
-          cp -r index.html .nojekyll kontrol _site/
+          cp -r index.html .nojekyll kontrol portal _site/
           if [ -n "$FB_API_KEY" ]; then
             AUTH_DOMAIN="${FB_AUTH_DOMAIN:-$FB_PROJECT_ID.firebaseapp.com}"
             printf 'window.FIREBASE_CONFIG = {apiKey:"%s",authDomain:"%s",projectId:"%s",storageBucket:"%s",messagingSenderId:"%s",appId:"%s"};\n' \

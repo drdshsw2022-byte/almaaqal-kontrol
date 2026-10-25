@@ -51,6 +51,46 @@ const SHARED_MSG='هذه البيانات تُدار من نظام الحضور 
 const KROLES={chair:'رئيس اللجنة',member:'عضو كنترول',auditor:'مدقق درجات',invigilator:'مراقب',viewer:'اطلاع'};
 const ROLE_AR={admin:'مدير النظام',president:'الإدارة العليا',dean:'عميد كلية',head:'رئيس قسم',doctor:'تدريسي'};
 const SUPER_ADMINS=['drdsh.sw2022@gmail.com'];
+let IS_TOP=true; // مدير النظام والإدارة العليا: يكتبون هيكل الجامعة (colleges/departments)
+/* هيكل جامعة المعقل الدولية: الكليات والأقسام كما تنشرها مواقع الجامعة وكلياتها.
+   kw: كلمات تطابق قسماً موجوداً مسبقاً في قاعدة الحضور فيُحتفظ برمزه واسمه. */
+const UNIV_STRUCT=[
+  {id:'eng',name:'كلية الهندسة',kw:['الهندسة'],d:[
+    {id:'petroleum',name:'هندسة النفط',kw:['هندسة النفط']},
+    {id:'civil',name:'الهندسة المدنية',kw:['المدنية']},
+    {id:'control',name:'هندسة السيطرة والحاسبات',kw:['السيطرة']},
+    {id:'ai',name:'هندسة الذكاء الاصطناعي',kw:['الذكاء']},
+    {id:'cyber',name:'هندسة الأمن السيبراني',kw:['السيبراني']},
+    {id:'mechpower',name:'هندسة تقنيات ميكانيك القوى',kw:['ميكانيك']}]},
+  {id:'ht',name:'كلية التقنيات الصحية والطبية',kw:['الصحية'],d:[
+    {id:'medlab',name:'تقنيات المختبرات الطبية',kw:['المختبر']},
+    {id:'radio',name:'تقنيات الأشعة والسونار',kw:['الاشعة','الأشعة']},
+    {id:'anes',name:'تقنيات التخدير',kw:['التخدير']}]},
+  {id:'mng',name:'كلية الإدارة والاقتصاد',kw:['الادارة','الإدارة'],d:[
+    {id:'bus',name:'إدارة الأعمال',kw:['الاعمال','الأعمال']},
+    {id:'ogm',name:'إدارة وتسويق النفط والغاز',kw:['تسويق']},
+    {id:'oge',name:'اقتصاديات النفط والغاز',kw:['اقتصاديات']}]},
+  {id:'ph',name:'كلية الصيدلة',kw:['الصيدلة'],d:[{id:'pharm',name:'الصيدلة',kw:['الصيدلة']}]},
+  {id:'dent',name:'كلية طب الأسنان',kw:['الاسنان','الأسنان'],d:[{id:'dent',name:'طب الأسنان',kw:['الاسنان','الأسنان']}]},
+  {id:'law',name:'كلية القانون',kw:['القانون'],d:[{id:'law',name:'القانون',kw:['القانون']}]},
+  {id:'sp',name:'كلية التربية البدنية وعلوم الرياضة',kw:['البدنية'],d:[{id:'pe',name:'التربية البدنية وعلوم الرياضة',kw:['البدنية']}]},
+  {id:'arts',name:'كلية الآداب',kw:['الآداب','الاداب'],d:[{id:'clinpsy',name:'علم النفس السريري',kw:['النفس']}]},
+  {id:'sci',name:'كلية العلوم',kw:['العلوم'],d:[{id:'patho',name:'علوم التحليلات المرضية',kw:['التحليلات']}]},
+];
+const kwHit=(name,kw)=>kw.some(k=>String(name||'').includes(k));
+/* يحسب ما ينقص قاعدة البيانات دون أن يمس الموجود: يُعاد استخدام رمز أي كلية أو قسم موجود يطابق اسمه. */
+function planStructure(colleges,depts){ // colleges/depts: Map id -> {name, collegeId}
+  const ops=[];const cid={};
+  for(const c of UNIV_STRUCT){let id=c.id;
+    for(const [x,v] of colleges)if(x===c.id||kwHit(v.name,c.kw)&&String(v.name).includes('كلية')){id=x;break}
+    cid[c.id]=id;if(!colleges.has(id))ops.push({c:'colleges',id,data:{id,name:c.name},label:c.name})}
+  const used=new Set();
+  for(const c of UNIV_STRUCT)for(const d of c.d){let id=null;
+    for(const [x,v] of depts)if(!used.has(x)&&(x===d.id||kwHit(v.name,d.kw))){id=x;break}
+    if(id){used.add(id);const v=depts.get(id);if(!v.collegeId)ops.push({c:'departments',id,data:{collegeId:cid[c.id]},label:(v.name||id)+' ← '+c.name,link:1});continue}
+    let nid=d.id;while(depts.has(nid)||used.has(nid))nid+='2';used.add(nid);
+    ops.push({c:'departments',id:nid,data:{id:nid,name:d.name,collegeId:cid[c.id]},label:d.name+' — '+c.name})}
+  return ops}
 const fsSafe=id=>String(id).replace(/\//g,'_');
 const settle=p=>Promise.race([p,new Promise(r=>setTimeout(r,4000))]); // دون اتصال: الكتابة تُحفظ محلياً وتُزامَن لاحقاً
 function fbData(c,data){const v=strip(data);
@@ -223,12 +263,12 @@ async function computeVC(){if(vcBusy)return;vcBusy=true;let changed=false;
   vcBusy=false;if(changed)sched();}
 
 /* ============ مزامنة Firebase ============ */
-const RAW={departments:new Map(),courses:new Map(),students:new Map(),staff:new Map(),staffx:new Map(),kmarks:new Map(),sgrades:new Map(),kroles:new Map()};
+const RAW={colleges:new Map(),departments:new Map(),courses:new Map(),students:new Map(),staff:new Map(),staffx:new Map(),kmarks:new Map(),sgrades:new Map(),kroles:new Map()};
 const SHIFT_AR={morning:'صباحي',evening:'مسائي'};
 const PMAP=[['attendance','att'],['assignment','hw'],['project','proj'],['lab','lab'],['quiz','quiz'],['midterm','mid']];
 let rbT=0;function rebuild(){if(rbT)return;rbT=setTimeout(()=>{rbT=0;doRebuild();sched()},40)}
 function doRebuild(){
-  const d=new Map();RAW.departments.forEach((v,id)=>d.set(id,{id,name:v.name||id,code:id,collegeId:v.collegeId||''}));S.depts=d;
+  const d=new Map();RAW.departments.forEach((v,id)=>d.set(id,{id,name:v.name||id,code:id,collegeId:v.collegeId||'',college:(RAW.colleges.get(v.collegeId)||{}).name||''}));S.depts=d;
   const teach=new Map();RAW.staff.forEach((v,id)=>(v.courseIds||[]).forEach(c=>{if(!teach.has(c))teach.set(c,[]);teach.get(c).push(id)}));
   const cs=new Map();RAW.courses.forEach((v,id)=>{const t=teach.get(id)||[];const sem=v.term?String(v.term):(v.semester?String((+v.semester-1)%2+1):'1');
     cs.set(id,{id,code:v.code||id,name:v.nameAr||v.nameEn||v.code||id,nameEn:v.nameEn||'',dept:v.deptId||'',stage:String(v.stage||''),sem,ects:v.ects??null,teacher:t[0]||'',teacher2:t[1]||''})});S.courses=cs;
@@ -245,7 +285,7 @@ function fbSub(path,fn,qf){let ref=FB.collection(FB.db,path);if(qf)ref=qf(ref);U
 const intoRaw=m=>snap=>{snap.docChanges().forEach(ch=>{if(ch.type==='removed')m.delete(ch.doc.id);else m.set(ch.doc.id,ch.doc.data())});rebuild()};
 const intoS=c=>snap=>{snap.docChanges().forEach(ch=>{if(ch.type==='removed')S[c].delete(ch.doc.id);else S[c].set(ch.doc.id,{...ch.doc.data(),id:ch.doc.id})});sched()};
 function fbSubscribe(){
-  fbSub('departments',intoRaw(RAW.departments));fbSub('courses',intoRaw(RAW.courses));fbSub('students',intoRaw(RAW.students));fbSub('staff',intoRaw(RAW.staff));fbSub('k_staffx',intoRaw(RAW.staffx));
+  fbSub('colleges',intoRaw(RAW.colleges));fbSub('departments',intoRaw(RAW.departments));fbSub('courses',intoRaw(RAW.courses));fbSub('students',intoRaw(RAW.students));fbSub('staff',intoRaw(RAW.staff));fbSub('k_staffx',intoRaw(RAW.staffx));
   ['halls','exams','slots','envelopes','incidents','meta'].forEach(c=>fbSub(KCOL[c],intoS(c)));
   fbSub('k_audit',intoS('audit'),r=>FB.query(r,FB.orderBy('ts','desc'),FB.limit(500)));
   if(can('grade')){fbSub('k_marks',intoRaw(RAW.kmarks));fbSub('k_appeals',intoS('appeals'))}
@@ -284,7 +324,7 @@ async function afterLogin(u){
   if(SUPER_ADMINS.includes(email)||(prof&&['admin','president'].includes(prof.role)))role='chair';
   else{if(!prof)throw new Error('هذا الحساب غير مسجل في الكادر.');try{const r=await FB.getDoc(FB.doc(FB.db,'k_roles',email));role=r.exists()?r.data().role:''}catch(x){}}
   if(!KROLES[role])throw new Error('لا تملك صلاحية في نظام الكنترول بعد. اطلب من رئيس اللجنة إضافتك من صفحة «صلاحيات الكنترول».');
-  ME=email;KROLE=role;IS_ADMIN=role==='chair';RO=role==='viewer';MEPROF={name:(prof&&prof.name)||email,email,role};
+  ME=email;KROLE=role;IS_ADMIN=role==='chair';IS_TOP=SUPER_ADMINS.includes(email)||!!(prof&&['admin','president'].includes(prof.role));RO=role==='viewer';MEPROF={name:(prof&&prof.name)||email,email,role};
   MODE='fb';fbSubscribe();showLogin(false);render();
 }
 function showLogin(on,msg){const L=$('#login');L.hidden=!on;if(on){$('#lg_err').textContent=msg||'';$('#lg_btn').disabled=false;$('#lg_btn').textContent='دخول';$('#lg_google').hidden=MODE!=='auth';setTimeout(()=>{const x=$('#lg_user');if(x)x.focus()},50)}}
@@ -317,7 +357,7 @@ document.addEventListener('DOMContentLoaded',()=>{tickClock();syncThemeBtn();fil
 const UI={view:'dash',q:'',fd:'',fs:'',slot:'',hall:'',course:'',gtab:'cw',group:'',cdel:'',stcourse:'',ai:'',aiBusy:false,vq:'',vres:null,gracePrev:null};
 const DRAFT={};
 const VIEWS=[
-  ['التخطيط',[['dash','لوحة القيادة'],['depts','الأقسام'],['students','الطلبة والأهلية'],['courses','المواد الدراسية'],['halls','القاعات'],['staff','الكادر وتعارض المصالح'],['exams','الجدول الامتحاني']]],
+  ['التخطيط',[['dash','لوحة القيادة'],['depts','الكليات والأقسام'],['students','الطلبة والأهلية'],['courses','المواد الدراسية'],['halls','القاعات'],['staff','الكادر وتعارض المصالح'],['exams','الجدول الامتحاني']]],
   ['يوم الامتحان',[['seating','توزيع المقاعد'],['duties','اللجان والمراقبون'],['envelopes','أظرف الأسئلة'],['attendance','الحضور والغياب'],['incidents','محاضر الغش']]],
   ['الكنترول',[['coding','التشفير والأرقام السرية'],['grading','رصد الدرجات'],['grace','الرأفة الآلية'],['master','الماستر شيت والنتائج'],['stats','التحليل الإحصائي'],['appeals','الاعتراضات']]],
   ['الحوكمة',[['audit','سجل التدقيق'],['verify','التحقق من الصدور'],['roles','صلاحيات الكنترول'],['settings','الإعدادات والبيانات']]],
@@ -369,7 +409,7 @@ const roBtn=()=>RO?' disabled':'';
 
 /* ============ المخططات العامة (CRUD) ============ */
 const SCHEMA={
-  depts:{t:'الأقسام',one:'قسم',p:'الأقسام العلمية التي تعقد امتحاناتها عبر هذا الكنترول.',f:[{k:'name',l:'اسم القسم',req:1},{k:'code',l:'الرمز المختصر'}],cols:['name','code']},
+  depts:{t:'الكليات والأقسام',one:'قسم',p:'كليات وأقسام جامعة المعقل الدولية التي تعقد امتحاناتها عبر هذا الكنترول.',f:[{k:'name',l:'اسم القسم',req:1},{k:'college',l:'الكلية'},{k:'code',l:'الرمز المختصر'}],cols:['college','name','code']},
   students:{t:'الطلبة والأهلية',one:'طالب',p:'سجل الطلبة حسب القسم والمرحلة والدوام، بالرقم المعرفي. يُستبعد المحروم من التوزيع والرصد تلقائياً (يُحدد الحرمان من صفحة الرصد ← السعي).',f:[{k:'no',l:'الرقم المعرفي',req:1,mono:1},{k:'name',l:'الاسم الرباعي واللقب',req:1},{k:'dept',l:'القسم',type:'ref',ref:'depts',req:1},{k:'stage',l:'المرحلة',type:'stage',req:1},{k:'shift',l:'الدوام',type:'sel',o:['صباحي','مسائي']}],cols:['no','name','dept','stage','shift']},
   courses:{t:'المواد الدراسية',one:'مادة',p:'الخطة الدراسية بالرمز والفصل وأستاذ المادة. تظهر في الرصد والنتائج مواد الفصل الحالي فقط (يُحدد من الإعدادات)، ولا يُكلف أستاذ المادة بمراقبة جلستها.',f:[{k:'code',l:'رمز المقرر',req:1,mono:1},{k:'name',l:'اسم المادة',req:1},{k:'nameEn',l:'الاسم بالإنجليزية'},{k:'dept',l:'القسم',type:'ref',ref:'depts',req:1},{k:'stage',l:'المرحلة',type:'stage',req:1},{k:'sem',l:'فصل السنة',type:'sel',o:[['1','الأول'],['2','الثاني']]},{k:'ects',l:'ECTS',type:'num'},{k:'teacher',l:'أستاذ المادة',type:'ref',ref:'staff'},{k:'teacher2',l:'أستاذ مشارك',type:'ref',ref:'staff'}],cols:['code','name','dept','stage','sem','teacher','ects']},
   halls:{t:'القاعات',one:'قاعة',p:'السعة = الصفوف × الأعمدة. عدد المراقبين المطلوب لكل قاعة يحدد توزيع اللجان.',f:[{k:'name',l:'اسم القاعة',req:1},{k:'building',l:'البناية/الطابق'},{k:'rows',l:'عدد الصفوف',type:'num',req:1},{k:'cols',l:'عدد الأعمدة',type:'num',req:1},{k:'inv',l:'المراقبون المطلوبون',type:'num',req:1}],cols:['name','building','rows','cols','cap','inv']},
@@ -397,14 +437,14 @@ function cellVal(c,k,r){
   if(k==='no'||k==='code')return `<span class="mono">${esc(v)}</span>`;
   return esc(v);
 }
-const COLL={sem:'الفصل',ects:'ECTS',kind:'النوع',name:'الاسم',code:'الرمز',no:'الرقم المعرفي',dept:'القسم',stage:'المرحلة',shift:'الدراسة',teacher:'الأستاذ',units:'الوحدات',building:'الموقع',rows:'صفوف',cols:'أعمدة',cap:'السعة',inv:'مراقبون',title:'اللقب',duties:'واجبات المراقبة',relatives:'أقارب طلبة',coi:'الإقرار',course:'المادة',group:'القسم/المرحلة',date:'التاريخ',period:'الجلسة',dur:'المدة',n:'الطلبة المؤهلون'};
+const COLL={college:'الكلية',sem:'الفصل',ects:'ECTS',kind:'النوع',name:'الاسم',code:'الرمز',no:'الرقم المعرفي',dept:'القسم',stage:'المرحلة',shift:'الدراسة',teacher:'الأستاذ',units:'الوحدات',building:'الموقع',rows:'صفوف',cols:'أعمدة',cap:'السعة',inv:'مراقبون',title:'اللقب',duties:'واجبات المراقبة',relatives:'أقارب طلبة',coi:'الإقرار',course:'المادة',group:'القسم/المرحلة',date:'التاريخ',period:'الجلسة',dur:'المدة',n:'الطلبة المؤهلون'};
 function listView(c,extraTop=''){
   const sc=SCHEMA[c];let rows=arr(c);
   const hasDept=sc.f.some(f=>f.k==='dept'),hasStage=sc.f.some(f=>f.k==='stage');
   if(UI.fd&&hasDept)rows=rows.filter(r=>r.dept===UI.fd);
   if(UI.fs&&hasStage)rows=rows.filter(r=>String(r.stage)===UI.fs);
   if(UI.q){const q=UI.q.trim();rows=rows.filter(r=>Object.values(r).some(v=>String(v).includes(q)))}
-  if(c==='students')rows.sort(byNo);else if(c==='exams')rows.sort((a,b)=>slotKey(a)<slotKey(b)?-1:1);else rows.sort((a,b)=>String(a.name||a.code||'').localeCompare(String(b.name||b.code||''),'ar'));
+  if(c==='students')rows.sort(byNo);else if(c==='depts')rows.sort((a,b)=>String(a.college||'ي').localeCompare(String(b.college||'ي'),'ar')||String(a.name).localeCompare(String(b.name),'ar'));else if(c==='exams')rows.sort((a,b)=>slotKey(a)<slotKey(b)?-1:1);else rows.sort((a,b)=>String(a.name||a.code||'').localeCompare(String(b.name||b.code||''),'ar'));
   const fbShared=MODE==='fb'&&(SHARED_RO.has(c)||c==='staff');
   const act=fbShared?'':`${c==='students'||c==='courses'?`<label class="btn"${RO?' style="opacity:.45"':''}>استيراد ملف Excel<input type="file" id="xlsxin2" accept=".xlsx,.xls,.csv" multiple hidden${roBtn()}></label>`:''}${c==='students'?`<button class="btn" data-act="import"${roBtn()}>لصق قائمة</button>`:''}<button class="btn pri" data-act="new" data-c="${c}"${roBtn()}>إضافة ${sc.one}</button>`;
   const filt=`<div class="row" style="margin-bottom:12px"><input type="search" id="q" placeholder="بحث…" value="${esc(UI.q)}" data-ui="q" style="width:200px">${hasDept?`<select id="fd" data-ui="fd">${opt('','كل الأقسام',UI.fd)}${arr('depts').map(d=>opt(d.id,d.name,UI.fd)).join('')}</select>`:''}${hasStage?`<select id="fs" data-ui="fs">${opt('','كل المراحل',UI.fs)}${STAGES.map((s,i)=>opt(String(i+1),'المرحلة '+s,UI.fs)).join('')}</select>`:''}<span class="mut">${rows.length} سجل</span></div>`;
@@ -448,7 +488,17 @@ function closeModal(){$('#modal').hidden=true;$('#modal').innerHTML=''}
 
 /* ============ الصفحات ============ */
 const VIEW={};
-VIEW.depts=()=>listView('depts');
+VIEW.depts=()=>{
+  const fbm=MODE==='fb';let ops;
+  if(fbm)ops=planStructure(RAW.colleges,RAW.departments);
+  else{const dm=new Map(arr('depts').map(d=>[d.id,{name:d.name,collegeId:d.college?'x':''}]));ops=planStructure(new Map(),dm).filter(o=>o.c==='departments')}
+  const allowed=fbm?IS_TOP:!RO;
+  const nNew=ops.filter(o=>!o.link).length,nLink=ops.filter(o=>o.link).length;
+  const groups=new Map();arr('depts').forEach(d=>{const k=d.college||'بلا كلية';if(!groups.has(k))groups.set(k,0);groups.set(k,groups.get(k)+1)});
+  const card=`<div class="card" style="margin-bottom:14px"><h3>هيكل جامعة المعقل الدولية</h3><p class="mut" style="margin-top:0">${UNIV_STRUCT.length} كليات و${UNIV_STRUCT.reduce((a,c)=>a+c.d.length,0)} قسماً وفق مواقع الجامعة. ${ops.length?`ينقص قاعدة البيانات <b>${nNew}</b> سجل جديد${nLink?` و<b>${nLink}</b> ربط قسم موجود بكليته`:''}. المزامنة تضيف الناقص فقط، ولا تعدّل اسم أو رمز أي قسم موجود.`:'كل الكليات والأقسام موجودة في قاعدة البيانات.'}</p>
+  ${groups.size?`<div class="row" style="margin-bottom:10px">${[...groups].map(([k,n])=>`<span class="pill">${esc(k)} · ${n}</span>`).join('')}</div>`:''}
+  ${ops.length?`<details style="margin-bottom:10px"><summary class="mut">عرض ما سيُضاف</summary><ul>${ops.map(o=>`<li>${o.c==='colleges'?'كلية: ':o.link?'ربط: ':'قسم: '}${esc(o.label)}</li>`).join('')}</ul></details><button class="btn pri" data-act="syncstruct"${allowed?'':' disabled'}>مزامنة هيكل الجامعة</button>${allowed?'':` <span class="mut">${fbm?'لمدير النظام أو رئيس الجامعة (صلاحية الكتابة في هيكل الجامعة).':'للاطلاع فقط.'}</span>`}`:''}</div>`;
+  return listView('depts',card)};
 VIEW.halls=()=>listView('halls');
 VIEW.courses=()=>listView('courses');
 VIEW.staff=()=>{const n=arr('staff').filter(p=>!p.coi).length;return listView('staff',n?`<div class="alert" style="margin-bottom:12px">${n} من أعضاء الكادر لم يوقّعوا إقرار تعارض المصالح بعد.${cfg().requireCoi?' هؤلاء مستبعدون من المراقبة وفق الإعدادات.':''}</div>`:'')};
@@ -756,6 +806,18 @@ ACT.ai=async()=>{const cs=arr('courses').map(c=>({c,s:statsFor(c)})).filter(x=>x
   UI.aiBusy=true;UI.ai='';render();
   try{const out=await sampleCap(`أنت محلل إحصائي في لجنة امتحانية جامعية عراقية. درجة النجاح ${cfg().pass} من 100. هذه إحصاءات المواد (التوزيع بالعشرات من 0-9 إلى 90-100):\n${JSON.stringify(data)}\n\nاكتب تقريراً عربياً موجزاً (لا يتجاوز 220 كلمة) للجنة: 1) المواد التي تظهر مؤشرات تساهل أو تشدد ولماذا، 2) أي توزيع غير طبيعي (ثنائي القمة، تكدس عند حد النجاح يوحي بتعديل يدوي، تباين منخفض)، 3) توصيات إجرائية محددة. لا تستخدم تنسيق Markdown، استخدم أسطراً مرقمة بسيطة.`,{onText:({text})=>{UI.ai=text;sched()}});UI.ai=out.text}catch(e){UI.ai='';toast(e.code==='rate_limited'?'طلبات كثيرة، أعد المحاولة بعد قليل':'تعذر التحليل الذكي الآن','bad')}UI.aiBusy=false;render()};
 ACT.wipe=async()=>{UI.cdel='';for(const c of COLLS){for(const id of [...S[c].keys()]){if(MODE==='cloud')await db.collection(c).doc(id).delete();S[c].delete(id)}}saveLocal();if(MODE==='local')try{localStorage.removeItem(LKEY)}catch(e){}toast('مُسحت كل البيانات');render()};
+ACT.syncstruct=async()=>{
+  if(MODE==='fb'){
+    if(!IS_TOP)throw new Error('تعديل هيكل الجامعة لمدير النظام أو رئيس الجامعة.');
+    const ops=planStructure(RAW.colleges,RAW.departments);if(!ops.length)return toast('الهيكل مكتمل');
+    const b=FB.writeBatch(FB.db);ops.forEach(o=>b.set(FB.doc(FB.db,o.c,o.id),o.data,{merge:true}));await settle(b.commit());
+    await log('مزامنة هيكل الجامعة',ops.map(o=>o.label).join('، '));toast(`أُضيف ${ops.length} سجل إلى هيكل الجامعة`);return}
+  const dm=new Map(arr('depts').map(d=>[d.id,{name:d.name,collegeId:d.college?'x':''}]));
+  const cname=Object.fromEntries(UNIV_STRUCT.map(c=>[c.id,c.name]));
+  const ops=planStructure(new Map(),dm).filter(o=>o.c==='departments');
+  const items=ops.map(o=>o.link?{c:'depts',id:o.id,data:{...S.depts.get(o.id),college:cname[o.data.collegeId]||''}}:{c:'depts',id:o.id,data:{name:o.data.name,code:o.id,college:cname[o.data.collegeId]||''}});
+  if(!items.length)return toast('الهيكل مكتمل');
+  await bulk(items);await log('مزامنة هيكل الجامعة',`${items.length} قسم`);toast(`أُضيف ${items.length} قسم`)};
 ACT.backup=()=>{const o={app:'kontrol',v:2,at:new Date().toISOString()};COLLS.forEach(c=>o[c]=arr(c));download(`kontrol-backup-${new Date().toISOString().slice(0,10)}.json`,JSON.stringify(o,null,1))};
 ACT.sample=async()=>{await loadSample();toast('حُمّلت البيانات التجريبية');go('dash')};
 

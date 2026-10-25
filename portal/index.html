@@ -1,0 +1,1763 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>جامعة المعقل الدولية · بوابة قسم هندسة الأمن السيبراني</title>
+
+  <!-- ===== PWA: تطبيق قابل للتثبيت على أندرويد وآيفون والكمبيوتر ===== -->
+  <meta name="description" content="البوابة الموحدة لقسم هندسة الأمن السيبراني - جامعة المعقل الدولية">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0C1224">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="بوابة المعقل">
+  <meta name="application-name" content="المعقل">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700;800&family=Orbitron:wght@600;800;900&family=Readex+Pro:wght@400;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS (compiled locally for speed & offline) -->
+  <link rel="stylesheet" href="app.css">
+  <!-- QRCode.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+
+  <style>
+    /* =========================================================
+       THEME VARIABLES: VIBRANT IMPERIAL GOLD (LIGHT) & OBSIDIAN (DARK)
+       ========================================================= */
+    :root {
+      /* LIGHT MODE: Luminous & Rich 24K Gold Ambience */
+      --page-bg: radial-gradient(circle at 50% 12%, #FFFDF7 0%, #FEF8E7 40%, #FCEFC7 80%, #F9E4A6 100%);
+      --text-primary: #0A0F1D;
+      --text-secondary: #374151;
+      --glass-surface: rgba(255, 255, 255, 0.88);
+      --glass-border: rgba(217, 119, 6, 0.4);
+      --glass-shadow: 0 16px 36px -10px rgba(180, 83, 9, 0.22);
+      --grid-stroke: rgba(217, 119, 6, 0.08);
+      --hud-bg: rgba(254, 243, 199, 0.95);
+      --hud-border: #D97706;
+      --hud-num-bg: #FFFFFF;
+      --hud-num-text: #92400E;
+      --canvas-node: 217, 119, 6;
+      --canvas-link: 245, 158, 11;
+    }
+
+    .dark {
+      /* DARK MODE: Deep Obsidian Navy & Cyber Radiance */
+      --page-bg: radial-gradient(circle at 50% 15%, #0D1428 0%, #060A17 55%, #02040A 100%);
+      --text-primary: #F8FAFC;
+      --text-secondary: #94A3B8;
+      --glass-surface: rgba(13, 20, 36, 0.88);
+      --glass-border: rgba(245, 158, 11, 0.28);
+      --glass-shadow: 0 20px 45px -12px rgba(0, 0, 0, 0.65);
+      --grid-stroke: rgba(245, 158, 11, 0.05);
+      --hud-bg: rgba(6, 10, 23, 0.9);
+      --hud-border: #D97706;
+      --hud-num-bg: #030712;
+      --hud-num-text: #FDE047;
+      --canvas-node: 250, 204, 21;
+      --canvas-link: 14, 165, 233;
+    }
+
+    body {
+      background: var(--page-bg);
+      color: var(--text-primary);
+      font-family: 'Cairo', sans-serif;
+      min-height: 100vh;
+      transition: background 0.4s ease, color 0.4s ease;
+      overflow-x: hidden;
+    }
+
+    /* Interactive Cyber Nodes Canvas */
+    #cyberCanvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.75;
+    }
+
+    /* Matrix Geometric Grid */
+    .cyber-grid-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      background-image: 
+        linear-gradient(to right, var(--grid-stroke) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid-stroke) 1px, transparent 1px);
+      background-size: 34px 34px;
+    }
+
+    /* Ambient Warm Glow in Hero */
+    .gold-spotlight {
+      background: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.25) 0%, transparent 70%);
+    }
+
+    /* Glass Panels */
+    .glass-box {
+      background: var(--glass-surface);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1.5px solid var(--glass-border);
+      box-shadow: var(--glass-shadow);
+      transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .glass-box:hover {
+      transform: translateY(-4px);
+      border-color: #D97706;
+      box-shadow: 0 24px 44px -8px rgba(217, 119, 6, 0.32);
+    }
+
+    /* Buttons with 3D Depth */
+    .btn-gold {
+      background: linear-gradient(135deg, #F59E0B 0%, #D97706 50%, #B45309 100%);
+      color: #FFFFFF;
+      font-weight: 800;
+      box-shadow: 0 4px 18px rgba(217, 119, 6, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+      transition: all 0.2s ease;
+    }
+    .btn-gold:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.08);
+      box-shadow: 0 8px 24px rgba(217, 119, 6, 0.55);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.05); }
+    ::-webkit-scrollbar-thumb { background: #D97706; border-radius: 4px; }
+
+    /* Scanline FX */
+    @keyframes scan {
+      0% { top: 0%; opacity: 0; }
+      50% { opacity: 0.85; }
+      100% { top: 100%; opacity: 0; }
+    }
+    /* ===== App mode (PWA) ===== */
+    html { -webkit-tap-highlight-color: transparent; scroll-behavior: smooth; }
+    header { padding-top: max(0.625rem, env(safe-area-inset-top)); }
+    .app-tabbar { display: none; }
+    @media (display-mode: standalone), (display-mode: window-controls-overlay) {
+      body { padding-bottom: calc(72px + env(safe-area-inset-bottom)); user-select: none; }
+      body input, body .select-all { user-select: text; }
+      .hide-in-app { display: none !important; }
+    }
+    @media (max-width: 767px) {
+      .app-tabbar { display: flex; }
+      body { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+    }
+    .app-tabbar a, .app-tabbar button { -webkit-touch-callout: none; }
+    @keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .sheet-up { animation: sheetUp .3s cubic-bezier(.16,1,.3,1); }
+
+    /* ===== Live service status ===== */
+    .status-dot { width: .55rem; height: .55rem; border-radius: 9999px; background: #94A3B8; display: inline-block; flex-shrink: 0; transition: background .3s, box-shadow .3s; }
+    [data-state="checking"] .status-dot { animation: stPulse 1.1s ease-in-out infinite; }
+    [data-state="ok"] .status-dot { background: #10B981; box-shadow: 0 0 0 3px rgba(16,185,129,.22); }
+    [data-state="down"] .status-dot { background: #F43F5E; box-shadow: 0 0 0 3px rgba(244,63,94,.22); }
+    [data-state="offline"] .status-dot { background: #F59E0B; box-shadow: 0 0 0 3px rgba(245,158,11,.22); }
+    @keyframes stPulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+
+    .scanner-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #F59E0B, #0284C7, transparent);
+      animation: scan 4s linear infinite;
+    }
+  </style>
+</head>
+
+<body class="relative selection:bg-amber-500 selection:text-white">
+
+  <!-- Interactive Matrix & Cyber Mesh Canvas -->
+  <canvas id="cyberCanvas"></canvas>
+  <div class="cyber-grid-overlay"></div>
+
+  <!-- Toast Notification System -->
+  <div id="toast" class="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-3 bg-slate-950 text-amber-300 border-2 border-amber-500 px-5 py-3 rounded-2xl shadow-2xl font-display text-sm font-bold">
+    <svg class="w-5 h-5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+    <span id="toastMsg">تم النسخ بنجاح</span>
+  </div>
+
+  <div id="top" class="relative z-10 flex flex-col min-h-screen">
+
+    <!-- =========================================================
+         TOP SYSTEM TELEMETRY & ADVANCED CYBER CHRONOMETER
+         ========================================================= -->
+    <header class="w-full border-b border-amber-600/30 bg-white/75 dark:bg-[#060A17]/85 backdrop-blur-md px-4 py-2.5 transition-colors duration-300">
+      <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+        
+        <!-- Live Service Status (فحص حقيقي لحالة الخدمات) -->
+        <a href="index.html#ex" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-900 dark:text-amber-300 text-xs font-bold shadow-sm" data-status="overall" data-state="checking" title="فحص مباشر لحالة منصة الاختبارات وتطبيق الويب ونظام الكنترول">
+          <span class="status-dot"></span>
+          <span class="status-text">جارٍ فحص الخدمات…</span>
+        </a>
+
+        <!-- ENHANCED CYBER CHRONOMETER HUD (الساعة الرقمية المطورة) -->
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-2xl border border-amber-500/50 shadow-md transition-all" style="background: var(--hud-bg);">
+          
+          <div class="flex items-center gap-1.5 text-xs font-bold text-amber-900 dark:text-amber-400 font-display pl-1 border-l border-amber-500/30">
+            <svg class="w-4 h-4 text-amber-600 dark:text-amber-400 animate-spin-slow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <circle cx="12" cy="12" r="9" stroke-width="2"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 2"/>
+            </svg>
+            <span class="hidden sm:inline">توقيت البصرة</span>
+          </div>
+
+          <!-- Digital Digits Frame -->
+          <div class="flex items-center gap-1 font-hud" dir="ltr">
+            <!-- Hours Box -->
+            <div class="px-2 py-0.5 rounded-lg border border-amber-500/30 font-bold text-sm sm:text-base tracking-wider shadow-inner" style="background: var(--hud-num-bg); color: var(--hud-num-text);" id="clockHours">00</div>
+            <span class="text-amber-600 dark:text-amber-400 font-bold animate-pulse">:</span>
+            <!-- Minutes Box -->
+            <div class="px-2 py-0.5 rounded-lg border border-amber-500/30 font-bold text-sm sm:text-base tracking-wider shadow-inner" style="background: var(--hud-num-bg); color: var(--hud-num-text);" id="clockMinutes">00</div>
+            <span class="text-amber-600 dark:text-amber-400 font-bold animate-pulse">:</span>
+            <!-- Seconds Box -->
+            <div class="px-1.5 py-0.5 rounded-lg border border-amber-500/30 font-bold text-xs sm:text-sm tracking-wider shadow-inner text-amber-600 dark:text-amber-400" style="background: var(--hud-num-bg);" id="clockSeconds">00</div>
+            <!-- AM/PM Indicator -->
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500 text-white font-sans" id="clockPeriod">م</span>
+          </div>
+
+          <!-- Live Date & GMT Badge -->
+          <div class="hidden md:flex items-center gap-1.5 pr-2 border-r border-amber-500/30 text-xs font-bold text-gray-800 dark:text-gray-200">
+            <span id="clockDate">الجمعة، البصرة</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-600/15 text-amber-800 dark:text-amber-300 font-mono font-extrabold">GMT+3</span>
+          </div>
+
+        </div>
+
+        <div class="flex items-center gap-2">
+        <!-- Exam Committee / Kontrol Button -->
+        <a href="https://drdshsw2022-byte.github.io/almaaqal-kontrol/kontrol/" target="_blank" rel="noopener" class="btn-gold flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs" aria-label="نظام اللجنة الامتحانية">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+          <span>اللجنة الامتحانية</span>
+        </a>
+        <!-- Install App Button (PWA) -->
+        <button id="installBtn" type="button" class="hide-in-app hidden btn-gold items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs" aria-label="تثبيت التطبيق">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          <span>تثبيت البوابة</span>
+        </button>
+        <!-- Theme Toggle Button -->
+        <button id="themeToggle" type="button" class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-amber-500/40 bg-amber-500/20 hover:bg-amber-500/30 text-amber-950 dark:text-amber-200 font-bold text-xs transition active:scale-95 shadow-sm" aria-label="تبديل النمط">
+          <svg id="sunIcon" class="w-4 h-4 text-amber-400 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          <svg id="moonIcon" class="w-4 h-4 text-amber-900" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+          <span id="themeLabel">الوضع الليلي</span>
+        </button>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- =========================================================
+         HERO SECTION: OFFICIAL VECTOR CREST & UNIVERSITY IDENTITY
+         ========================================================= -->
+    <div class="relative w-full border-b border-amber-600/30 bg-gradient-to-r from-[#0C1224] via-[#101830] to-[#0A0E1C] text-white overflow-hidden shadow-xl">
+      <!-- Ambient Lights Inside Hero -->
+      <div class="absolute inset-0 gold-spotlight pointer-events-none"></div>
+      
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 relative z-10">
+        <div class="flex flex-col md:flex-row items-center gap-6 md:gap-10">
+          
+          <!-- OFFICIAL AL-MAAQAL INTERNATIONAL VECTOR CREST (شعار جامعة المعقل الدولية الأصيل) -->
+          <div class="relative group flex-shrink-0">
+            <div class="absolute -inset-2 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 rounded-full blur-md opacity-70 group-hover:opacity-100 transition duration-500"></div>
+            
+            <div class="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full p-2 bg-[#060A17] border-2 border-amber-400 shadow-2xl flex items-center justify-center overflow-hidden">
+              <div class="scanner-line"></div>
+              
+              <!-- Master SVG Crest: Landmark Tower, Basra Fronds & Shatt Al-Arab Waves -->
+              <svg class="w-full h-full drop-shadow-md select-none" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="crestGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#FFFBEB"/>
+                    <stop offset="30%" stop-color="#FBBF24"/>
+                    <stop offset="65%" stop-color="#D97706"/>
+                    <stop offset="100%" stop-color="#854D0E"/>
+                  </linearGradient>
+
+                  <linearGradient id="crestNavyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#141E38"/>
+                    <stop offset="100%" stop-color="#060A17"/>
+                  </linearGradient>
+
+                  <!-- Curved Arc Paths for Circular Inscription -->
+                  <path id="arcArabicCrest" d="M 85 250 A 165 165 0 0 1 415 250" fill="none" />
+                  <path id="arcEnglishCrest" d="M 415 250 A 165 165 0 0 1 85 250" fill="none" />
+                </defs>
+
+                <!-- Outer Gold Beaded Orbit -->
+                <circle cx="250" cy="250" r="236" stroke="url(#crestGoldGrad)" stroke-width="3" stroke-dasharray="6 4" opacity="0.85"/>
+                <!-- Outer Ring -->
+                <circle cx="250" cy="250" r="226" stroke="url(#crestGoldGrad)" stroke-width="4.5"/>
+                <!-- Circular Ribbon Track -->
+                <circle cx="250" cy="250" r="192" fill="url(#crestNavyGrad)" stroke="url(#crestGoldGrad)" stroke-width="3"/>
+                <!-- Inner Core Circle -->
+                <circle cx="250" cy="250" r="148" fill="url(#crestNavyGrad)" stroke="url(#crestGoldGrad)" stroke-width="3.5"/>
+                <circle cx="250" cy="250" r="142" stroke="url(#crestGoldGrad)" stroke-width="1.2" stroke-dasharray="4 3"/>
+
+                <!-- Circular Text: Arabic Upper Arc -->
+                <text fill="url(#crestGoldGrad)" font-family="'Cairo', sans-serif" font-size="28" font-weight="900" letter-spacing="4">
+                  <textPath href="#arcArabicCrest" startOffset="50%" text-anchor="middle">
+                    جامعة المعقل الدولية
+                  </textPath>
+                </text>
+
+                <!-- Circular Text: English Lower Arc -->
+                <text fill="url(#crestGoldGrad)" font-family="'Cairo', sans-serif" font-size="16.5" font-weight="800" letter-spacing="2.4">
+                  <textPath href="#arcEnglishCrest" startOffset="50%" text-anchor="middle">
+                    AL-MAAQAL INTERNATIONAL UNIVERSITY
+                  </textPath>
+                </text>
+
+                <!-- Separator Stars -->
+                <polygon points="76,250 80,242 89,242 82,247 85,255 78,250 71,255 74,247 67,242 76,242" fill="url(#crestGoldGrad)"/>
+                <polygon points="424,250 428,242 437,242 430,247 433,255 426,250 419,255 422,247 415,242 424,242" fill="url(#crestGoldGrad)"/>
+
+                <!-- 1. Rising Sun of Knowledge Beams -->
+                <g opacity="0.9">
+                  <circle cx="250" cy="210" r="42" fill="#FBBF24"/>
+                  <line x1="250" y1="152" x2="250" y2="132" stroke="url(#crestGoldGrad)" stroke-width="3" stroke-linecap="round"/>
+                  <line x1="216" y1="166" x2="202" y2="150" stroke="url(#crestGoldGrad)" stroke-width="3" stroke-linecap="round"/>
+                  <line x1="284" y1="166" x2="298" y2="150" stroke="url(#crestGoldGrad)" stroke-width="3" stroke-linecap="round"/>
+                </g>
+
+                <!-- 2. Al-Maaqal Historical Port / Clock & Rail Landmark Tower Facade -->
+                <g filter="drop-shadow(0 4px 6px rgba(0,0,0,0.6))">
+                  <!-- Pediment Roof / Landmark Spire -->
+                  <polygon points="250,162 178,206 322,206" fill="url(#crestNavyGrad)" stroke="url(#crestGoldGrad)" stroke-width="4" stroke-linejoin="round"/>
+                  <polygon points="250,172 192,202 308,202" fill="url(#crestGoldGrad)" opacity="0.35"/>
+                  <circle cx="250" cy="192" r="6" fill="url(#crestGoldGrad)"/>
+
+                  <rect x="174" y="206" width="152" height="10" rx="2" fill="url(#crestGoldGrad)"/>
+
+                  <!-- 5 Pillars of Academic Rigor -->
+                  <rect x="182" y="218" width="12" height="66" rx="2" fill="url(#crestGoldGrad)"/>
+                  <rect x="210" y="218" width="12" height="66" rx="2" fill="url(#crestGoldGrad)"/>
+                  <rect x="244" y="218" width="12" height="66" rx="2" fill="url(#crestGoldGrad)"/>
+                  <rect x="278" y="218" width="12" height="66" rx="2" fill="url(#crestGoldGrad)"/>
+                  <rect x="306" y="218" width="12" height="66" rx="2" fill="url(#crestGoldGrad)"/>
+
+                  <!-- Foundations / Steps -->
+                  <rect x="172" y="284" width="156" height="8" rx="2" fill="url(#crestGoldGrad)"/>
+                  <rect x="166" y="292" width="168" height="8" rx="2" fill="url(#crestGoldGrad)"/>
+                  <rect x="160" y="300" width="180" height="9" rx="2" fill="url(#crestGoldGrad)"/>
+                </g>
+
+                <!-- 3. Basra Date Palm Fronds Flanking Landmark -->
+                <g fill="url(#crestGoldGrad)">
+                  <path d="M 170 330 C 150 310 145 270 148 245 C 154 265 168 285 180 300 Z"/>
+                  <circle cx="146" cy="270" r="4.5"/>
+                  <circle cx="156" cy="292" r="5"/>
+                  <circle cx="168" cy="312" r="5.5"/>
+
+                  <path d="M 330 330 C 350 310 355 270 352 245 C 346 265 332 285 320 300 Z"/>
+                  <circle cx="354" cy="270" r="4.5"/>
+                  <circle cx="344" cy="292" r="5"/>
+                  <circle cx="332" cy="312" r="5.5"/>
+                </g>
+
+                <!-- 4. Lower Banner: 2020 Establishment -->
+                <path d="M 185 330 L 250 338 L 315 330 L 325 352 L 250 364 L 175 352 Z" fill="url(#crestNavyGrad)" stroke="url(#crestGoldGrad)" stroke-width="3" stroke-linejoin="round"/>
+                <text x="250" y="354" font-family="'Cairo', sans-serif" font-size="18" font-weight="900" fill="url(#crestGoldGrad)" text-anchor="middle" letter-spacing="3">
+                  2020 · ١٤٤١
+                </text>
+
+                <!-- 5. Shatt Al-Arab Waves -->
+                <path d="M 198 376 Q 224 386 250 376 T 302 376" fill="none" stroke="#0ea5e9" stroke-width="3" stroke-linecap="round"/>
+                <path d="M 212 384 Q 231 392 250 384 T 288 384" fill="none" stroke="url(#crestGoldGrad)" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+
+            </div>
+          </div>
+
+          <!-- Academic Branding Details -->
+          <div class="flex-1 text-center md:text-right space-y-2">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 text-xs font-bold">
+              <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+              <span>كلية الهندسة · قسم هندسة الأمن السيبراني · المرحلة الثالثة</span>
+            </div>
+
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-display font-extrabold text-white tracking-tight leading-tight">
+              جامعة المعقل الدولية
+              <span class="block text-transparent bg-clip-text bg-gradient-to-l from-amber-400 via-amber-200 to-yellow-400 text-2xl sm:text-3xl lg:text-4xl mt-1">
+                البوابة التقنية الموحدة والأنظمة الذكية
+              </span>
+            </h1>
+
+            <p class="text-gray-300 text-sm sm:text-base max-w-2xl leading-relaxed font-sans font-medium">
+              البصرة · النظام الجامعي السحابي المتكامل لمتابعة الحضور، المحاضرات، والدرجات، إضافة إلى منصة الاختبارات الإلكترونية وإعلانات القسم.
+            </p>
+
+            <div class="flex flex-wrap items-center justify-center md:justify-start gap-4 pt-1 text-xs font-mono text-gray-300">
+              <span class="flex items-center gap-1.5 bg-black/40 px-3 py-1.5 rounded-lg border border-amber-500/30">
+                <svg class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                Al-Maaqal International University · Basra
+              </span>
+              <span class="flex items-center gap-1.5 bg-black/40 px-3 py-1.5 rounded-lg border border-amber-500/30">
+                <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                Cyber Security Engineering
+              </span>
+              <a href="https://drdshsw2022-byte.github.io/almaaqal-kontrol/kontrol/" target="_blank" rel="noopener" class="btn-gold flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-sans text-xs">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                نظام اللجنة الامتحانية (الكنترول)
+              </a>
+            </div>
+          </div>
+
+          <!-- Live Service Status Panel -->
+          <div class="hidden lg:flex flex-col gap-2.5 p-4 rounded-2xl bg-black/50 border border-amber-500/40 min-w-[230px] shadow-2xl">
+            <span class="text-xs text-amber-400 font-bold text-center">حالة الخدمات الآن</span>
+            <div class="flex items-center justify-between gap-3 text-sm text-gray-200" data-status="exam" data-state="checking">
+              <span class="flex items-center gap-2"><span class="status-dot"></span>منصة الاختبارات</span>
+              <span class="status-text text-xs text-gray-400">فحص…</span>
+            </div>
+            <div class="flex items-center justify-between gap-3 text-sm text-gray-200" data-status="web" data-state="checking">
+              <span class="flex items-center gap-2"><span class="status-dot"></span>تطبيق الويب</span>
+              <span class="status-text text-xs text-gray-400">فحص…</span>
+            </div>
+            <div class="flex items-center justify-between gap-3 text-sm text-gray-200" data-status="kontrol" data-state="checking">
+              <span class="flex items-center gap-2"><span class="status-dot"></span>نظام الكنترول</span>
+              <span class="status-text text-xs text-gray-400">فحص…</span>
+            </div>
+            <div class="flex items-center justify-between gap-3 text-sm text-gray-200" data-status="net" data-state="checking">
+              <span class="flex items-center gap-2"><span class="status-dot"></span>اتصالك بالإنترنت</span>
+              <span class="status-text text-xs text-gray-400">فحص…</span>
+            </div>
+            <div class="flex items-center justify-between pt-2 mt-0.5 border-t border-white/10 text-[11px] text-gray-400">
+              <span>آخر فحص: <span data-status-time>—</span></span>
+              <button type="button" onclick="checkServices()" class="text-amber-300 hover:text-amber-200 font-bold">إعادة الفحص</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================
+         MAIN WORKSPACE: APPLICATION HUBS & EXAM GATEWAY
+         ========================================================= -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-14 flex-1 w-full">
+
+      <!-- SECTION 1: ANNOUNCEMENTS & UPCOMING EXAMS (data: announcements.json) -->
+      <section id="news" aria-labelledby="news-heading" class="space-y-6 scroll-mt-20">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b-2 border-amber-600/30">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded text-xs font-bold font-mono tracking-wider bg-rose-500/15 text-rose-800 dark:text-rose-300 border border-rose-500/40">01. NEWS</span>
+              <span class="text-xs font-bold text-gray-700 dark:text-gray-300">لوحة القسم</span>
+            </div>
+            <h2 id="news-heading" class="text-2xl sm:text-3xl font-display font-extrabold text-gray-900 dark:text-white">إعلانات القسم ومواعيد الامتحانات</h2>
+            <p class="text-sm text-gray-700 dark:text-gray-300 font-medium max-w-2xl">كل ما يخص المرحلة الثالثة في مكان واحد. تُحدَّث هذه اللوحة من مكتب القسم.</p>
+          </div>
+          <div class="flex items-center gap-2 text-xs font-bold text-gray-700 dark:text-gray-300 bg-white/70 dark:bg-black/40 px-3.5 py-1.5 rounded-xl border border-amber-500/40 shadow-sm self-start sm:self-auto">
+            <svg class="w-4 h-4 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.6m14.8 2A8 8 0 004.6 9m0 0H9m11 11v-5h-.6m0 0a8 8 0 01-15.4-2m15.4 2H15"/></svg>
+            <span>آخر مزامنة: <span id="newsUpdated">…</span></span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          <!-- Upcoming exams -->
+          <div class="lg:col-span-2 glass-box rounded-3xl p-5 sm:p-6 space-y-4">
+            <h3 class="flex items-center gap-2 text-lg font-display font-extrabold text-gray-900 dark:text-white">
+              <span class="w-9 h-9 rounded-xl bg-sky-500/20 text-sky-700 dark:text-sky-300 flex items-center justify-center border border-sky-500/30">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              </span>
+              المواعيد القادمة
+            </h3>
+            <ul id="examsList" class="space-y-3" aria-live="polite">
+              <li class="text-sm text-gray-500 dark:text-gray-400 py-6 text-center">جارٍ التحميل…</li>
+            </ul>
+          </div>
+
+          <!-- Announcements -->
+          <div class="lg:col-span-3 glass-box rounded-3xl p-5 sm:p-6 space-y-4">
+            <h3 class="flex items-center gap-2 text-lg font-display font-extrabold text-gray-900 dark:text-white">
+              <span class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-800 dark:text-amber-300 flex items-center justify-center border border-amber-500/30">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.9V19a1.8 1.8 0 01-3.4.8l-2.2-6.3M18 13a3 3 0 100-6M5.4 13.5A4 4 0 017 6h1.8c4 0 7.6-1.2 9.2-3v16c-1.6-1.8-5.1-3-9.2-3H7a4 4 0 01-1.6-.3z"/></svg>
+              </span>
+              إعلانات القسم
+            </h3>
+            <ul id="newsList" class="space-y-3" aria-live="polite">
+              <li class="text-sm text-gray-500 dark:text-gray-400 py-6 text-center">جارٍ التحميل…</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 2: THE APP (one app on every device) -->
+      <section id="dl" aria-labelledby="dl-heading" class="space-y-6 scroll-mt-20">
+        
+        <!-- Section Header -->
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b-2 border-amber-600/30">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded text-xs font-bold font-mono tracking-wider bg-amber-500/20 text-amber-900 dark:text-amber-300 border border-amber-500/40">
+                02. THE APP
+              </span>
+              <span class="text-xs font-bold text-gray-700 dark:text-gray-300">تطبيق واحد لكل الأجهزة</span>
+            </div>
+            <h2 id="dl-heading" class="text-2xl sm:text-3xl font-display font-extrabold text-gray-900 dark:text-white">
+              تحميل وتثبيت التطبيق الذكي
+            </h2>
+            <p class="text-sm text-gray-700 dark:text-gray-300 font-medium max-w-2xl">
+              تطبيق جامعة المعقل لمتابعة المحاضرات، الحضور الذكي، إعلان الدرجات، وإدارة الشيتات. على أندرويد كتطبيق مستقل، وعلى آيفون وآيباد والكمبيوتر عبر نسخة الويب، بالحساب نفسه.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2 text-xs font-bold text-gray-700 dark:text-gray-300 bg-white/70 dark:bg-black/40 px-3.5 py-1.5 rounded-xl border border-amber-500/40 shadow-sm self-start sm:self-auto">
+            <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            <span id="apkMeta">ملف أندرويد · almaqal-12.apk</span>
+          </div>
+        </div>
+
+        <!-- 3 Platform Cards: Android, iOS, Desktop/Web -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+          <!-- 1. Android Native Card (Vibrant Emerald Accent) -->
+          <article class="glass-box rounded-3xl p-6 sm:p-7 flex flex-col justify-between border-t-4 border-t-emerald-500">
+            <div class="space-y-5">
+              <div class="flex items-center justify-between">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center shadow-lg shadow-emerald-600/30 flex-shrink-0">
+                  <svg class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17.6 9.48l1.84-3.18a.38.38 0 0 0-.66-.38l-1.86 3.22A11.4 11.4 0 0 0 12 8.1a11.4 11.4 0 0 0-4.92 1.04L5.22 5.92a.38.38 0 0 0-.66.38L6.4 9.48A10.8 10.8 0 0 0 1 18h22a10.8 10.8 0 0 0-5.4-8.52zM7 15.25a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5zm10 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5z"/>
+                  </svg>
+                </div>
+                <span class="text-xs font-mono font-extrabold text-emerald-800 dark:text-emerald-300 bg-emerald-500/20 px-2.5 py-1 rounded-full border border-emerald-500/40">
+                  APK DIRECT
+                </span>
+              </div>
+
+              <div>
+                <h3 class="text-xl font-display font-extrabold text-gray-900 dark:text-white">تطبيق أندرويد</h3>
+                <p class="text-xs font-mono text-gray-600 dark:text-gray-400 font-bold" dir="ltr">Android 6+ · APK</p>
+              </div>
+
+              <ol class="space-y-2.5 text-xs text-gray-800 dark:text-gray-200 font-semibold pr-1">
+                <li class="flex items-start gap-2.5">
+                  <span class="w-5 h-5 rounded-full bg-emerald-600 text-white font-mono text-[11px] font-bold flex items-center justify-center shrink-0">1</span>
+                  <span>اضغط زر «تحميل التطبيق APK» المباشر أدناه.</span>
+                </li>
+                <li class="flex items-start gap-2.5">
+                  <span class="w-5 h-5 rounded-full bg-emerald-600 text-white font-mono text-[11px] font-bold flex items-center justify-center shrink-0">2</span>
+                  <span>افتح الملف وثبته (فعّل خيار التثبيت من هذا المصدر).</span>
+                </li>
+                <li class="flex items-start gap-2.5">
+                  <span class="w-5 h-5 rounded-full bg-emerald-600 text-white font-mono text-[11px] font-bold flex items-center justify-center shrink-0">3</span>
+                  <span>سجّل الدخول بحسابك الجامعي (يدعم NFC وبطاقة الهوية).</span>
+                </li>
+              </ol>
+            </div>
+
+            <div class="pt-6 space-y-3">
+              <a href="https://it-basra.com/amu/almaqal-12.apk" target="_blank" rel="noopener" class="w-full flex items-center justify-center gap-2.5 px-5 py-3.5 rounded-xl font-display font-bold text-sm bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white shadow-lg shadow-emerald-700/30 transition transform active:scale-95">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                <span>تحميل التطبيق (almaqal-12.apk)</span>
+              </a>
+
+              <div class="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 pt-1 font-bold">
+                <span>رابط بديل:</span>
+                <a href="https://github.com/drdshsw2022-byte/almaaqal/releases/latest" target="_blank" rel="noopener" class="text-amber-700 dark:text-amber-400 hover:underline flex items-center gap-1 font-mono">
+                  GitHub Releases
+                  <svg class="w-3 h-3 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                </a>
+              </div>
+            </div>
+          </article>
+
+          <!-- 2. Apple iOS Card (Vibrant Cyan Accent) -->
+          <article class="glass-box rounded-3xl p-6 sm:p-7 flex flex-col justify-between border-t-4 border-t-sky-500">
+            <div class="space-y-5">
+              <div class="flex items-center justify-between">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-500 to-blue-700 text-white flex items-center justify-center shadow-lg shadow-sky-600/30 flex-shrink-0">
+                  <svg class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M16.37 12.6c-.02-2.3 1.88-3.4 1.96-3.46-1.07-1.56-2.73-1.77-3.32-1.8-1.41-.14-2.76.83-3.48.83-.72 0-1.82-.81-3-.79a4.43 4.43 0 0 0-3.74 2.27c-1.6 2.77-.41 6.86 1.15 9.1.76 1.1 1.67 2.33 2.86 2.29 1.15-.05 1.58-.74 2.97-.74s1.78.74 3 .72c1.23-.02 2.01-1.12 2.77-2.22.87-1.27 1.23-2.5 1.25-2.57-.03-.01-2.4-.92-2.42-3.63zM14.1 5.86A3.4 3.4 0 0 0 14.9 3.4a3.47 3.47 0 0 0-2.27 1.17 3.24 3.24 0 0 0-.82 2.37 2.87 2.87 0 0 0 2.29-1.08z"/>
+                  </svg>
+                </div>
+                <span class="text-xs font-mono font-extrabold text-sky-800 dark:text-sky-300 bg-sky-500/20 px-2.5 py-1 rounded-full border border-sky-500/40">
+                  WEB APP
+                </span>
+              </div>
+
+              <div>
+                <h3 class="text-xl font-display font-extrabold text-gray-900 dark:text-white">آيفون وآيباد</h3>
+                <p class="text-xs font-mono text-gray-600 dark:text-gray-400 font-bold" dir="ltr">iPhone · iPad OS · Safari</p>
+              </div>
+
+              <ol class="space-y-2.5 text-xs text-gray-800 dark:text-gray-200 font-semibold pr-1">
+                <li class="flex items-start gap-2.5">
+                  <span class="w-5 h-5 rounded-full bg-sky-600 text-white font-mono text-[11px] font-bold flex items-center justify-center shrink-0">1</span>
+                  <span>اضغط «فتح التطبيق في Safari» أدناه.</span>
+                </li>
+                <li class="flex items-start gap-2.5">
+                  <span class="w-5 h-5 rounded-full bg-sky-600 text-white font-mono text-[11px] font-bold flex items-center justify-center shrink-0">2</span>
+                  <span>انقر زر المشاركة <b class="text-sky-600 dark:text-sky-400">⬆</b> في أسفل الشاشة.</span>
+                </li>
+                <li class="flex items-start gap-2.5">
+                  <span class="w-5 h-5 rounded-full bg-sky-600 text-white font-mono text-[11px] font-bold flex items-center justify-center shrink-0">3</span>
+                  <span>اختر «إضافة إلى الشاشة الرئيسية» فيظهر كتطبيق.</span>
+                </li>
+              </ol>
+            </div>
+
+            <div class="pt-6 space-y-3">
+              <a href="https://drdshsw2022-byte.github.io/almaaqal/" target="_blank" rel="noopener" class="w-full flex items-center justify-center gap-2.5 px-5 py-3.5 rounded-xl font-display font-bold text-sm bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white shadow-lg shadow-sky-700/30 transition transform active:scale-95">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                <span>فتح التطبيق في Safari</span>
+              </a>
+
+              <div class="text-xs text-gray-600 dark:text-gray-400 text-center pt-1 font-bold">
+                يدعم التسجيل بمسح QR بالكاميرا أو بالمعرف
+              </div>
+            </div>
+          </article>
+
+          <!-- 3. Web & Desktop Card (Rich Gold Accent) -->
+          <article class="glass-box rounded-3xl p-6 sm:p-7 flex flex-col justify-between border-t-4 border-t-amber-500">
+            <div class="space-y-5">
+              <div class="flex items-center justify-between">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 text-white flex items-center justify-center shadow-lg shadow-amber-600/30 flex-shrink-0">
+                  <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <rect x="3" y="4" width="18" height="12" rx="2" stroke-width="2"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 20h8M12 16v4"/>
+                  </svg>
+                </div>
+                <span class="text-xs font-mono font-extrabold text-amber-900 dark:text-amber-300 bg-amber-500/20 px-2.5 py-1 rounded-full border border-amber-500/40">
+                  DESKTOP & WEB
+                </span>
+              </div>
+
+              <div>
+                <h3 class="text-xl font-display font-extrabold text-gray-900 dark:text-white">الحاسوب والويب</h3>
+                <p class="text-xs font-mono text-gray-600 dark:text-gray-400 font-bold" dir="ltr">Windows · macOS · Web</p>
+              </div>
+
+              <ol class="space-y-2.5 text-xs text-gray-800 dark:text-gray-200 font-semibold pr-1">
+                <li class="flex items-start gap-2.5">
+                  <span class="w-5 h-5 rounded-full bg-amber-600 text-white font-mono text-[11px] font-bold flex items-center justify-center shrink-0">1</span>
+                  <span>افتح المنصة من أي متصفح (Chrome أو Edge).</span>
+                </li>
+                <li class="flex items-start gap-2.5">
+                  <span class="w-5 h-5 rounded-full bg-amber-600 text-white font-mono text-[11px] font-bold flex items-center justify-center shrink-0">2</span>
+                  <span>يمكن تثبيته بالنقر على زر التثبيت في شريط العنوان.</span>
+                </li>
+                <li class="flex items-start gap-2.5">
+                  <span class="w-5 h-5 rounded-full bg-amber-600 text-white font-mono text-[11px] font-bold flex items-center justify-center shrink-0">3</span>
+                  <span>مناسب للإدارة ورفع شيتات Excel والجداول والدرجات.</span>
+                </li>
+              </ol>
+            </div>
+
+            <div class="pt-6 space-y-3">
+              <a href="https://drdshsw2022-byte.github.io/almaaqal/" target="_blank" rel="noopener" class="btn-gold w-full flex items-center justify-center gap-2.5 px-5 py-3.5 rounded-xl font-display font-bold text-sm">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+                <span>الدخول عبر متصفح الويب</span>
+              </a>
+
+              <div class="text-xs text-gray-600 dark:text-gray-400 text-center pt-1 font-mono font-bold">
+                يعمل أونلاين دون الحاجة لأي تثبيت مسبق
+              </div>
+            </div>
+          </article>
+
+        </div>
+
+        <!-- High Contrast QR Code Strip -->
+        <div class="glass-box rounded-3xl p-6 border-dashed border-2 border-amber-600/40">
+          <div class="flex flex-col lg:flex-row items-center justify-between gap-6">
+            
+            <div class="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-right">
+              <!-- QR Frame -->
+              <div class="p-3 bg-white rounded-2xl shadow-xl shrink-0 border-2 border-amber-500 flex items-center justify-center">
+                <div id="qrAppCanvas" class="w-28 h-28 flex items-center justify-center"></div>
+              </div>
+
+              <div class="space-y-1.5">
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/40 text-amber-900 dark:text-amber-300 text-xs font-mono font-bold">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                  QR CODE
+                </div>
+                <h4 class="text-lg font-display font-bold text-gray-900 dark:text-white">امسح الكود بكاميرا الهاتف للفتح المباشر</h4>
+                <p class="text-xs text-gray-700 dark:text-gray-300 max-w-xl font-medium leading-relaxed">
+                  وجّه كاميرا هاتفك لرمز الـ QR لتفتح التطبيق مباشرة، أو انسخ الرابط وأرسله لزملائك.
+                </p>
+              </div>
+            </div>
+
+            <!-- URL Copy Pill -->
+            <div class="w-full lg:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <div dir="ltr" class="min-w-0 bg-white dark:bg-[#070B19] border border-amber-500/40 px-4 py-2.5 rounded-xl font-mono text-xs text-gray-800 dark:text-amber-300 flex items-center gap-3 overflow-hidden shadow-inner">
+                <span class="text-gray-400 font-bold shrink-0">URL</span>
+                <span id="appUrlText" dir="ltr" class="truncate text-left font-semibold select-all">https://drdshsw2022-byte.github.io/almaaqal/</span>
+              </div>
+              <button onclick="copyToClipboard('appUrlText', 'تم نسخ رابط التطبيق بنجاح')" class="btn-gold px-5 py-2.5 rounded-xl font-display text-xs flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                نسخ الرابط
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+
+      <!-- SECTION 2: CYBER EXAMINATION PORTAL -->
+      <section id="ex" aria-labelledby="ex-heading" class="space-y-6 scroll-mt-20">
+        
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b-2 border-amber-600/30">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded text-xs font-bold font-mono tracking-wider bg-sky-500/20 text-sky-800 dark:text-sky-300 border border-sky-500/40">
+                03. EXAMS
+              </span>
+              <span class="text-xs font-bold text-gray-700 dark:text-gray-300">بوابة الاختبارات الإلكترونية</span>
+            </div>
+            <h2 id="ex-heading" class="text-2xl sm:text-3xl font-display font-extrabold text-gray-900 dark:text-white">
+              منصة الاختبارات الإلكترونية
+            </h2>
+            <p class="text-sm text-gray-700 dark:text-gray-300 font-medium max-w-2xl">
+              Preliminary Exams Platform · المرحلة الثالثة - قسم هندسة الأمن السيبراني
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-900 dark:text-amber-300 border border-amber-500/40 flex items-center gap-1.5" data-status="exam" data-state="checking">
+              <span class="status-dot"></span>
+              <span>منصة الاختبارات: <span class="status-text">جارٍ الفحص…</span></span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Examination Terminal Master Container -->
+        <div class="relative rounded-3xl overflow-hidden p-1.5 bg-gradient-to-br from-amber-500 via-amber-700 to-sky-600 shadow-2xl">
+          <div class="bg-[#0A0F20] text-white rounded-[22px] p-6 sm:p-10 relative overflow-hidden">
+            
+            <div class="flex items-center justify-between pb-5 mb-6 border-b border-white/10 font-mono text-xs text-gray-400">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span>
+                <span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span>
+                <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+                <span class="mr-2 text-gray-300 font-bold">it-basra.com/cyb.ces</span>
+              </div>
+              <div class="hidden sm:flex items-center gap-3">
+                <span class="flex items-center gap-1.5" data-status="exam" data-state="checking"><span class="status-dot"></span><span class="status-text">جارٍ الفحص…</span></span>
+                <span class="text-gray-600">|</span>
+                <span>زمن الاستجابة: <span data-status-ms="exam" dir="ltr">—</span></span>
+              </div>
+            </div>
+
+            <!-- Content Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+              
+              <!-- Instructions Area -->
+              <div class="lg:col-span-7 space-y-5">
+                <div class="space-y-2">
+                  <h3 class="text-2xl sm:text-3xl font-display font-extrabold text-white leading-tight">
+                    الدخول إلى منصة الاختبارات الإلكترونية
+                  </h3>
+                  <p class="text-gray-300 text-sm leading-relaxed">
+                    منظومة تقييم إلكترونية معتمدة لقسم هندسة الأمن السيبراني. تُفتح مباشرة في أي متصفح من أي جهاز ذكي أو حاسوب دون الحاجة لتطبيقات مساعدة.
+                  </p>
+                </div>
+
+                <div class="space-y-3 pt-1">
+                  <h4 class="text-xs font-mono uppercase tracking-wider text-amber-400 font-bold flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    تعليمات وضوابط الامتحان الإلكتروني
+                  </h4>
+
+                  <ul class="space-y-2.5 text-xs sm:text-sm text-gray-200">
+                    <li class="flex items-start gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
+                      <span class="p-1 rounded-lg bg-emerald-500/20 text-emerald-400 shrink-0 mt-0.5">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                      </span>
+                      <span><strong class="text-white">الاستقرار الشبكي:</strong> احرص على الاتصال بشبكة إنترنت مستقرة وموثوقة قبل بدء الجلسة الامتحانية.</span>
+                    </li>
+
+                    <li class="flex items-start gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
+                      <span class="p-1 rounded-lg bg-amber-500/20 text-amber-400 shrink-0 mt-0.5">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                      </span>
+                      <span><strong class="text-white">بيانات الدخول:</strong> استخدم الرمز التعريفي وكلمة المرور المسلّمة لك رسمياً من قبل أستاذ المادة.</span>
+                    </li>
+
+                    <li class="flex items-start gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
+                      <span class="p-1 rounded-lg bg-rose-500/20 text-rose-400 shrink-0 mt-0.5">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                      </span>
+                      <span><strong class="text-white">تنبيه الحماية:</strong> يمنع تحديث الصفحة أو إغلاق التبويب حتى اكتمال إرسال كافة الإجابات بنجاح.</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Exam Launch Box -->
+              <div class="lg:col-span-5 flex flex-col gap-4 p-6 sm:p-7 rounded-2xl bg-black/60 border border-amber-500/40 shadow-2xl">
+                <div class="text-center space-y-1">
+                  <div class="w-14 h-14 mx-auto rounded-2xl bg-amber-500/20 border border-amber-500/50 flex items-center justify-center text-amber-400 mb-2">
+                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                  </div>
+                  <h4 class="text-xl font-display font-bold text-white">بوابة الدخول المباشر</h4>
+                  <p class="text-xs text-gray-400">تُفتح المنصة في تبويب جديد</p>
+                </div>
+
+                <!-- Launch Button -->
+                <a href="https://it-basra.com/cyb.ces/index.html" target="_blank" rel="noopener" class="btn-gold w-full flex items-center justify-center gap-3 py-4 px-6 rounded-xl font-display font-extrabold text-base sm:text-lg shadow-xl">
+                  <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                  </svg>
+                  <span>الدخول لمنصة الاختبارات</span>
+                </a>
+
+                <!-- Exam URL Box -->
+                <div class="space-y-1.5 pt-1">
+                  <span class="text-[11px] font-mono text-gray-400 block text-center">الرابط المباشر (Direct Examination URL):</span>
+                  <div class="flex items-center gap-2 bg-[#060A17] p-2 rounded-xl border border-white/10">
+                    <span id="examUrlText" class="font-mono text-xs text-sky-400 truncate px-2 select-all flex-1 text-left" dir="ltr">
+                      https://it-basra.com/cyb.ces/index.html
+                    </span>
+                    <button onclick="copyToClipboard('examUrlText', 'تم نسخ رابط منصة الاختبارات بنجاح')" class="btn-gold px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold shrink-0 flex items-center gap-1">
+                      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                      نسخ
+                    </button>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between text-xs font-mono text-gray-400 pt-1 border-t border-white/5">
+                  <span class="flex items-center gap-1.5" data-status="exam" data-state="checking">
+                    <span class="status-dot"></span>
+                    <span>الخادم: <span class="status-text">جارٍ الفحص…</span></span>
+                  </span>
+                  <span class="text-amber-400 font-bold" dir="ltr">HTTPS</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- SECTION 4: EXAM COMMITTEE / KONTROL SYSTEM -->
+      <section id="kc" aria-labelledby="kc-heading" class="space-y-6 scroll-mt-20">
+
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b-2 border-amber-600/30">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded text-xs font-bold font-mono tracking-wider bg-amber-500/20 text-amber-900 dark:text-amber-300 border border-amber-500/40">
+                04. CONTROL
+              </span>
+              <span class="text-xs font-bold text-gray-700 dark:text-gray-300">اللجنة الامتحانية</span>
+            </div>
+            <h2 id="kc-heading" class="text-2xl sm:text-3xl font-display font-extrabold text-gray-900 dark:text-white">
+              نظام الكنترول وإدارة اللجان الامتحانية
+            </h2>
+            <p class="text-sm text-gray-700 dark:text-gray-300 font-medium max-w-2xl">
+              Exam Control System · لكل كليات وأقسام جامعة المعقل الدولية، على قاعدة بيانات تطبيق الحضور نفسها
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-900 dark:text-amber-300 border border-amber-500/40 flex items-center gap-1.5" data-status="kontrol" data-state="checking">
+              <span class="status-dot"></span>
+              <span>نظام الكنترول: <span class="status-text">جارٍ الفحص…</span></span>
+            </span>
+          </div>
+        </div>
+
+        <div class="relative rounded-3xl overflow-hidden p-1.5 bg-gradient-to-br from-amber-500 via-amber-700 to-sky-600 shadow-2xl">
+          <div class="bg-[#0A0F20] text-white rounded-[22px] p-6 sm:p-10 relative overflow-hidden">
+
+            <div class="flex items-center justify-between pb-5 mb-6 border-b border-white/10 font-mono text-xs text-gray-400">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span>
+                <span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span>
+                <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+                <span class="mr-2 text-gray-300 font-bold">almaaqal-kontrol</span>
+              </div>
+              <div class="hidden sm:flex items-center gap-3">
+                <span class="flex items-center gap-1.5" data-status="kontrol" data-state="checking"><span class="status-dot"></span><span class="status-text">جارٍ الفحص…</span></span>
+                <span class="text-gray-600">|</span>
+                <span>زمن الاستجابة: <span data-status-ms="kontrol" dir="ltr">—</span></span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+
+              <div class="lg:col-span-7 space-y-5">
+                <div class="space-y-2">
+                  <h3 class="text-2xl sm:text-3xl font-display font-extrabold text-white leading-tight">
+                    بوابة أعضاء اللجنة الامتحانية
+                  </h3>
+                  <p class="text-gray-300 text-sm leading-relaxed">
+                    منظومة متكاملة لرئيس اللجنة الامتحانية وأعضائها والمدققين والمراقبين: من الجدول الامتحاني وتوزيع المقاعد حتى الماستر شيت ونشر النتائج للطلبة. الدخول بحساب تطبيق الحضور نفسه.
+                  </p>
+                </div>
+
+                <div class="space-y-3 pt-1">
+                  <h4 class="text-xs font-mono uppercase tracking-wider text-amber-400 font-bold flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                    ما يقدمه النظام
+                  </h4>
+                  <ul class="space-y-2.5 text-xs sm:text-sm text-gray-200">
+                    <li class="flex items-start gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
+                      <span class="p-1 rounded-lg bg-emerald-500/20 text-emerald-400 shrink-0 mt-0.5">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                      </span>
+                      <span><strong class="text-white">يوم الامتحان:</strong> توزيع المقاعد على القاعات، اللجان والمراقبون، أظرف الأسئلة، الحضور بمسح QR، ومحاضر الغش.</span>
+                    </li>
+                    <li class="flex items-start gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
+                      <span class="p-1 rounded-lg bg-amber-500/20 text-amber-400 shrink-0 mt-0.5">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                      </span>
+                      <span><strong class="text-white">الكنترول:</strong> تشفير الدفاتر بأرقام سرية، رصد مزدوج أعمى مع التفقيط، الرأفة الآلية، والماستر شيت.</span>
+                    </li>
+                    <li class="flex items-start gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
+                      <span class="p-1 rounded-lg bg-sky-500/20 text-sky-400 shrink-0 mt-0.5">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                      </span>
+                      <span><strong class="text-white">الحوكمة:</strong> صلاحيات حسب الدور، سجل تدقيق بسلسلة SHA‑256 لا يُعدَّل، ورموز تحقق من صحة الوثائق.</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="lg:col-span-5 flex flex-col gap-4 p-6 sm:p-7 rounded-2xl bg-black/60 border border-amber-500/40 shadow-2xl">
+                <div class="text-center space-y-1">
+                  <div class="w-14 h-14 mx-auto rounded-2xl bg-amber-500/20 border border-amber-500/50 flex items-center justify-center text-amber-400 mb-2">
+                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                  </div>
+                  <h4 class="text-xl font-display font-bold text-white">دخول اللجنة الامتحانية</h4>
+                  <p class="text-xs text-gray-400">لأعضاء اللجان المخوَّلين فقط · يُفتح في تبويب جديد</p>
+                </div>
+
+                <a href="https://drdshsw2022-byte.github.io/almaaqal-kontrol/kontrol/" target="_blank" rel="noopener" class="btn-gold w-full flex items-center justify-center gap-3 py-4 px-6 rounded-xl font-display font-extrabold text-base sm:text-lg shadow-xl">
+                  <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                  <span>الدخول لنظام الكنترول</span>
+                </a>
+
+                <div class="space-y-1.5 pt-1">
+                  <span class="text-[11px] font-mono text-gray-400 block text-center">الرابط المباشر (Direct Control URL):</span>
+                  <div class="flex items-center gap-2 bg-[#060A17] p-2 rounded-xl border border-white/10">
+                    <span id="kontrolUrlText" class="font-mono text-xs text-sky-400 truncate px-2 select-all flex-1 text-left" dir="ltr">
+                      https://drdshsw2022-byte.github.io/almaaqal-kontrol/kontrol/
+                    </span>
+                    <button onclick="copyToClipboard('kontrolUrlText', 'تم نسخ رابط نظام الكنترول')" class="btn-gold px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold shrink-0 flex items-center gap-1">
+                      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                      نسخ
+                    </button>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between text-xs font-mono text-gray-400 pt-1 border-t border-white/5">
+                  <span class="flex items-center gap-1.5" data-status="kontrol" data-state="checking">
+                    <span class="status-dot"></span>
+                    <span>الخادم: <span class="status-text">جارٍ الفحص…</span></span>
+                  </span>
+                  <span class="text-amber-400 font-bold" dir="ltr">FIREBASE · HTTPS</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Highlights Featurettes Grid -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+        
+        <div class="glass-box p-5 rounded-2xl flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-900 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/30">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+          </div>
+          <div>
+            <h5 class="text-sm font-display font-extrabold text-gray-900 dark:text-white">المحاضرات والمناهج</h5>
+            <p class="text-xs text-gray-700 dark:text-gray-400 font-medium">تحديثات الدروس الأكاديمية والملازم</p>
+          </div>
+        </div>
+
+        <div class="glass-box p-5 rounded-2xl flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-sky-500/20 text-sky-800 dark:text-sky-400 flex items-center justify-center shrink-0 border border-sky-500/30">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          </div>
+          <div>
+            <h5 class="text-sm font-display font-extrabold text-gray-900 dark:text-white">الحضور والغيابات</h5>
+            <p class="text-xs text-gray-700 dark:text-gray-400 font-medium">رصد ذكي بالبطاقة والباركود الجامعي</p>
+          </div>
+        </div>
+
+        <div class="glass-box p-5 rounded-2xl flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-800 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div>
+            <h5 class="text-sm font-display font-extrabold text-gray-900 dark:text-white">النتائج والسعيات</h5>
+            <p class="text-xs text-gray-700 dark:text-gray-400 font-medium">إعلان النتائج الفصلية والنهائية</p>
+          </div>
+        </div>
+
+        <div class="glass-box p-5 rounded-2xl flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-purple-500/20 text-purple-800 dark:text-purple-400 flex items-center justify-center shrink-0 border border-purple-500/30">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          </div>
+          <div>
+            <h5 class="text-sm font-display font-extrabold text-gray-900 dark:text-white">الدعم الفني السريع</h5>
+            <p class="text-xs text-gray-700 dark:text-gray-400 font-medium">فريق هندسة الحاسوب ونظم المعلومات</p>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- Professional Footer -->
+    <footer class="border-t border-amber-600/30 bg-white/70 dark:bg-[#060A17]/85 backdrop-blur-md relative z-10 text-gray-700 dark:text-gray-400 text-sm mt-12 transition-colors duration-300">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6 pb-6 border-b border-amber-600/20">
+          
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-[#060A17] border border-amber-500 p-1 flex items-center justify-center">
+              <svg class="w-full h-full" viewBox="0 0 500 500"><use href="#arcArabicCrest"></use><circle cx="250" cy="250" r="220" stroke="#FBBF24" stroke-width="10" fill="none"/><polygon points="250,162 178,206 322,206" fill="#FBBF24"/></svg>
+            </div>
+            <div>
+              <p class="font-display font-extrabold text-gray-900 dark:text-white text-sm">جامعة المعقل الدولية · كلية الهندسة</p>
+              <p class="text-xs text-amber-800 dark:text-amber-400 font-mono font-bold">قسم هندسة الأمن السيبراني · Al-Maaqal International University</p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-5 text-xs font-bold">
+            <a href="index.html#news" class="hover:text-amber-600 transition">الإعلانات</a>
+            <a href="index.html#dl" class="hover:text-amber-600 transition">تحميل التطبيق</a>
+            <a href="index.html#ex" class="hover:text-amber-600 transition">منصة الاختبارات</a>
+            <a href="index.html#kc" class="hover:text-amber-600 transition">اللجنة الامتحانية</a>
+            <a href="https://drdshsw2022-byte.github.io/almaaqal/" target="_blank" rel="noopener" class="hover:text-amber-600 transition">بوابة الويب</a>
+            <a href="https://it-basra.com/amu/almaqal-12.apk" class="text-emerald-700 dark:text-emerald-400 hover:underline">تحميل APK المباشر</a>
+          </div>
+
+        </div>
+
+        <div class="pt-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-600 dark:text-gray-400 font-semibold">
+          <p>© 2026 جميع الحقوق محفوظة لجامعة المعقل الدولية · البصرة، العراق.</p>
+          <div class="font-mono text-[11px] text-amber-800 dark:text-amber-300">
+            ENGINEERING & CYBER SECURITY DEPT.
+          </div>
+        </div>
+
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- ===== Mobile App Tab Bar ===== -->
+  <nav class="app-tabbar fixed bottom-0 inset-x-0 z-40 border-t border-amber-500/40 bg-white/90 dark:bg-[#060A17]/95 backdrop-blur-xl justify-around items-stretch px-2 pt-1.5" style="padding-bottom: max(0.4rem, env(safe-area-inset-bottom));" aria-label="التنقل">
+    <a href="index.html#news" data-tab="news" class="tab-link flex-1 flex flex-col items-center gap-0.5 py-1 rounded-xl text-[11px] font-bold text-gray-600 dark:text-gray-400">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 00-4-5.7V5a2 2 0 10-4 0v.3A6 6 0 006 11v3.2a2 2 0 01-.6 1.4L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+      الإعلانات
+    </a>
+    <a href="index.html#dl" data-tab="dl" class="tab-link flex-1 flex flex-col items-center gap-0.5 py-1 rounded-xl text-[11px] font-bold text-gray-600 dark:text-gray-400">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="7" y="2" width="10" height="20" rx="2" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M11 18h2"/></svg>
+      التطبيق
+    </a>
+    <a href="index.html#ex" data-tab="ex" class="tab-link flex-1 flex flex-col items-center gap-0.5 py-1 rounded-xl text-[11px] font-bold text-gray-600 dark:text-gray-400">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.6-4A12 12 0 0112 3a12 12 0 01-8.6 3A12 12 0 003 9c0 5.6 3.8 10.3 9 11.6 5.2-1.3 9-6 9-11.6 0-1-.1-2-.4-3z"/></svg>
+      الاختبارات
+    </a>
+    <a href="index.html#kc" data-tab="kc" class="tab-link flex-1 flex flex-col items-center gap-0.5 py-1 rounded-xl text-[11px] font-bold text-gray-600 dark:text-gray-400">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+      الكنترول
+    </a>
+    <a href="https://it-basra.com/cyb.ces/index.html" target="_blank" rel="noopener" class="flex-1 flex flex-col items-center gap-0.5 py-1 rounded-xl text-[11px] font-bold text-amber-700 dark:text-amber-400">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      دخول سريع
+    </a>
+  </nav>
+
+  <!-- ===== iOS Install Sheet ===== -->
+  <div id="iosSheet" class="fixed inset-0 z-50 hidden items-end justify-center bg-black/60 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="iosSheetTitle">
+    <div class="sheet-up w-full max-w-md bg-white dark:bg-[#0D1424] border-t-4 border-amber-500 rounded-t-3xl p-6 space-y-4" style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom));">
+      <div class="flex items-center gap-3">
+        <img src="icons/icon-192.png" alt="" class="w-14 h-14 rounded-2xl shadow-lg">
+        <div>
+          <h3 id="iosSheetTitle" class="font-display font-extrabold text-lg text-gray-900 dark:text-white">ثبّت البوابة على آيفون</h3>
+          <p class="text-xs text-gray-600 dark:text-gray-400 font-semibold">للوصول السريع للإعلانات والاختبارات من الشاشة الرئيسية</p>
+        </div>
+      </div>
+      <ol class="space-y-3 text-sm font-semibold text-gray-800 dark:text-gray-200">
+        <li class="flex items-center gap-3"><span class="w-7 h-7 rounded-full bg-sky-600 text-white text-xs font-mono flex items-center justify-center shrink-0">1</span>
+          <span>اضغط زر المشاركة
+            <svg class="inline w-5 h-5 text-sky-600 align-text-bottom" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v12m0-12l-4 4m4-4l4 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+            في شريط Safari</span></li>
+        <li class="flex items-center gap-3"><span class="w-7 h-7 rounded-full bg-sky-600 text-white text-xs font-mono flex items-center justify-center shrink-0">2</span>
+          <span>مرّر للأسفل واختر <b>«إضافة إلى الشاشة الرئيسية»</b></span></li>
+        <li class="flex items-center gap-3"><span class="w-7 h-7 rounded-full bg-sky-600 text-white text-xs font-mono flex items-center justify-center shrink-0">3</span>
+          <span>اضغط <b>«إضافة»</b> ثم افتح التطبيق من أيقونة المعقل</span></li>
+      </ol>
+      <button id="iosSheetClose" type="button" class="btn-gold w-full py-3 rounded-xl font-display">فهمت</button>
+    </div>
+  </div>
+
+  <!-- ===== Update Banner ===== -->
+  <div id="updateBar" class="fixed top-3 left-1/2 -translate-x-1/2 z-50 hidden items-center gap-3 bg-slate-950 text-white border-2 border-amber-500 px-4 py-2.5 rounded-2xl shadow-2xl text-sm font-bold">
+    <span>يتوفر تحديث جديد للتطبيق</span>
+    <button id="updateBtn" type="button" class="btn-gold px-3 py-1 rounded-lg text-xs">تحديث</button>
+  </div>
+
+  <!-- JavaScript: Clock, Canvas Animation, Theme Switcher, and QR Engine -->
+  <script>
+    /* ================= 1. Dynamic Cyber Canvas Background ================= */
+    const canvas = document.getElementById('cyberCanvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let particles = [];
+
+    function resizeCanvas() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class NodeParticle {
+      constructor() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.vx = (Math.random() - 0.5) * 0.65;
+        this.vy = (Math.random() - 0.5) * 0.65;
+        this.radius = Math.random() * 2 + 1;
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.x < 0 || this.x > width) this.vx *= -1;
+        if (this.y < 0 || this.y > height) this.vy *= -1;
+      }
+      draw(isDark) {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = isDark ? 'rgba(250, 204, 21, 0.7)' : 'rgba(217, 119, 6, 0.6)';
+        ctx.fill();
+      }
+    }
+
+    const particleCount = Math.min(Math.floor(window.innerWidth / 22), 70);
+    for (let i = 0; i < particleCount; i++) {
+      particles.push(new NodeParticle());
+    }
+
+    function animateNodes() {
+      ctx.clearRect(0, 0, width, height);
+      const isDark = document.documentElement.classList.contains('dark');
+
+      for (let i = 0; i < particles.length; i++) {
+        particles[i].update();
+        particles[i].draw(isDark);
+
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < 125) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            const alpha = (1 - dist / 125) * (isDark ? 0.28 : 0.2);
+            ctx.strokeStyle = isDark ? `rgba(14, 165, 233, ${alpha})` : `rgba(217, 119, 6, ${alpha})`;
+            ctx.lineWidth = isDark ? 1 : 0.9;
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(animateNodes);
+    }
+    animateNodes();
+
+    /* ================= 2. Upgraded Digital HUD Chronometer ================= */
+    function updateClock() {
+      const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Baghdad' }));
+      let hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const period = hours >= 12 ? 'م' : 'ص';
+
+      hours = hours % 12 || 12;
+      const formattedHours = String(hours).padStart(2, '0');
+
+      document.getElementById('clockHours').textContent = formattedHours;
+      document.getElementById('clockMinutes').textContent = minutes;
+      document.getElementById('clockSeconds').textContent = seconds;
+      document.getElementById('clockPeriod').textContent = period;
+
+      const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+      const months = ['كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران', 'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول'];
+      
+      const dayName = days[now.getDay()];
+      const dayNum = now.getDate();
+      const monthName = months[now.getMonth()];
+      const year = now.getFullYear();
+
+      const dateEl = document.getElementById('clockDate');
+      if (dateEl) {
+        dateEl.textContent = `${dayName}، ${dayNum} ${monthName} ${year}`;
+      }
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    /* ================= 3. Theme Toggle (Gold Light & Obsidian Dark) ================= */
+    const themeBtn = document.getElementById('themeToggle');
+    const sunIcon = document.getElementById('sunIcon');
+    const moonIcon = document.getElementById('moonIcon');
+    const themeLabel = document.getElementById('themeLabel');
+
+    function applyTheme(isDark) {
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+        sunIcon.classList.remove('hidden');
+        moonIcon.classList.add('hidden');
+        themeLabel.textContent = 'الوضع الذهبي';
+        try { localStorage.setItem('amu_theme', 'dark'); } catch (e) {}
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+        sunIcon.classList.add('hidden');
+        moonIcon.classList.remove('hidden');
+        themeLabel.textContent = 'الوضع الليلي';
+        try { localStorage.setItem('amu_theme', 'light'); } catch (e) {}
+      }
+    }
+
+    let savedTheme = null; try { savedTheme = localStorage.getItem('amu_theme'); } catch (e) {}
+    // Default to the new vibrant gold light mode
+    if (savedTheme === 'dark') {
+      applyTheme(true);
+    } else {
+      applyTheme(false);
+    }
+
+    themeBtn.addEventListener('click', () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      applyTheme(!isDark);
+    });
+
+    /* ================= 4. QR Code Generator ================= */
+    window.addEventListener('load', () => {
+      try {
+        const qrContainer = document.getElementById('qrAppCanvas');
+        if (qrContainer && typeof QRCode !== 'undefined') {
+          new QRCode(qrContainer, {
+            text: 'https://drdshsw2022-byte.github.io/almaaqal/',
+            width: 112,
+            height: 112,
+            colorDark: '#0A0F20',
+            colorLight: '#FFFFFF',
+            correctLevel: QRCode.CorrectLevel.H
+          });
+        }
+      } catch (err) {
+        console.error('QR Code error:', err);
+      }
+    });
+
+    /* ================= 5. Toast & Safe Clipboard Copy ================= */
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      toastMsg.textContent = message;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2500);
+    }
+
+    function copyToClipboard(elementId, successMsg) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      const textToCopy = el.textContent.trim();
+
+      const textarea = document.createElement('textarea');
+      textarea.value = textToCopy;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      
+      try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+          showToast(successMsg || 'تم النسخ بنجاح!');
+        } else {
+          showToast('فشل النسخ التلقائي، يمكنك نسخ الرابط يدوياً');
+        }
+      } catch (err) {
+        showToast('يرجى تحديد النص ونسخه');
+      }
+      document.body.removeChild(textarea);
+    }
+    /* ================= 6. PWA: Service Worker, Install & Updates ================= */
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const installBtn = document.getElementById('installBtn');
+    const iosSheet = document.getElementById('iosSheet');
+    let deferredPrompt = null;
+
+    function showInstallBtn() {
+      if (isStandalone) return;
+      installBtn.classList.remove('hidden');
+      installBtn.classList.add('flex');
+    }
+
+    // أندرويد + كروم/إيدج على الكمبيوتر: نافذة التثبيت الأصلية
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      showInstallBtn();
+    });
+
+    // آيفون: لا يوجد تثبيت تلقائي، نعرض شرح الخطوات
+    if (isIOS && !isStandalone) showInstallBtn();
+
+    installBtn.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        if (outcome === 'accepted') installBtn.classList.add('hidden');
+      } else if (isIOS) {
+        iosSheet.classList.remove('hidden'); iosSheet.classList.add('flex');
+      } else {
+        showToast('من قائمة المتصفح اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية»');
+      }
+    });
+
+    function closeIosSheet() { iosSheet.classList.add('hidden'); iosSheet.classList.remove('flex'); }
+    document.getElementById('iosSheetClose').addEventListener('click', closeIosSheet);
+    iosSheet.addEventListener('click', (e) => { if (e.target === iosSheet) closeIosSheet(); });
+
+    window.addEventListener('appinstalled', () => {
+      installBtn.classList.add('hidden');
+      showToast('تم تثبيت تطبيق المعقل بنجاح 🎉');
+    });
+
+    // تسجيل Service Worker للعمل أوفلاين + إشعار التحديث
+    if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').then((reg) => {
+          const updateBar = document.getElementById('updateBar');
+          const promptUpdate = (worker) => {
+            updateBar.classList.remove('hidden'); updateBar.classList.add('flex');
+            document.getElementById('updateBtn').onclick = () => worker.postMessage('SKIP_WAITING');
+          };
+          if (reg.waiting && navigator.serviceWorker.controller) promptUpdate(reg.waiting);
+          reg.addEventListener('updatefound', () => {
+            const nw = reg.installing;
+            nw && nw.addEventListener('statechange', () => {
+              if (nw.state === 'installed' && navigator.serviceWorker.controller) promptUpdate(nw);
+            });
+          });
+        }).catch((err) => console.warn('SW registration failed:', err));
+
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (refreshing) return; refreshing = true; location.reload();
+        });
+      });
+    }
+
+    // تمييز التبويب النشط في شريط التنقل السفلي
+    const tabLinks = document.querySelectorAll('.tab-link');
+    function setActiveTab(id) {
+      tabLinks.forEach((a) => {
+        const on = a.dataset.tab === id;
+        a.classList.toggle('text-amber-700', on);
+        a.classList.toggle('dark:text-amber-400', on);
+        a.classList.toggle('bg-amber-500/15', on);
+      });
+    }
+    const sections = ['news', 'dl', 'ex', 'kc'].map((id) => document.getElementById(id));
+    function onScrollTabs() {
+      let current = 'news';
+      sections.forEach((s) => { if (s && s.getBoundingClientRect().top < window.innerHeight * 0.4) current = s.id; });
+      setActiveTab(current);
+    }
+    window.addEventListener('scroll', onScrollTabs, { passive: true });
+    onScrollTabs();
+
+    // حالة الاتصال
+    window.addEventListener('offline', () => showToast('انقطع الاتصال · تعمل الواجهة من النسخة المحفوظة'));
+    window.addEventListener('online', () => showToast('عاد الاتصال بالإنترنت'));
+    /* ================= 7. Live Service Status (فحص حقيقي) ================= */
+    const SERVICES = {
+      exam: { url: 'https://it-basra.com/cyb.ces/index.html', name: 'منصة الاختبارات' },
+      web:  { url: 'https://drdshsw2022-byte.github.io/almaaqal/', name: 'تطبيق الويب' },
+      kontrol: { url: 'https://drdshsw2022-byte.github.io/almaaqal-kontrol/kontrol/', name: 'نظام الكنترول' }
+    };
+
+    async function probe(url) {
+      const t0 = performance.now();
+      const same = new URL(url, location.href).origin === location.origin;
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 8000);
+      try {
+        let res;
+        try {
+          res = await fetch(url, { method: same ? 'HEAD' : 'GET', cache: 'no-store', mode: 'cors', signal: ctrl.signal });
+        } catch (e) {
+          if (ctrl.signal.aborted) throw e;
+          // الخادم لا يسمح بـ CORS: نكتفي بمعرفة أنه يستجيب
+          res = await fetch(url, { cache: 'no-store', mode: 'no-cors', signal: ctrl.signal });
+        }
+        return { ok: res.type === 'opaque' || res.ok, ms: Math.round(performance.now() - t0) };
+      } catch (e) {
+        return { ok: false, ms: null };
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    function setStatus(key, state, text) {
+      document.querySelectorAll('[data-status="' + key + '"]').forEach((el) => {
+        el.setAttribute('data-state', state);
+        const t = el.querySelector('.status-text') || (el.classList.contains('status-text') ? el : null);
+        if (t) t.textContent = text;
+      });
+    }
+
+    let checking = false;
+    async function checkServices() {
+      if (checking) return;
+      checking = true;
+      const online = navigator.onLine;
+      setStatus('net', online ? 'ok' : 'offline', online ? 'متصل' : 'غير متصل');
+      if (!online) {
+        ['exam', 'web', 'kontrol'].forEach((k) => setStatus(k, 'offline', 'لا يمكن الفحص'));
+        setStatus('overall', 'offline', 'أنت غير متصل بالإنترنت');
+        checking = false;
+        return;
+      }
+      ['exam', 'web', 'kontrol', 'overall'].forEach((k) => setStatus(k, 'checking', 'جارٍ الفحص…'));
+      const keys = Object.keys(SERVICES);
+      const results = await Promise.all(keys.map((k) => probe(SERVICES[k].url)));
+      const down = [];
+      keys.forEach((k, i) => {
+        const r = results[i];
+        setStatus(k, r.ok ? 'ok' : 'down', r.ok ? 'تعمل' : 'لا تستجيب');
+        if (!r.ok) down.push(SERVICES[k].name);
+        document.querySelectorAll('[data-status-ms="' + k + '"]').forEach((el) => {
+          el.textContent = r.ms != null && r.ok ? r.ms + ' ms' : '—';
+        });
+      });
+      setStatus('overall', down.length ? 'down' : 'ok',
+        down.length ? 'لا تستجيب: ' + down.join('، ') : 'كل الخدمات تعمل الآن');
+      const now = new Date().toLocaleTimeString('ar-IQ-u-nu-latn', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Baghdad' });
+      document.querySelectorAll('[data-status-time]').forEach((el) => (el.textContent = now));
+      checking = false;
+    }
+    window.checkServices = checkServices;
+    checkServices();
+    setInterval(() => { if (document.visibilityState === 'visible') checkServices(); }, 60000);
+    window.addEventListener('online', checkServices);
+    window.addEventListener('offline', checkServices);
+
+    /* ================= 8. APK size & date (from the real file) ================= */
+    (async () => {
+      const el = document.getElementById('apkMeta');
+      if (!el || location.hostname !== 'it-basra.com') return;
+      try {
+        const r = await fetch('https://it-basra.com/amu/almaqal-12.apk', { method: 'HEAD', cache: 'no-store' });
+        if (!r.ok) return;
+        const size = Number(r.headers.get('content-length'));
+        const mod = r.headers.get('last-modified');
+        const parts = ['أندرويد'];
+        if (size) parts.push((size / 1048576).toFixed(0) + ' MB');
+        if (mod) parts.push('حُدّث ' + new Date(mod).toLocaleDateString('ar-IQ-u-nu-latn', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Baghdad' }));
+        el.textContent = parts.join(' · ');
+      } catch (e) { /* keep default label */ }
+    })();
+
+    /* ================= 9. Announcements & Exams (announcements.json) ================= */
+    const AR_MONTHS = ['كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران', 'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول'];
+    const AR_DAYS = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+    const LEVELS = {
+      important: { label: 'هام', cls: 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/40' },
+      reminder:  { label: 'تذكير', cls: 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/40' },
+      info:      { label: 'إعلان', cls: 'bg-sky-500/15 text-sky-800 dark:text-sky-300 border-sky-500/40' }
+    };
+
+    function h(tag, cls, text) {
+      const el = document.createElement(tag);
+      if (cls) el.className = cls;
+      if (text != null) el.textContent = text;
+      return el;
+    }
+    function isoParts(iso) {
+      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || '').trim());
+      return m ? { y: +m[1], m: +m[2], d: +m[3] } : null;
+    }
+    function todayBaghdad() {
+      const t = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Baghdad' }).format(new Date());
+      return isoParts(t);
+    }
+    function daysUntil(p) {
+      const t = todayBaghdad();
+      return Math.round((Date.UTC(p.y, p.m - 1, p.d) - Date.UTC(t.y, t.m - 1, t.d)) / 86400000);
+    }
+    function arDate(p) {
+      const wd = new Date(Date.UTC(p.y, p.m - 1, p.d)).getUTCDay();
+      return AR_DAYS[wd] + '، ' + p.d + ' ' + AR_MONTHS[p.m - 1] + ' ' + p.y;
+    }
+    function safeLink(url) {
+      try { const u = new URL(url, location.href); return /^https?:$/.test(u.protocol) ? u.href : null; } catch (e) { return null; }
+    }
+    function emptyItem(text) {
+      return h('li', 'text-sm text-gray-500 dark:text-gray-400 py-6 text-center', text);
+    }
+
+    function downloadIcs(ex, p) {
+      const pad = (n) => String(n).padStart(2, '0');
+      const [hh, mm] = (ex.time || '09:00').split(':').map(Number);
+      // توقيت بغداد UTC+3 → UTC
+      const start = new Date(Date.UTC(p.y, p.m - 1, p.d, (hh || 0) - 3, mm || 0));
+      const end = new Date(start.getTime() + (Number(ex.durationMinutes) || 60) * 60000);
+      const f = (d) => d.getUTCFullYear() + pad(d.getUTCMonth() + 1) + pad(d.getUTCDate()) + 'T' + pad(d.getUTCHours()) + pad(d.getUTCMinutes()) + '00Z';
+      const esc = (t) => String(t || '').replace(/[\\,;]/g, (c) => '\\' + c).replace(/\n/g, '\\n');
+      const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//AMU Cyber//Exams//AR', 'BEGIN:VEVENT',
+        'UID:' + f(start) + '-' + Math.random().toString(36).slice(2) + '@it-basra.com',
+        'DTSTAMP:' + f(new Date()), 'DTSTART:' + f(start), 'DTEND:' + f(end),
+        'SUMMARY:' + esc((ex.type ? ex.type + ' - ' : '') + ex.subject),
+        'LOCATION:' + esc(ex.place), 'DESCRIPTION:' + esc(ex.note),
+        'BEGIN:VALARM', 'TRIGGER:-P1D', 'ACTION:DISPLAY', 'DESCRIPTION:' + esc(ex.subject), 'END:VALARM',
+        'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+      const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
+      const a = h('a'); a.href = url; a.download = 'exam-' + p.y + pad(p.m) + pad(p.d) + '.ics';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    }
+
+    function renderExams(list) {
+      const ul = document.getElementById('examsList');
+      ul.replaceChildren();
+      const items = (Array.isArray(list) ? list : [])
+        .map((ex) => ({ ex, p: isoParts(ex.date) }))
+        .filter((x) => x.p && x.ex.subject && daysUntil(x.p) >= 0)
+        .sort((a, b) => (a.ex.date + (a.ex.time || '')).localeCompare(b.ex.date + (b.ex.time || '')));
+      if (!items.length) { ul.appendChild(emptyItem('لا توجد امتحانات أو مواعيد تسليم قادمة.')); return; }
+      items.forEach(({ ex, p }) => {
+        const d = daysUntil(p);
+        const li = h('li', 'flex gap-3 p-3 rounded-2xl bg-white/60 dark:bg-white/5 border border-amber-500/20');
+        const cal = h('div', 'w-14 shrink-0 rounded-xl overflow-hidden text-center border border-sky-500/30');
+        cal.append(h('div', 'bg-sky-600 text-white text-[10px] font-bold py-0.5', AR_MONTHS[p.m - 1]),
+                   h('div', 'text-xl font-black font-mono text-gray-900 dark:text-white py-1', String(p.d)));
+        const body = h('div', 'flex-1 min-w-0 space-y-1');
+        const top = h('div', 'flex flex-wrap items-center gap-2');
+        top.appendChild(h('span', 'font-display font-extrabold text-gray-900 dark:text-white', ex.subject));
+        if (ex.type) top.appendChild(h('span', 'text-[11px] font-bold px-2 py-0.5 rounded-full border bg-sky-500/15 text-sky-800 dark:text-sky-300 border-sky-500/40', ex.type));
+        const when = d === 0 ? 'اليوم' : d === 1 ? 'غداً' : d === 2 ? 'بعد يومين' : (d <= 10 ? 'بعد ' + d + ' أيام' : 'بعد ' + d + ' يوماً');
+        top.appendChild(h('span', 'text-[11px] font-bold px-2 py-0.5 rounded-full ' + (d <= 2 ? 'bg-rose-500 text-white' : 'bg-amber-500/20 text-amber-900 dark:text-amber-300'), when));
+        body.appendChild(top);
+        body.appendChild(h('div', 'text-xs text-gray-700 dark:text-gray-300 font-semibold',
+          arDate(p) + (ex.time ? ' · الساعة ' + ex.time : '') + (ex.place ? ' · ' + ex.place : '')));
+        if (ex.note) body.appendChild(h('div', 'text-xs text-gray-600 dark:text-gray-400', ex.note));
+        const btn = h('button', 'text-[11px] font-bold text-sky-700 dark:text-sky-400 hover:underline', '+ أضف إلى التقويم');
+        btn.type = 'button';
+        btn.addEventListener('click', () => downloadIcs(ex, p));
+        body.appendChild(btn);
+        li.append(cal, body);
+        ul.appendChild(li);
+      });
+    }
+
+    function renderNews(list) {
+      const ul = document.getElementById('newsList');
+      ul.replaceChildren();
+      const items = (Array.isArray(list) ? list : [])
+        .filter((n) => n && n.title)
+        .sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || String(b.date || '').localeCompare(String(a.date || '')));
+      if (!items.length) { ul.appendChild(emptyItem('لا توجد إعلانات جديدة.')); return; }
+      items.forEach((n) => {
+        const lv = LEVELS[n.level] || LEVELS.info;
+        const li = h('li', 'p-4 rounded-2xl bg-white/60 dark:bg-white/5 border ' + (n.pinned ? 'border-amber-500/60' : 'border-amber-500/20') + ' space-y-1.5');
+        const top = h('div', 'flex flex-wrap items-center gap-2');
+        if (n.pinned) top.appendChild(h('span', 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-500 text-white', 'مثبّت'));
+        top.appendChild(h('span', 'text-[11px] font-bold px-2 py-0.5 rounded-full border ' + lv.cls, lv.label));
+        const p = isoParts(n.date);
+        if (p) top.appendChild(h('span', 'text-[11px] text-gray-500 dark:text-gray-400 font-semibold', arDate(p)));
+        li.appendChild(top);
+        li.appendChild(h('h4', 'font-display font-extrabold text-gray-900 dark:text-white', n.title));
+        if (n.body) li.appendChild(h('p', 'text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line', n.body));
+        const href = n.link && safeLink(n.link);
+        if (href) {
+          const a = h('a', 'inline-flex items-center gap-1 text-xs font-bold text-amber-700 dark:text-amber-400 hover:underline', (n.linkText || 'التفاصيل') + ' ←');
+          a.href = href;
+          if (!String(n.link).startsWith('#')) { a.target = '_blank'; a.rel = 'noopener'; }
+          li.appendChild(a);
+        }
+        ul.appendChild(li);
+      });
+    }
+
+    /* ---------- مصدر البيانات: جدول Google Sheets المنشور ----------
+       لتغيير الجدول: ضع رابط «النشر على الويب» بصيغة CSV هنا. */
+    const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRQ3SK1o5zfvFZtgtWLmx5VrT2F_bH-Y9fYAii4FXbxG5xaGks57gVqRiXkdnFg72V1PmMe2AB8bfAt/pub?output=csv';
+    const NEWS_CACHE_KEY = 'amu_sheet_csv_v1';
+
+    // تحليل CSV (يدعم الفواصل والأسطر داخل علامات التنصيص)
+    function parseCsv(text) {
+      const rows = []; let row = []; let cell = ''; let q = false;
+      text = String(text || '').replace(/^﻿/, '');
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (q) {
+          if (c === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; }
+          else cell += c;
+        } else if (c === '"') q = true;
+        else if (c === ',') { row.push(cell); cell = ''; }
+        else if (c === '\n' || c === '\r') {
+          if (c === '\r' && text[i + 1] === '\n') i++;
+          row.push(cell); rows.push(row); row = []; cell = '';
+        } else cell += c;
+      }
+      if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+      return rows.filter((r) => r.some((x) => String(x).trim() !== ''));
+    }
+
+    const toLatinDigits = (v) => String(v == null ? '' : v)
+      .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660))
+      .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x06F0)).trim();
+    const norm = (v) => toLatinDigits(v).toLowerCase().replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/\s+/g, ' ');
+
+    // يقبل 2026-11-09 أو 2026/11/09 أو 9/11/2026 (اليوم أولاً)
+    function parseSheetDate(v) {
+      const t = toLatinDigits(v);
+      let m = /^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/.exec(t);
+      if (m) return { y: +m[1], m: +m[2], d: +m[3] };
+      m = /^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/.exec(t);
+      if (m) return { y: +m[3], m: +m[2], d: +m[1] };
+      return null;
+    }
+    const isoOf = (p) => p ? p.y + '-' + String(p.m).padStart(2, '0') + '-' + String(p.d).padStart(2, '0') : '';
+
+    // يقبل 9:00 أو 09:00:00 أو 1:30 PM أو 1:30 م
+    function parseSheetTime(v) {
+      const t = toLatinDigits(v).toLowerCase();
+      const m = /(\d{1,2})[:.](\d{2})/.exec(t);
+      if (!m) return '';
+      let h = +m[1];
+      const pm = /pm|م|مساء/.test(t), am = /am|ص|صباح/.test(t);
+      if (pm && h < 12) h += 12;
+      if (am && h === 12) h = 0;
+      return String(h).padStart(2, '0') + ':' + m[2];
+    }
+
+    const HEADERS = {
+      kind: ['النوع', 'نوع'], title: ['العنوان او الماده', 'العنوان', 'الماده'], body: ['التفاصيل', 'الوصف'],
+      date: ['التاريخ'], time: ['الوقت', 'الساعه'], place: ['المكان', 'القاعه'], cat: ['التصنيف', 'الاهميه'],
+      pin: ['تثبيت', 'مثبت'], link: ['رابط', 'الرابط']
+    };
+    const POSITIONS = { kind: 0, title: 1, body: 2, date: 3, time: 4, place: 5, cat: 6, pin: 7, link: 8 };
+
+    function sheetToData(csvText) {
+      const rows = parseCsv(csvText);
+      if (rows.length < 1) throw new Error('empty sheet');
+      const head = rows[0].map(norm);
+      const col = {};
+      Object.keys(POSITIONS).forEach((k) => {
+        const i = head.findIndex((h) => HEADERS[k].map(norm).includes(h));
+        col[k] = i >= 0 ? i : POSITIONS[k];
+      });
+      const get = (r, k) => String(r[col[k]] == null ? '' : r[col[k]]).trim();
+      const exams = [], announcements = [];
+      rows.slice(1).forEach((r) => {
+        const kind = norm(get(r, 'kind'));
+        const title = get(r, 'title');
+        if (!title) return;
+        const date = isoOf(parseSheetDate(get(r, 'date')));
+        if (/^(امتحان|اختبار|تسليم|موعد|واجب|مشروع|exam|deadline)/.test(kind)) {
+          if (!date) return;
+          exams.push({ subject: title, type: get(r, 'cat'), date, time: parseSheetTime(get(r, 'time')), place: get(r, 'place'), note: get(r, 'body') });
+        } else if (/^(اعلان|تبليغ|تنبيه|خبر|announcement|news)/.test(kind)) {
+          const cat = norm(get(r, 'cat'));
+          const level = /هام|مهم|عاجل|important|urgent/.test(cat) ? 'important' : /تذكير|reminder/.test(cat) ? 'reminder' : 'info';
+          const pin = /^(نعم|ايوه|اي|yes|y|true|1|✓|✔|x)$/.test(norm(get(r, 'pin')));
+          const link = get(r, 'link');
+          announcements.push({ title, body: get(r, 'body'), date, level, pinned: pin, link: link || undefined, linkText: link ? (link.startsWith('#') ? 'اذهب إلى القسم' : 'التفاصيل') : undefined });
+        }
+        // أي نوع آخر (مثل «مثال») يُتجاهل
+      });
+      return { exams, announcements };
+    }
+
+    function stamp(text) { document.getElementById('newsUpdated').textContent = text; }
+    function nowLabel() {
+      return new Date().toLocaleTimeString('ar-IQ-u-nu-latn', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Baghdad' });
+    }
+    function showData(data) { renderExams(data.exams); renderNews(data.announcements); }
+
+    async function fetchWithTimeout(url, ms) {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), ms);
+      try { return await fetch(url, { cache: 'no-cache', signal: ctrl.signal }); } finally { clearTimeout(timer); }
+    }
+
+    async function loadNews() {
+      // 1) الجدول مباشرة
+      try {
+        const r = await fetchWithTimeout(SHEET_CSV_URL, 10000);
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const csv = await r.text();
+        if (/<html/i.test(csv.slice(0, 200))) throw new Error('not csv');
+        showData(sheetToData(csv));
+        try { localStorage.setItem(NEWS_CACHE_KEY, JSON.stringify({ at: Date.now(), csv })); } catch (e) {}
+        stamp('اليوم ' + nowLabel());
+        return;
+      } catch (e) { console.warn('sheet:', e); }
+
+      // 2) آخر نسخة محفوظة على هذا الجهاز
+      try {
+        const saved = JSON.parse(localStorage.getItem(NEWS_CACHE_KEY) || 'null');
+        if (saved && saved.csv) {
+          showData(sheetToData(saved.csv));
+          const p = isoParts(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Baghdad' }).format(new Date(saved.at)));
+          stamp((p ? arDate(p) : '—') + ' (نسخة محفوظة)');
+          return;
+        }
+      } catch (e) {}
+
+      // 3) الملف الاحتياطي على السيرفر
+      try {
+        const r = await fetch('announcements.json', { cache: 'no-cache' });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const data = await r.json();
+        showData({ exams: data.exams, announcements: data.announcements });
+        const up = isoParts(data.updated);
+        stamp(up ? arDate(up) : '—');
+        return;
+      } catch (e) { console.warn('announcements.json:', e); }
+
+      ['examsList', 'newsList'].forEach((id) => {
+        document.getElementById(id).replaceChildren(emptyItem('تعذّر تحميل الإعلانات. تحقق من الاتصال ثم أعد تحميل الصفحة.'));
+      });
+      stamp('—');
+    }
+    loadNews();
+    // تحديث تلقائي كل 5 دقائق ما دامت الصفحة مفتوحة
+    setInterval(() => { if (document.visibilityState === 'visible') loadNews(); }, 300000);
+  </script>
+</body>
+</html>
