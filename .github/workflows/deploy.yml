@@ -1,0 +1,60 @@
+name: نشر نظام الكنترول على GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: تجهيز الموقع وإعدادات Firebase
+        env:
+          FB_API_KEY: ${{ secrets.FB_API_KEY }}
+          FB_WEB_APP_ID: ${{ secrets.FB_WEB_APP_ID }}
+          FB_SENDER_ID: ${{ secrets.FB_SENDER_ID }}
+          FB_PROJECT_ID: ${{ secrets.FB_PROJECT_ID }}
+          FB_STORAGE_BUCKET: ${{ secrets.FB_STORAGE_BUCKET }}
+          FB_AUTH_DOMAIN: ${{ secrets.FB_AUTH_DOMAIN }}
+        run: |
+          mkdir -p _site
+          cp -r index.html .nojekyll kontrol _site/
+          if [ -n "$FB_API_KEY" ]; then
+            AUTH_DOMAIN="${FB_AUTH_DOMAIN:-$FB_PROJECT_ID.firebaseapp.com}"
+            printf 'window.FIREBASE_CONFIG = {apiKey:"%s",authDomain:"%s",projectId:"%s",storageBucket:"%s",messagingSenderId:"%s",appId:"%s"};\n' \
+              "$FB_API_KEY" "$AUTH_DOMAIN" "$FB_PROJECT_ID" "$FB_STORAGE_BUCKET" "$FB_SENDER_ID" "$FB_WEB_APP_ID" \
+              > _site/kontrol/firebase-config.js
+            echo "إعدادات Firebase من أسرار المستودع: $FB_PROJECT_ID"
+          elif grep -q '^window.FIREBASE_CONFIG = null' kontrol/firebase-config.js; then
+            echo "::warning::لا توجد إعدادات Firebase: سيعمل الكنترول في الوضع المحلي فقط. أضف الأسرار أو عدّل kontrol/firebase-config.js"
+          else
+            echo "إعدادات Firebase من kontrol/firebase-config.js"
+          fi
+          # رقم إصدار جديد لعامل الخدمة حتى تتحدث النسخة المخزنة على الأجهزة
+          sed -i "s/kontrol-v1/kontrol-${{ github.run_number }}/" _site/kontrol/sw.js
+
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deploy
+        uses: actions/deploy-pages@v4
