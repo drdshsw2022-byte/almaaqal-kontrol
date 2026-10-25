@@ -1,15 +1,26 @@
 {
-  "name": "نظام الكنترول — جامعة المعقل الأهلية",
-  "short_name": "الكنترول",
+  "name": "نظام الكنترول — جامعة المعقل الدولية",
+  "short_name": "كنترول المعقل",
   "description": "نظام الكنترول الجامعي وإدارة اللجان الامتحانية",
   "lang": "ar",
   "dir": "rtl",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#edf0ee",
-  "theme_color": "#1c5a49",
+  "background_color": "#0a0f1d",
+  "theme_color": "#0a0f1d",
   "icons": [
-    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "crest.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
   ]
 }

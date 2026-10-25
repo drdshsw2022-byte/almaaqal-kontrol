@@ -96,7 +96,7 @@ async function bulk(items,onProgress){ // [{c,id,data}]
   await Promise.all(Array.from({length:4},run));sched();
 }
 const PARTS=[['att','الحضور',5],['hw','الواجب البيتي',5],['proj','المشروع',10],['lab','المختبر',10],['quiz','الامتحان الأسبوعي',10],['mid','الامتحان الفصلي',10]];
-const cfg=()=>({univ:'جامعة المعقل الأهلية',college:'كلية الهندسة',year:'2026–2027',term:'الفصل الدراسي الأول',curSem:'1',cwMax:50,finMax:50,pass:50,maxCarry:2,graceTotal:5,gracePer:5,double:true,useParts:true,requireCoi:false,appealHours:48,p1:'09:00',p2:'11:30',...(S.meta.get('settings')||{})});
+const cfg=()=>({univ:'جامعة المعقل الدولية',college:'كلية الهندسة',year:'2026–2027',term:'الفصل الدراسي الأول',curSem:'1',cwMax:50,finMax:50,pass:50,maxCarry:2,graceTotal:5,gracePer:5,double:true,useParts:true,requireCoi:false,appealHours:48,p1:'09:00',p2:'11:30',...(S.meta.get('settings')||{})});
 const partsOn=()=>cfg().useParts!==false;
 
 /* سجل التدقيق بسلسلة تجزئة */
@@ -298,6 +298,21 @@ function fbBoot(){FB=window.FBX;MODE='auth';renderNav();
 }
 function fbReady(){return new Promise(r=>{if(window.FBX_DONE)return r();window.addEventListener('fbx-ready',()=>r(),{once:true});setTimeout(r,10000)})}
 
+/* ============ الهوية: الشعار والساعة والوضع الليلي ============ */
+let CREST='';let crestN=0;
+function fillCrests(root){if(!CREST)return;(root||document).querySelectorAll('[data-crest]:not([data-filled])').forEach(el=>{const n=++crestN;el.innerHTML=CREST.replace(/(crest[A-Za-z]*(?:Grad|Crest|Glow|Shadow)?)/g,'$1_'+n);el.dataset.filled='1'})}
+fetch('crest.svg').then(r=>r.ok?r.text():'').then(t=>{CREST=t;fillCrests()}).catch(()=>{});
+const AMONTHS=['كانون الثاني','شباط','آذار','نيسان','أيار','حزيران','تموز','آب','أيلول','تشرين الأول','تشرين الثاني','كانون الأول'];
+function tickClock(){const el=$('#clock');if(!el)return;
+  const p=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Baghdad',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true,weekday:'long',day:'numeric',month:'numeric',year:'numeric'}).formatToParts(new Date()).map(x=>[x.type,x.value]));
+  const wd={Sunday:'الأحد',Monday:'الإثنين',Tuesday:'الثلاثاء',Wednesday:'الأربعاء',Thursday:'الخميس',Friday:'الجمعة',Saturday:'السبت'}[p.weekday]||'';
+  const ap=/pm/i.test(p.dayPeriod||'')?'م':'ص';
+  el.innerHTML=`<span>توقيت البصرة</span><span class="ap">${ap}</span><span class="t"><i>${p.hour}</i>:<i>${p.minute}</i>:<i>${p.second}</i></span><span class="d">${wd}، ${+p.day} ${AMONTHS[+p.month-1]} ${p.year}</span><span class="z">GMT+3</span>`}
+setInterval(tickClock,1000);
+function curTheme(){const t=document.documentElement.dataset.theme;if(t)return t;return matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}
+function syncThemeBtn(){const b=$('#themebtn');if(b)b.textContent=curTheme()==='dark'?'الوضع النهاري':'الوضع الليلي'}
+document.addEventListener('DOMContentLoaded',()=>{tickClock();syncThemeBtn();fillCrests();const b=$('#themebtn');if(b)b.addEventListener('click',()=>{const n=curTheme()==='dark'?'light':'dark';document.documentElement.dataset.theme=n;try{localStorage.setItem('kontrol.theme',n)}catch(e){}syncThemeBtn()})});
+
 /* ============ الحالة والواجهة ============ */
 const UI={view:'dash',q:'',fd:'',fs:'',slot:'',hall:'',course:'',gtab:'cw',group:'',cdel:'',stcourse:'',ai:'',aiBusy:false,vq:'',vres:null,gracePrev:null};
 const DRAFT={};
@@ -330,7 +345,7 @@ function counts(){
 function renderNav(){
   const c=counts();
   $('#nav').innerHTML=MODE==='auth'?'':VIEWS.map(([g,items])=>[g,items.filter(([k])=>viewOk(k))]).filter(([,items])=>items.length).map(([g,items])=>`<div class="grp">${g}</div>`+items.map(([k,l])=>`<a href="#${k}" class="${UI.view===k?'on':''}" data-nav="${k}">${l}${c[k]?`<span class="badge ${k==='appeals'?'am':''}">${c[k]}</span>`:''}</a>`).join('')).join('');
-  const st=cfg();$('#sub').textContent=`${st.college} · ${st.year}`;
+  
   const me=$('#me');if(me){me.hidden=!(MODE==='fb'&&MEPROF);if(MEPROF)me.innerHTML=`<b>${esc(MEPROF.name)}</b><span class="mut">${esc(KROLES[KROLE]||'')}</span><button class="btn sm" data-act="logout">تسجيل الخروج</button>`}
   $('#mode').innerHTML=MODE==='fb'?(navigator.onLine?`<span class="dot on"></span>متصل بقاعدة Firebase${RO?' · اطلاع فقط':''}`:`<span class="dot loc"></span>دون اتصال — التعديلات تُحفظ وتُزامَن لاحقاً`):MODE==='auth'?`<span class="dot"></span>بانتظار تسجيل الدخول`:MODE==='cloud'?`<span class="dot on"></span>متصل — بيانات مشتركة${RO?' · اطلاع فقط':''}`:MODE==='local'?`<span class="dot loc"></span>وضع محلي على هذا الجهاز`:`<span class="dot"></span>جارٍ الاتصال…`;
 }
@@ -341,11 +356,13 @@ function render(){
   if(!viewOk(UI.view))UI.view='dash';
   const v=VIEW[UI.view]||VIEW.dash;
   let h;try{h=v()}catch(e){console.error(e);h=`<div class="alert bad">تعذر عرض هذه الصفحة: ${esc(e.message)}</div>`}
-  $('#main').innerHTML=h;
+  $('#main').innerHTML=h;fillCrests($('#main'));
   if(UI.view==='master'||UI.view==='verify')computeVC();
   if(UI.view==='audit')resolveNames();
 }
-const ph=(t,p,act='')=>`<div class="ph"><div><h2>${t}</h2>${p?`<p>${p}</p>`:''}</div><div class="row">${act}</div></div>`;
+const GTAG={'التخطيط':'PLANNING','يوم الامتحان':'EXAM DAY','الكنترول':'CONTROL','الحوكمة':'GOVERNANCE'};
+function eyebrow(){const gi=VIEWS.findIndex(g=>g[1].some(x=>x[0]===UI.view));if(gi<0)return'';const g=VIEWS[gi];return `<div class="eyebrow"><span class="tag ${['','t2','t3','t4'][gi]||''}">0${gi+1}. ${GTAG[g[0]]||''}</span>${esc(g[0])}</div>`}
+const ph=(t,p,act='')=>`<div class="ph"><div>${eyebrow()}<h2>${t}</h2>${p?`<p>${p}</p>`:''}</div><div class="row">${act}</div></div>`;
 const opt=(v,l,sel)=>`<option value="${esc(v)}"${String(v)===String(sel)?' selected':''}>${esc(l)}</option>`;
 const empty=(t,p,a='')=>`<div class="card empty"><b>${t}</b>${p}${a?`<div class="row" style="justify-content:center;margin-top:12px">${a}</div>`:''}</div>`;
 const roBtn=()=>RO?' disabled':'';
@@ -465,7 +482,10 @@ VIEW.dash=()=>{
   sl.forEach(s=>{if(s.dwarn&&s.dwarn.length)alerts.push(['',`نقص مراقبين: ${s.dwarn.join('، ')}`,'duties'])});
   const up=slots.filter(s=>s.date>=new Date().toISOString().slice(0,10)).slice(0,5);
   const upList=(up.length?up:slots.slice(0,5)).map(s=>{const d=S.slots.get(s.key)||{};const n=s.exams.reduce((a,e)=>a+examStudents(e).length,0);return `<tr><td>${esc(slotName(s))}</td><td class="wrap">${s.exams.map(e=>esc((S.courses.get(e.course)||{}).name)).join('، ')}</td><td>${n}</td><td>${d.seats?.length?'<span class="pill ok">المقاعد</span>':'<span class="pill warn">المقاعد</span>'} ${d.duties?.length?'<span class="pill ok">المراقبون</span>':'<span class="pill warn">المراقبون</span>'}</td></tr>`}).join('');
-  return ph('لوحة القيادة',`${esc(st.univ)} · ${esc(st.college)} · ${esc(st.term)} ${esc(st.year)}`)+
+  const nextS=up[0]||slots[0];
+  const hero=`<section class="hero"><div class="hero-in"><div class="crest" data-crest></div><div class="txt"><span class="pillgold"><i></i>${esc(st.college)} · ${esc(st.term)} · ${esc(st.year)}</span><h2>${esc(st.univ)}</h2><h3>نظام الكنترول وإدارة اللجان الامتحانية</h3><p>منظومة متكاملة تدير الامتحانات من الجدول وتوزيع المقاعد والمراقبين، إلى التشفير والرصد المزدوج والرأفة، حتى المصادقة ونشر النتائج للطلبة.</p><div class="chips"><span>Al-Maaqal International University · Basra</span><span>Examination Control System</span></div></div>
+    <div class="status"><h4>حالة النظام الآن</h4><div><span class="${MODE==='fb'?(navigator.onLine?'ok':'wn'):'wn'}">قاعدة البيانات</span><em>${MODE==='fb'?(navigator.onLine?'متصلة':'دون اتصال'):MODE==='cloud'?'مشتركة':'محلية'}</em></div><div><span class="ok">الطلبة</span><em>${arr('students').length}</em></div><div><span class="ok">المواد (الفصل الحالي)</span><em>${arr('courses').filter(semOk).length}</em></div><div><span class="${mis?'wn':'ok'}">تعارضات الرصد</span><em>${mis}</em></div>${MEPROF?`<div><span class="ok">دورك</span><em>${esc(KROLES[KROLE]||'')}</em></div>`:''}${nextS?`<div><span class="wn">أقرب جلسة</span><em>${esc(nextS.date)}</em></div>`:''}</div></div></section>`;
+  return hero+ph('لوحة القيادة',`${esc(st.univ)} · ${esc(st.college)} · ${esc(st.term)} ${esc(st.year)}`)+
   `<div class="grid g4" style="margin-bottom:14px">${[[arr('students').length,'طالباً مسجلاً'],[cs.length,'مادة امتحانية'],[slots.length,'جلسة امتحانية'],[arr('halls').length,'قاعة · سعة '+arr('halls').reduce((a,h)=>a+(+h.rows)*(+h.cols),0)],[arr('staff').length,'عضواً في الكادر']].map(([n,l])=>`<div class="card kpi"><b>${n}</b><span>${l}</span></div>`).join('')}</div>`+
   `<div class="card" style="margin-bottom:14px"><h3>سلسلة العمل الامتحانية</h3><div class="pipe">${steps.map(([t,a,b,v])=>`<a class="step" href="#${v}" style="text-decoration:none;color:inherit"><div class="t">${t}</div><b style="font-variant-numeric:tabular-nums">${a} / ${b}</b><div class="bar"><i style="width:${b?Math.round(a/b*100):0}%"></i></div></a>`).join('')}</div></div>`+
   `<div class="grid g2"><div class="card"><h3>تنبيهات تحتاج إجراء</h3>${alerts.length?alerts.map(([k,t,v])=>`<div class="alert ${k}" style="margin-bottom:6px"><a href="#${v}" style="color:inherit">${esc(t)}</a></div>`).join(''):'<div class="alert ok">لا توجد تنبيهات مفتوحة.</div>'}</div>`+
@@ -870,7 +890,7 @@ async function loadSample(){
   Object.entries(CN).forEach(([k,list])=>list.forEach(([code,name,t])=>add('courses','c_'+code,{code,name,dept:k.slice(0,4),stage:k.slice(4),teacher:t,units:3})));
   const dates=['2027-01-10','2027-01-11','2027-01-12'];
   ['1','2','3'].forEach((n,di)=>{add('exams','e_CE20'+n,{course:'c_CE20'+n,date:dates[di],period:'1',dur:120});add('exams','e_EE20'+n,{course:'c_EE20'+n,date:dates[di],period:'1',dur:120});add('exams','e_CE30'+n,{course:'c_CE30'+n,date:dates[di],period:'2',dur:120});add('exams','e_EE30'+n,{course:'c_EE30'+n,date:dates[di],period:'2',dur:120})});
-  add('meta','settings',{univ:'جامعة البصرة',college:'كلية الهندسة',year:'2026–2027',term:'الفصل الدراسي الأول — الدور الأول',cwMax:40,finMax:60,pass:50,maxCarry:2,graceTotal:5,gracePer:5,double:true,useParts:false,curSem:'1',requireCoi:false,appealHours:48,p1:'09:00',p2:'11:30'});
+  add('meta','settings',{univ:'جامعة المعقل الدولية',college:'كلية الهندسة',year:'2026–2027',term:'الفصل الدراسي الأول — الدور الأول',cwMax:40,finMax:60,pass:50,maxCarry:2,graceTotal:5,gracePer:5,double:true,useParts:false,curSem:'1',requireCoi:false,appealHours:48,p1:'09:00',p2:'11:30'});
   add('meta','committee',{chair:'p0',rap:'p2',m1:'p1',m2:'p6',m3:'p7',tech:'p11'});
   // درجات لمواد اليومين الأولين
   const graded=['CE201','CE202','CE203','CE301','CE302','CE303','EE201','EE301','EE202','EE302'];
