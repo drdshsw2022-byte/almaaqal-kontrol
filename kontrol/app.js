@@ -64,7 +64,7 @@ function can(x){if(MODE!=='fb')return true;const r=KROLE;
   if(x==='grade')return r==='chair'||r==='member'||r==='auditor';
   if(x==='invig')return r==='chair'||r==='member'||r==='invigilator';
   return true}
-const LKEY='kontrol.univ.v2';
+const LKEY='kontrol.local.v3'; // يتجاهل البيانات التجريبية القديمة المحفوظة على الجهاز
 function saveLocal(){if(MODE!=='local')return;try{const o={};COLLS.forEach(c=>o[c]=[...S[c].entries()]);localStorage.setItem(LKEY,JSON.stringify(o))}catch(e){}}
 function loadLocal(){try{const o=JSON.parse(localStorage.getItem(LKEY)||'null');if(o&&o.students&&o.students.length){COLLS.forEach(c=>S[c]=new Map(o[c]||[]));return true}}catch(e){}return false}
 function strip(d){const v={...d};delete v.id;return v}

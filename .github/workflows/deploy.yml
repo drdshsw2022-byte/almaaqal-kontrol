@@ -65,6 +65,9 @@ jobs:
           fi
           # رقم إصدار جديد لعامل الخدمة حتى تتحدث النسخة المخزنة على الأجهزة
           sed -i "s/kontrol-v1/kontrol-${{ github.run_number }}/" _site/kontrol/sw.js
+          # كسر الذاكرة المؤقتة للمتصفح: كل نشر يحمّل الملفات الجديدة فوراً
+          V=${{ github.run_number }}
+          sed -i -E "s#(src|href)=\"(app\.js|app\.css|fb\.js|firebase-config\.js)\"#\1=\"\2?v=$V\"#g" _site/kontrol/index.html
 
       - uses: actions/configure-pages@v5
         with:
