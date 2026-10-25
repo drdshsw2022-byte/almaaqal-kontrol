@@ -41,7 +41,25 @@ jobs:
               > _site/kontrol/firebase-config.js
             echo "إعدادات Firebase من أسرار المستودع: $FB_PROJECT_ID"
           elif grep -q '^window.FIREBASE_CONFIG = null' kontrol/firebase-config.js; then
-            echo "::warning::لا توجد إعدادات Firebase: سيعمل الكنترول في الوضع المحلي فقط. أضف الأسرار أو عدّل kontrol/firebase-config.js"
+            # اكتشاف تلقائي: إعدادات الويب العامة من نسخة تطبيق الحضور المنشورة على النطاق نفسه
+            JS=$(mktemp)
+            if curl -fsSL --retry 3 "https://${{ github.repository_owner }}.github.io/almaaqal/main.dart.js" -o "$JS"; then
+              KEY=$(grep -oE 'AIza[0-9A-Za-z_-]{35}' "$JS" | head -1)
+              APPID=$(grep -oE '1:[0-9]{6,}:web:[0-9a-f]+' "$JS" | head -1)
+              SENDER=$(echo "$APPID" | cut -d: -f2)
+              DOMAIN=$(grep -oE '[a-z0-9-]+\.firebaseapp\.com' "$JS" | head -1)
+              BUCKET=$(grep -oE '[a-z0-9-]+\.(firebasestorage\.app|appspot\.com)' "$JS" | head -1)
+              PROJ=$(echo "${DOMAIN:-$BUCKET}" | cut -d. -f1)
+              if [ -n "$KEY" ] && [ -n "$APPID" ] && [ -n "$PROJ" ]; then
+                printf 'window.FIREBASE_CONFIG = {apiKey:"%s",authDomain:"%s",projectId:"%s",storageBucket:"%s",messagingSenderId:"%s",appId:"%s"};\n' \
+                  "$KEY" "${DOMAIN:-$PROJ.firebaseapp.com}" "$PROJ" "$BUCKET" "$SENDER" "$APPID" > _site/kontrol/firebase-config.js
+                echo "::notice::رُبط الكنترول تلقائياً بمشروع Firebase: $PROJ (من نسخة الويب لتطبيق الحضور)"
+              else
+                echo "::warning::لم تُكتشف إعدادات Firebase كاملة (key=${KEY:+ok} appId=${APPID:+ok} project=$PROJ). أضف الأسرار أو عدّل kontrol/firebase-config.js"
+              fi
+            else
+              echo "::warning::تعذر تنزيل نسخة الويب لتطبيق الحضور. أضف الأسرار أو عدّل kontrol/firebase-config.js"
+            fi
           else
             echo "إعدادات Firebase من kontrol/firebase-config.js"
           fi
