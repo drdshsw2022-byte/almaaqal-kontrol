@@ -136,8 +136,30 @@ async function bulk(items,onProgress){ // [{c,id,data}]
   await Promise.all(Array.from({length:4},run));sched();
 }
 const PARTS=[['att','الحضور',5],['hw','الواجب البيتي',5],['proj','المشروع',10],['lab','المختبر',10],['quiz','الامتحان الأسبوعي',10],['mid','الامتحان الفصلي',10]];
-const cfg=()=>({univ:'جامعة المعقل الدولية',college:'كلية الهندسة',year:'2026–2027',term:'الفصل الدراسي الأول',curSem:'1',cwMax:50,finMax:50,pass:50,maxCarry:2,graceTotal:5,gracePer:5,double:true,useParts:true,requireCoi:false,appealHours:48,p1:'09:00',p2:'11:30',...(S.meta.get('settings')||{})});
+const cfg=()=>({univ:'جامعة المعقل الدولية',college:'كلية الهندسة',year:'2026–2027',term:'الفصل الدراسي الأول',curSem:'1',cwMax:50,finMax:50,pass:50,maxCarry:2,graceTotal:5,gracePer:5,double:true,useParts:true,requireCoi:false,appealHours:48,idleMin:30,p1:'09:00',p2:'11:30',...(S.meta.get('settings')||{})});
 const partsOn=()=>cfg().useParts!==false;
+
+/* ============ الاعتراضات: مسار موثق ============
+   جديد ← قيد التدقيق ← قيد المراجعة ← بانتظار القرار ← مكتمل/مرفوض.
+   لا تتغير أي درجة إلا بقرار معتمد من رئيس اللجنة (finalFin)، وتُحفظ الدرجة قبل التسجيل للمقارنة. */
+const APST={new:'جديد',audit:'قيد التدقيق',review:'قيد المراجعة',decision:'بانتظار القرار',done:'مكتمل',rejected:'مرفوض'};
+const AP_OPEN=['new','audit','review','decision'];
+const APOUT={changed:'عُدلت الدرجة',upheld:'الدرجة صحيحة — لا تعديل',rejected:'رُفض شكلاً'};
+function apN(a){ // يوحّد سجلات الإصدار السابق (الحالة نصاً عربياً) مع الحقول الجديدة
+  if(!a||a.st)return a;const o={...a};
+  if(a.status==='مقبول — عُدلت الدرجة'){o.st='done';o.outcome='changed';o.finalFin=a.newFin;o.decidedAt=a.statusAt}
+  else if(a.status==='مرفوض — الدرجة صحيحة'){o.st='done';o.outcome='upheld';o.decidedAt=a.statusAt}
+  else o.st=a.status==='قيد التدقيق'?'audit':'new';
+  if(!o.decisionReason&&a.note)o.decisionReason=a.note;return o}
+const apList=()=>arr('appeals').map(apN);
+const apOpen=a=>AP_OPEN.includes(a.st);
+const apDue=a=>a.due||((a.at||Date.now())+cfg().appealHours*36e5);
+const apLate=(a,now=Date.now())=>apOpen(a)&&now>apDue(a);
+let TICK=0,APC={t:-1,m:null};
+function apFinMap(){if(APC.t===TICK&&APC.m)return APC.m;const m=new Map();
+  apList().filter(a=>a.st==='done'&&a.outcome==='changed'&&num(a.finalFin)!=null).sort((x,y)=>(x.decidedAt||0)-(y.decidedAt||0))
+    .forEach(a=>m.set(a.course+'~'+a.student,{v:+a.finalFin,round:String(a.round||'1'),ref:a.ref||''}));
+  APC={t:TICK,m};return m}
 
 /* سجل التدقيق بسلسلة تجزئة */
 async function log(action,detail){
@@ -182,7 +204,9 @@ function finalOf(r){ // الدرجة النهائية المدققة
   return {v:a,ok:true};
 }
 function res(cid,sid,noGrace){
-  const st=cfg();const r=G(cid)[sid]||{};
+  const st=cfg();let r=G(cid)[sid]||{};
+  if(MODE==='fb'&&r.appealFin!=null){r={...r};delete r.appealFin} // في Firebase لا يُعتد إلا بقرار الاعتراض المعتمد
+  const ap=apFinMap().get(cid+'~'+sid);if(ap){r={...r};if(ap.round==='2')r.sec=ap.v;else r.appealFin=ap.v}
   if(r.dep)return {state:'dep',label:'محروم',pass:false,total:null};
   const cw=num(r.cw);const f=finalOf(r);
   if(cw==null||f.v==null)return {state:'pending',label:f.mismatch?'تعارض رصد':'غير مكتمل',pass:false,total:null,mismatch:!!f.mismatch,cw,abs:!!r.abs};
@@ -288,7 +312,7 @@ function fbSubscribe(){
   fbSub('colleges',intoRaw(RAW.colleges));fbSub('departments',intoRaw(RAW.departments));fbSub('courses',intoRaw(RAW.courses));fbSub('students',intoRaw(RAW.students));fbSub('staff',intoRaw(RAW.staff));fbSub('k_staffx',intoRaw(RAW.staffx));
   ['halls','exams','slots','envelopes','incidents','meta'].forEach(c=>fbSub(KCOL[c],intoS(c)));
   fbSub('k_audit',intoS('audit'),r=>FB.query(r,FB.orderBy('ts','desc'),FB.limit(500)));
-  if(can('grade')){fbSub('k_marks',intoRaw(RAW.kmarks));fbSub('k_appeals',intoS('appeals'))}
+  fbSub('k_appeals',intoS('appeals'));if(can('grade'))fbSub('k_marks',intoRaw(RAW.kmarks));
   if(can('ctrl'))fbSub('k_codes',intoS('codes'));
   if(can('chair'))fbSub('k_roles',intoRaw(RAW.kroles));
 }
@@ -331,11 +355,20 @@ function showLogin(on,msg){const L=$('#login');L.hidden=!on;if(on){$('#lg_err').
 function fbBoot(){FB=window.FBX;MODE='auth';renderNav();
   FB.onAuthStateChanged(FB.auth,async u=>{if(!u){if(MODE==='fb'){fbUnsubscribe()}MODE='auth';ME='local';MEPROF=null;renderNav();$('#main').innerHTML='';showLogin(true);return}
     try{await afterLogin(u)}catch(e){try{await FB.signOut(FB.auth)}catch(x){}MODE='auth';showLogin(true,errMsg(e))}});
-  $('#loginform').addEventListener('submit',async ev=>{ev.preventDefault();const b=$('#lg_btn');b.disabled=true;b.textContent='جارٍ الدخول…';$('#lg_err').textContent='';
-    try{await fbLogin($('#lg_user').value,$('#lg_pass').value)}catch(e){showLogin(true,errMsg(e))}});
+  $('#loginform').addEventListener('submit',async ev=>{ev.preventDefault();const b=$('#lg_btn');
+    const wait=loginWait();if(wait>0){showLogin(true,`محاولات خاطئة متكررة. أعد المحاولة بعد ${Math.ceil(wait/1000)} ثانية.`);return}
+    b.disabled=true;b.textContent='جارٍ الدخول…';$('#lg_err').textContent='';
+    try{await fbLogin($('#lg_user').value,$('#lg_pass').value);loginFail(true)}catch(e){loginFail(false);showLogin(true,errMsg(e))}});
   $('#lg_google').addEventListener('click',async()=>{$('#lg_err').textContent='';try{await FB.signInWithPopup(FB.auth,new FB.GoogleAuthProvider())}catch(e){showLogin(true,authErr(e))}});
   window.addEventListener('online',renderNav);window.addEventListener('offline',renderNav);
 }
+/* حماية الجلسة: تأخير متصاعد بعد المحاولات الخاطئة، وإنهاء الجلسة بعد عدم النشاط */
+const LF='kontrol.lf';
+function lfGet(){try{return JSON.parse(localStorage.getItem(LF)||'{}')}catch(e){return{}}}
+function loginWait(){const o=lfGet();return Math.max(0,(o.until||0)-Date.now())}
+function loginFail(ok){try{if(ok){localStorage.removeItem(LF);return}const o=lfGet();o.n=(o.n||0)+1;if(o.n>=5)o.until=Date.now()+Math.min(15*60e3,30e3*2**(o.n-5));localStorage.setItem(LF,JSON.stringify(o))}catch(e){}}
+let LAST_ACT=Date.now();['pointerdown','keydown','scroll','touchstart'].forEach(ev=>document.addEventListener(ev,()=>{LAST_ACT=Date.now()},{passive:true,capture:true}));
+setInterval(()=>{if(MODE!=='fb'||!FB)return;const m=+cfg().idleMin||30;if(Date.now()-LAST_ACT>m*60e3){LAST_ACT=Date.now();FB.signOut(FB.auth).then(()=>showLogin(true,`انتهت الجلسة بعد ${m} دقيقة دون نشاط. سجّل الدخول مجدداً.`)).catch(()=>{})}},30e3);
 function fbReady(){return new Promise(r=>{if(window.FBX_DONE)return r();window.addEventListener('fbx-ready',()=>r(),{once:true});setTimeout(r,10000)})}
 
 /* ============ الهوية: الشعار والساعة والوضع الليلي ============ */
@@ -360,17 +393,17 @@ const VIEWS=[
   ['التخطيط',[['dash','لوحة القيادة'],['depts','الكليات والأقسام'],['students','الطلبة والأهلية'],['courses','المواد الدراسية'],['halls','القاعات'],['staff','الكادر وتعارض المصالح'],['exams','الجدول الامتحاني']]],
   ['يوم الامتحان',[['seating','توزيع المقاعد'],['duties','اللجان والمراقبون'],['envelopes','أظرف الأسئلة'],['attendance','الحضور والغياب'],['incidents','محاضر الغش']]],
   ['الكنترول',[['coding','التشفير والأرقام السرية'],['grading','رصد الدرجات'],['grace','الرأفة الآلية'],['master','الماستر شيت والنتائج'],['stats','التحليل الإحصائي'],['appeals','الاعتراضات']]],
-  ['الحوكمة',[['audit','سجل التدقيق'],['verify','التحقق من الصدور'],['roles','صلاحيات الكنترول'],['settings','الإعدادات والبيانات']]],
+  ['الحوكمة',[['audit','سجل التدقيق'],['integrity','فحص سلامة البيانات'],['verify','التحقق من الصدور'],['roles','صلاحيات الكنترول'],['settings','الإعدادات والبيانات']]],
 ];
 const VALID=new Set(VIEWS.flatMap(g=>g[1].map(x=>x[0])));
 const ROLE_VIEWS={
-  viewer:['dash','students','courses','halls','staff','exams','seating','duties','master','stats','verify'],
+  viewer:['dash','students','courses','halls','staff','exams','seating','duties','master','stats','integrity','verify'],
   invigilator:['dash','exams','halls','seating','duties','envelopes','attendance','incidents','verify'],
-  auditor:['dash','students','courses','exams','grading','master','stats','appeals','verify'],
+  auditor:['dash','students','courses','exams','grading','master','stats','appeals','integrity','verify'],
 };
 function viewOk(k){if(k==='roles')return MODE==='fb'&&can('chair');if(MODE!=='fb')return true;const l=ROLE_VIEWS[KROLE];return !l||l.includes(k)}
 let rq=false,deferred=false;
-function sched(){if(rq)return;rq=true;requestAnimationFrame(()=>{rq=false;render()})}
+function sched(){TICK++;if(rq)return;rq=true;requestAnimationFrame(()=>{rq=false;render()})}
 function editing(){const a=document.activeElement;return a&&$('#main').contains(a)&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)&&a.type!=='checkbox'&&a.type!=='button'}
 document.addEventListener('focusout',()=>{if(deferred){deferred=false;setTimeout(sched,0)}});
 function toast(m,k){const t=document.createElement('div');t.className='toast'+(k?' '+k:'');t.textContent=m;$('#toasts').appendChild(t);setTimeout(()=>t.remove(),k==='bad'?6000:3200)}
@@ -379,7 +412,7 @@ function errMsg(e){if(!e)return'تعذر تنفيذ العملية.';if(e.code==
 function counts(){
   const mis=arr('grades').reduce((a,g)=>a+Object.values(g.rows||{}).filter(r=>finalOf(r).mismatch).length,0);
   const inc=arr('incidents').filter(x=>x.status!=='صدر القرار').length;
-  const ap=arr('appeals').filter(x=>x.status==='جديد'||x.status==='قيد التدقيق').length;
+  const ap=apList().filter(apOpen).length;
   return {grading:mis,incidents:inc,appeals:ap};
 }
 function renderNav(){
@@ -438,16 +471,20 @@ function cellVal(c,k,r){
   return esc(v);
 }
 const COLL={college:'الكلية',sem:'الفصل',ects:'ECTS',kind:'النوع',name:'الاسم',code:'الرمز',no:'الرقم المعرفي',dept:'القسم',stage:'المرحلة',shift:'الدراسة',teacher:'الأستاذ',units:'الوحدات',building:'الموقع',rows:'صفوف',cols:'أعمدة',cap:'السعة',inv:'مراقبون',title:'اللقب',duties:'واجبات المراقبة',relatives:'أقارب طلبة',coi:'الإقرار',course:'المادة',group:'القسم/المرحلة',date:'التاريخ',period:'الجلسة',dur:'المدة',n:'الطلبة المؤهلون'};
-function listView(c,extraTop=''){
+function listRows(c){
   const sc=SCHEMA[c];let rows=arr(c);
   const hasDept=sc.f.some(f=>f.k==='dept'),hasStage=sc.f.some(f=>f.k==='stage');
   if(UI.fd&&hasDept)rows=rows.filter(r=>r.dept===UI.fd);
   if(UI.fs&&hasStage)rows=rows.filter(r=>String(r.stage)===UI.fs);
   if(UI.q){const q=UI.q.trim();rows=rows.filter(r=>Object.values(r).some(v=>String(v).includes(q)))}
   if(c==='students')rows.sort(byNo);else if(c==='depts')rows.sort((a,b)=>String(a.college||'ي').localeCompare(String(b.college||'ي'),'ar')||String(a.name).localeCompare(String(b.name),'ar'));else if(c==='exams')rows.sort((a,b)=>slotKey(a)<slotKey(b)?-1:1);else rows.sort((a,b)=>String(a.name||a.code||'').localeCompare(String(b.name||b.code||''),'ar'));
+  return rows}
+function listView(c,extraTop=''){
+  const sc=SCHEMA[c];const rows=listRows(c);
+  const hasDept=sc.f.some(f=>f.k==='dept'),hasStage=sc.f.some(f=>f.k==='stage');
   const fbShared=MODE==='fb'&&(SHARED_RO.has(c)||c==='staff');
   const act=fbShared?'':`${c==='students'||c==='courses'?`<label class="btn"${RO?' style="opacity:.45"':''}>استيراد ملف Excel<input type="file" id="xlsxin2" accept=".xlsx,.xls,.csv" multiple hidden${roBtn()}></label>`:''}${c==='students'?`<button class="btn" data-act="import"${roBtn()}>لصق قائمة</button>`:''}<button class="btn pri" data-act="new" data-c="${c}"${roBtn()}>إضافة ${sc.one}</button>`;
-  const filt=`<div class="row" style="margin-bottom:12px"><input type="search" id="q" placeholder="بحث…" value="${esc(UI.q)}" data-ui="q" style="width:200px">${hasDept?`<select id="fd" data-ui="fd">${opt('','كل الأقسام',UI.fd)}${arr('depts').map(d=>opt(d.id,d.name,UI.fd)).join('')}</select>`:''}${hasStage?`<select id="fs" data-ui="fs">${opt('','كل المراحل',UI.fs)}${STAGES.map((s,i)=>opt(String(i+1),'المرحلة '+s,UI.fs)).join('')}</select>`:''}<span class="mut">${rows.length} سجل</span></div>`;
+  const filt=`<div class="row" style="margin-bottom:12px"><input type="search" id="q" placeholder="بحث…" value="${esc(UI.q)}" data-ui="q" style="width:200px">${hasDept?`<select id="fd" data-ui="fd">${opt('','كل الأقسام',UI.fd)}${arr('depts').map(d=>opt(d.id,d.name,UI.fd)).join('')}</select>`:''}${hasStage?`<select id="fs" data-ui="fs">${opt('','كل المراحل',UI.fs)}${STAGES.map((s,i)=>opt(String(i+1),'المرحلة '+s,UI.fs)).join('')}</select>`:''}<span class="mut">${rows.length} سجل</span>${sc.cols.length&&rows.length?`<span class="row" style="margin-inline-start:auto">${expBtns('lexp',c)}</span>`:''}</div>`;
   const body=rows.length?`<div class="tw"><table><thead><tr>${sc.cols.map(k=>`<th>${COLL[k]||k}</th>`).join('')}<th></th></tr></thead><tbody>${rows.map(r=>`<tr>${sc.cols.map(k=>`<td>${cellVal(c,k,r)}</td>`).join('')}<td>${rowBtns(c,r.id)}</td></tr>`).join('')}</tbody></table></div>`:empty('لا توجد سجلات بعد',`أضف ${sc.one} من الزر في الأعلى${c==='students'?'، أو الصق قائمة من Excel عبر «استيراد»':''}.`);
   return ph(sc.t,sc.p,act)+(MODE==='fb'&&SHARED_RO.has(c)?'<div class="note" style="margin-bottom:12px">تُدار هذه البيانات من لوحة إدارة نظام الحضور (ومنها رفع ملفات Excel)، وتظهر هنا تلقائياً ولحظياً.</div>':'')+extraTop+filt+body;
 }
@@ -472,6 +509,8 @@ function openForm(c,id,preset){
 async function submitForm(form){
   const c=form.dataset.form,id=form.dataset.id||rid();
   if(c==='settings')return saveSettings(form);
+  if(c==='apnew')return apCreate(form);
+  if(c==='apstep')return apStep(form);
   if(c==='import')return doImport(form);
   const sc=MODE==='fb'&&c==='staff'?{...SCHEMA.staff,f:SCHEMA.staff.f.filter(f=>['title','phone','relatives','unavail','coi'].includes(f.k))}:SCHEMA[c];const old=S[c].get(id)||{};const d={...strip(old)};
   for(const f of sc.f){const el=form.elements[f.k];if(!el)continue;let v=f.type==='bool'?el.checked:el.value.trim();if(f.type==='num')v=num(v);d[f.k]=v}
@@ -527,7 +566,11 @@ VIEW.dash=()=>{
   const alerts=[];
   if(mis)alerts.push(['bad',`${mis} درجة يختلف فيها الإدخال الأول عن الثاني وتنتظر الحسم.`,'grading']);
   const inc=arr('incidents').filter(x=>x.status!=='صدر القرار');if(inc.length)alerts.push(['bad',`${inc.length} محضر غش مفتوح لم يصدر فيه قرار.`,'incidents']);
-  const now=Date.now();const late=arr('appeals').filter(a=>(a.status==='جديد'||a.status==='قيد التدقيق')&&now-(a.at||now)>st.appealHours*36e5*0.75);if(late.length)alerts.push(['',`${late.length} اعتراض اقترب من تجاوز مهلة ${st.appealHours} ساعة أو تجاوزها.`,'appeals']);
+  const now=Date.now();const apl=apList();const late=apl.filter(a=>apLate(a,now));if(late.length)alerts.push(['bad',`${late.length} اعتراض تجاوز مهلة ${st.appealHours} ساعة دون قرار.`,'appeals']);
+  const soon=apl.filter(a=>apOpen(a)&&!apLate(a,now)&&apDue(a)-now<12*36e5);if(soon.length)alerts.push(['',`${soon.length} اعتراض تنتهي مهلته خلال 12 ساعة.`,'appeals']);
+  const wait=apl.filter(a=>a.st==='decision');if(wait.length&&can('chair'))alerts.push(['',`${wait.length} اعتراض بانتظار قرارك.`,'appeals']);
+  const crit=integrityScan().filter(x=>x.sev==='bad').reduce((a,x)=>a+x.items.length,0);if(crit)alerts.push(['bad',`${crit} مشكلة حرجة في سلامة البيانات (تكرار أو درجات خارج المدى).`,'integrity']);
+  if(can('chair')&&MODE!=='cloud'){const b=S.meta.get('backup');if(!b||now-b.at>7*864e5)alerts.push(['',b?`آخر نسخة احتياطية قبل ${Math.floor((now-b.at)/864e5)} يوماً.`:'لم تُنزَّل نسخة احتياطية بعد.','settings'])}
   const noCoi=arr('staff').filter(p=>!p.coi).length;if(noCoi)alerts.push(['',`${noCoi} من الكادر بلا إقرار تعارض مصالح.`,'staff']);
   sl.forEach(s=>{if(s.dwarn&&s.dwarn.length)alerts.push(['',`نقص مراقبين: ${s.dwarn.join('، ')}`,'duties'])});
   const up=slots.filter(s=>s.date>=new Date().toISOString().slice(0,10)).slice(0,5);
@@ -536,7 +579,7 @@ VIEW.dash=()=>{
   const hero=`<section class="hero"><div class="hero-in"><div class="crest" data-crest></div><div class="txt"><span class="pillgold"><i></i>${esc(st.college)} · ${esc(st.term)} · ${esc(st.year)}</span><h2>${esc(st.univ)}</h2><h3>نظام الكنترول وإدارة اللجان الامتحانية</h3><p>منظومة متكاملة تدير الامتحانات من الجدول وتوزيع المقاعد والمراقبين، إلى التشفير والرصد المزدوج والرأفة، حتى المصادقة ونشر النتائج للطلبة.</p><div class="chips"><span>Al-Maaqal International University · Basra</span><span>Examination Control System</span></div></div>
     <div class="status"><h4>حالة النظام الآن</h4><div><span class="${MODE==='fb'?(navigator.onLine?'ok':'wn'):'wn'}">قاعدة البيانات</span><em>${MODE==='fb'?(navigator.onLine?'متصلة':'دون اتصال'):MODE==='cloud'?'مشتركة':'محلية'}</em></div><div><span class="ok">الطلبة</span><em>${arr('students').length}</em></div><div><span class="ok">المواد (الفصل الحالي)</span><em>${arr('courses').filter(semOk).length}</em></div><div><span class="${mis?'wn':'ok'}">تعارضات الرصد</span><em>${mis}</em></div>${MEPROF?`<div><span class="ok">دورك</span><em>${esc(KROLES[KROLE]||'')}</em></div>`:''}${nextS?`<div><span class="wn">أقرب جلسة</span><em>${esc(nextS.date)}</em></div>`:''}</div></div></section>`;
   return hero+ph('لوحة القيادة',`${esc(st.univ)} · ${esc(st.college)} · ${esc(st.term)} ${esc(st.year)}`)+
-  `<div class="grid g4" style="margin-bottom:14px">${[[arr('students').length,'طالباً مسجلاً'],[cs.length,'مادة امتحانية'],[slots.length,'جلسة امتحانية'],[arr('halls').length,'قاعة · سعة '+arr('halls').reduce((a,h)=>a+(+h.rows)*(+h.cols),0)],[arr('staff').length,'عضواً في الكادر']].map(([n,l])=>`<div class="card kpi"><b>${n}</b><span>${l}</span></div>`).join('')}</div>`+
+  `<div class="grid g4" style="margin-bottom:14px">${[[arr('students').length,'طالباً مسجلاً'],[cs.length,'مادة امتحانية'],[slots.length,'جلسة امتحانية'],[arr('halls').length,'قاعة · سعة '+arr('halls').reduce((a,h)=>a+(+h.rows)*(+h.cols),0)],[arr('staff').length,'عضواً في الكادر'],[apList().filter(apOpen).length,'اعتراضاً مفتوحاً']].map(([n,l])=>`<div class="card kpi"><b>${n}</b><span>${l}</span></div>`).join('')}</div>`+
   `<div class="card" style="margin-bottom:14px"><h3>سلسلة العمل الامتحانية</h3><div class="pipe">${steps.map(([t,a,b,v])=>`<a class="step" href="#${v}" style="text-decoration:none;color:inherit"><div class="t">${t}</div><b style="font-variant-numeric:tabular-nums">${a} / ${b}</b><div class="bar"><i style="width:${b?Math.round(a/b*100):0}%"></i></div></a>`).join('')}</div></div>`+
   `<div class="grid g2"><div class="card"><h3>تنبيهات تحتاج إجراء</h3>${alerts.length?alerts.map(([k,t,v])=>`<div class="alert ${k}" style="margin-bottom:6px"><a href="#${v}" style="color:inherit">${esc(t)}</a></div>`).join(''):'<div class="alert ok">لا توجد تنبيهات مفتوحة.</div>'}</div>`+
   `<div class="card"><h3>الجلسات القادمة</h3>${upList?`<div class="tw"><table><thead><tr><th>الجلسة</th><th>المواد</th><th>طلبة</th><th>الجاهزية</th></tr></thead><tbody>${upList}</tbody></table></div>`:'<p class="mut">لم تُجدول امتحانات بعد.</p>'}</div></div>`;
@@ -679,7 +722,7 @@ VIEW.master=()=>{
   const body=sts.map(({s,st})=>`<tr><td class="mono">${esc(s.no)}</td><td>${esc(s.name)}</td>${cs.map(c=>{const r=res(c.id,s.id);if(r.state==='dep')return '<td colspan="4"><span class="pill bad">محروم</span></td>';if(r.state==='pending')return `<td colspan="4"><span class="pill warn">${r.label}</span></td>`;return `<td>${r1(r.cw)}</td><td>${r.abs?'<span class="red">غ</span>':r1(r.fin)}${r.round===2?'<sup>د2</sup>':''}${r.appeal?'<sup>اع</sup>':''}</td><td>${r.grace?'+'+r.grace:''}</td><td class="${r.pass?'':'red'}" title="${grade(r.total)}">${r1(r.total)}</td>`}).join('')}<td><span class="pill ${st.cls}">${esc(st.label)}</span></td><td class="vc">${esc((VC.get(s.id)||{}).code||'…')}</td></tr>`).join('');
   return ph('الماستر شيت والنتائج','السجل المركزي: السعي + النهائي المدقق + الرأفة، مع حالة الطالب وفق حد المواد المكملة ورمز تحقق رقمي يثبت صحة الصدور.',pick)+
   `<div class="grid g4" style="margin-bottom:12px">${[[studs.length,'طالباً'],[cnt('ناجح'),'ناجح'],[cnt('مكمل'),'مكمل — دور ثانٍ'],[cnt('راسب'),'راسب'],[cnt('غير مكتمل'),'غير مكتمل']].map(([n,l])=>`<div class="card kpi"><b>${n}</b><span>${l}</span></div>`).join('')}</div>`+
-  `<div class="row" style="margin-bottom:12px">${lock?`<span class="stamp ok">مصادق عليها — مقفلة</span><button class="btn" data-act="lock" data-v="0"${IS_ADMIN&&!RO?'':' disabled'}>إلغاء المصادقة</button>`:`<button class="btn pri" data-act="lock" data-v="1"${IS_ADMIN&&!RO&&!cnt('غير مكتمل')?'':' disabled'}>مصادقة النتائج وقفلها</button>${cnt('غير مكتمل')?'<span class="mut">تكتمل المصادقة بعد اكتمال الرصد.</span>':''}`}${MODE==='fb'&&lock?`<button class="btn pri" data-act="publish"${IS_ADMIN?'':' disabled'}>${(S.meta.get('locks')||{})[k.replace('|','_')]?.published?'إعادة نشر النتائج للطلبة':'نشر النتائج للطلبة في تطبيق الحضور'}</button>`:''}<button class="btn" data-act="dlmaster">تنزيل الماستر شيت (Excel)</button><button class="btn" data-act="dlmasterhtml">تنزيل نسخة للطباعة</button></div>`+
+  `<div class="row" style="margin-bottom:12px">${lock?`<span class="stamp ok">مصادق عليها — مقفلة</span><button class="btn" data-act="lock" data-v="0"${IS_ADMIN&&!RO?'':' disabled'}>إلغاء المصادقة</button>`:`<button class="btn pri" data-act="lock" data-v="1"${IS_ADMIN&&!RO&&!cnt('غير مكتمل')?'':' disabled'}>مصادقة النتائج وقفلها</button>${cnt('غير مكتمل')?'<span class="mut">تكتمل المصادقة بعد اكتمال الرصد.</span>':''}`}${MODE==='fb'&&lock?`<button class="btn pri" data-act="publish"${IS_ADMIN?'':' disabled'}>${(S.meta.get('locks')||{})[k.replace('|','_')]?.published?'إعادة نشر النتائج للطلبة':'نشر النتائج للطلبة في تطبيق الحضور'}</button>`:''}<button class="btn" data-act="dlmaster" data-k="xlsx">تنزيل الماستر شيت (Excel)</button><button class="btn" data-act="dlmaster" data-k="csv">CSV</button><button class="btn" data-act="dlmasterhtml">تنزيل نسخة للطباعة</button></div>`+
   (studs.length?`<div class="tw"><table class="cols-sticky"><thead>${head1}</thead><tbody>${body}</tbody></table></div><p class="mut" style="font-size:13px">ر = رأفة · د2 = الدور الثاني · اع = عُدلت باعتراض · غ = غائب. التقدير يظهر عند الوقوف على المجموع.</p>`:empty('لا يوجد طلبة',''));
 };
 function statsFor(c){const t=courseStudents(c).map(s=>res(c.id,s.id)).filter(r=>r.total!=null).map(r=>r.total);if(!t.length)return null;const n=t.length,m=t.reduce((a,b)=>a+b,0)/n;const sd=Math.sqrt(t.reduce((a,b)=>a+(b-m)**2,0)/n);const so=t.slice().sort((a,b)=>a-b);const med=n%2?so[(n-1)/2]:(so[n/2-1]+so[n/2])/2;const pr=t.filter(x=>x>=cfg().pass).length/n;return {t,n,m,sd,med,pr,min:so[0],max:so[n-1]}}
@@ -698,11 +741,6 @@ VIEW.stats=()=>{
   `<div class="grid g2" style="margin-bottom:14px"><div class="card"><div class="row" style="justify-content:space-between;margin-bottom:8px"><h3 style="margin:0">توزيع المجاميع</h3><select id="stsel" data-ui="stcourse">${cs.map(x=>opt(x.c.id,label.courses(x.c),UI.stcourse)).join('')}</select></div>${histSvg(cur.s.t)}<div class="row mut" style="font-size:13px;margin-top:6px"><span>العدد ${cur.s.n}</span><span>المتوسط ${r1(cur.s.m)}</span><span>الوسيط ${r1(cur.s.med)}</span><span>الانحراف المعياري ${r1(cur.s.sd)}</span><span>النجاح ${Math.round(cur.s.pr*100)}%</span><span>المدى ${r1(cur.s.min)}–${r1(cur.s.max)}</span></div></div>`+
   `<div class="card"><h3>قراءة تحليلية ذكية</h3>${sampleCap?`<p class="mut" style="margin-top:0">يرسل الأرقام الإحصائية فقط (دون أسماء الطلبة) إلى Claude ليكتب تقريراً للجنة.</p><button class="btn pri" data-act="ai"${UI.aiBusy?' disabled':''}>${UI.aiBusy?'جارٍ التحليل…':'توليد تقرير التحليل'}</button>${UI.ai?`<div class="ai" style="margin-top:12px">${esc(UI.ai)}</div>`:''}`:'<p class="mut">التحليل الذكي متاح عند فتح النظام داخل Claude.</p>'}</div></div>`+
   `<div class="tw"><table><thead><tr><th>المادة</th><th>العدد</th><th>المتوسط</th><th>الانحراف</th><th>النجاح</th><th>z</th><th>المؤشر</th></tr></thead><tbody>${cs.sort((a,b)=>b.z-a.z).map(x=>`<tr><td>${esc(label.courses(x.c))}</td><td>${x.s.n}</td><td>${r1(x.s.m)}</td><td>${r1(x.s.sd)}</td><td>${Math.round(x.s.pr*100)}%</td><td class="mono">${x.z.toFixed(2)}</td><td><span class="pill ${x.flag[0]}">${x.flag[1]}</span></td></tr>`).join('')}</tbody></table></div>`;
-};
-VIEW.appeals=()=>{
-  const st=cfg();const list=arr('appeals').sort((a,b)=>(b.at||0)-(a.at||0));const now=Date.now();
-  return ph('الاعتراضات',`بوابة تظلم موحدة: يُدقق الدفتر لجنةٌ محايدة خلال ${st.appealHours} ساعة. قبول الاعتراض مع درجة جديدة يعدّل النهائي في الماستر شيت ويُسجل في سجل التدقيق.`,`<button class="btn pri" data-act="new" data-c="appeals"${roBtn()}>تسجيل اعتراض</button>`)+
-  (list.length?`<div class="tw"><table><thead><tr><th>الطالب</th><th>المادة</th><th>الدرجة الحالية</th><th>السبب</th><th>المهلة</th><th>الحالة</th><th></th></tr></thead><tbody>${list.map(a=>{const open=a.status==='جديد'||a.status==='قيد التدقيق';const left=st.appealHours-(now-(a.at||now))/36e5;const r=res(a.course,a.student);return `<tr><td>${esc(label.students(S.students.get(a.student)))}</td><td>${esc((S.courses.get(a.course)||{}).name)}</td><td>${r1(r.total)}</td><td class="wrap">${esc(a.reason)}${a.note?`<div class="mut">التقرير: ${esc(a.note)}</div>`:''}</td><td>${open?(left>0?`<span class="${left<12?'red':''}">${Math.floor(left)} ساعة متبقية</span>`:`<span class="pill bad">متأخر ${Math.ceil(-left)} ساعة</span>`):'—'}</td><td><span class="pill ${open?'warn':a.status.startsWith('مقبول')?'ok':''}">${esc(a.status)}</span></td><td>${rowBtns('appeals',a.id)}</td></tr>`}).join('')}</tbody></table></div>`:empty('لا توجد اعتراضات','سجّل اعتراض الطالب ليبدأ عدّاد المهلة.'));
 };
 const NAMES=new Map();let nameBusy=false;
 async function resolveNames(){if(!userCap||nameBusy)return;const ids=[...new Set(arr('audit').map(a=>a.by))].filter(id=>id&&id!=='local'&&!NAMES.has(id));if(!ids.length)return;nameBusy=true;try{const ps=await userCap.profiles(ids);ids.forEach(id=>NAMES.set(id,(ps[id]&&(ps[id].isMe?'أنت':ps[id].name))||'عضو'))}catch(e){ids.forEach(id=>NAMES.set(id,'عضو'))}nameBusy=false;sched()}
@@ -724,8 +762,9 @@ VIEW.settings=()=>{
   const B=(k,l)=>`<label class="f">${l}<span><input type="checkbox" name="${k}" id="s_${k}"${st[k]?' checked':''}> مفعّل</span></label>`;
   const fbm=MODE==='fb';
   return ph('الإعدادات والبيانات','الضوابط هنا تحكم كل الحسابات: النجاح والرأفة والمواد المكملة والرصد المزدوج.')+
-  `<form class="card" data-form="settings" style="margin-bottom:14px"><h3>الجامعة والدورة الامتحانية</h3><div class="fgrid">${F('univ','الجامعة')}${F('college','الكلية')}${F('year','العام الدراسي')}${F('term','الفصل/الدور')}<label class="f">الفصل الحالي<select name="curSem" id="s_curSem">${opt('1','الفصل الأول',st.curSem)}${opt('2','الفصل الثاني',st.curSem)}</select></label>${F('p1','وقت الجلسة الأولى','time')}${F('p2','وقت الجلسة الثانية','time')}</div><h3 style="margin-top:16px">ضوابط الدرجات</h3><div class="fgrid">${F('cwMax','درجة السعي القصوى','number')}${F('finMax','درجة النهائي القصوى','number')}${F('pass','درجة النجاح','number')}${F('maxCarry','أقصى عدد مواد مكملة','number')}${F('graceTotal','رصيد الرأفة للطالب','number')}${F('gracePer','أقصى رأفة للمادة الواحدة','number')}${F('appealHours','مهلة البت بالاعتراض (ساعة)','number')}${B('double','الرصد المزدوج (مدقق ثانٍ)')}${B('useParts','السعي من مكوناته (حضور 5، واجب 5، مشروع 10، مختبر 10، أسبوعي 10، فصلي 10)')}${B('requireCoi','استبعاد من لم يوقع إقرار تعارض المصالح')}</div><div class="row" style="margin-top:14px"><button class="btn pri" type="submit"${RO||(fbm&&!IS_ADMIN)?' disabled':''}>حفظ الإعدادات</button>${fbm&&!IS_ADMIN?'<span class="mut">تعديل الإعدادات لرئيس اللجنة.</span>':''}</div></form>`+(fbm?
-  `<div class="card"><h3>قاعدة البيانات</h3><p class="mut" style="margin-top:0">النظام متصل بمشروع Firebase «${esc(FB.projectId)}» نفسه الذي يعمل عليه تطبيق الحضور. الأقسام والمواد والطلبة والكادر ومكونات السعي تُقرأ منه مباشرة، وبيانات الكنترول (القاعات، الجداول، المقاعد، الرصد المزدوج، الأرقام السرية، المحاضر، سجل التدقيق) في مجموعات k_ تحميها قواعد Firestore حسب الدور. يعمل دون اتصال ويزامن تلقائياً عند عودة الشبكة.</p><div class="row"><button class="btn" data-act="backup">تنزيل نسخة احتياطية (JSON)</button></div></div>`:
+  `<form class="card" data-form="settings" style="margin-bottom:14px"><h3>الجامعة والدورة الامتحانية</h3><div class="fgrid">${F('univ','الجامعة')}${F('college','الكلية')}${F('year','العام الدراسي')}${F('term','الفصل/الدور')}<label class="f">الفصل الحالي<select name="curSem" id="s_curSem">${opt('1','الفصل الأول',st.curSem)}${opt('2','الفصل الثاني',st.curSem)}</select></label>${F('p1','وقت الجلسة الأولى','time')}${F('p2','وقت الجلسة الثانية','time')}</div><h3 style="margin-top:16px">ضوابط الدرجات</h3><div class="fgrid">${F('cwMax','درجة السعي القصوى','number')}${F('finMax','درجة النهائي القصوى','number')}${F('pass','درجة النجاح','number')}${F('maxCarry','أقصى عدد مواد مكملة','number')}${F('graceTotal','رصيد الرأفة للطالب','number')}${F('gracePer','أقصى رأفة للمادة الواحدة','number')}${F('appealHours','مهلة البت بالاعتراض (ساعة)','number')}${F('idleMin','إنهاء الجلسة بعد عدم النشاط (دقيقة)','number')}${B('double','الرصد المزدوج (مدقق ثانٍ)')}${B('useParts','السعي من مكوناته (حضور 5، واجب 5، مشروع 10، مختبر 10، أسبوعي 10، فصلي 10)')}${B('requireCoi','استبعاد من لم يوقع إقرار تعارض المصالح')}</div><div class="row" style="margin-top:14px"><button class="btn pri" type="submit"${RO||(fbm&&!IS_ADMIN)?' disabled':''}>حفظ الإعدادات</button>${fbm&&!IS_ADMIN?'<span class="mut">تعديل الإعدادات لرئيس اللجنة.</span>':''}</div></form>`+(fbm?
+  `<div class="card"><h3>قاعدة البيانات</h3><p class="mut" style="margin-top:0">النظام متصل بمشروع Firebase «${esc(FB.projectId)}» نفسه الذي يعمل عليه تطبيق الحضور. الأقسام والمواد والطلبة والكادر ومكونات السعي تُقرأ منه مباشرة، وبيانات الكنترول (القاعات، الجداول، المقاعد، الرصد المزدوج، الأرقام السرية، المحاضر، سجل التدقيق) في مجموعات k_ تحميها قواعد Firestore حسب الدور. يعمل دون اتصال ويزامن تلقائياً عند عودة الشبكة.</p><div class="row"><button class="btn" data-act="backup">تنزيل نسخة احتياطية (JSON)</button>${can('chair')?`<label class="btn">استعادة سجلات الكنترول من نسخة<input type="file" id="restore" accept=".json,application/json" hidden></label>`:''}</div><p class="mut" style="margin-bottom:0">${(()=>{const b=S.meta.get('backup');return b&&b.at?`آخر نسخة احتياطية: ${esc(fmtTs(b.at))}.`:'لم تُسجَّل نسخة احتياطية بعد.'})()} الاستعادة تعيد مجموعات الكنترول (k_) فقط، ولا تمس بيانات تطبيق الحضور ولا سجل التدقيق. يُنصح بتجربتها على نسخة حديثة قبل الامتحانات.</p></div>
+  <div class="card" style="margin-top:14px"><h3>الأمان</h3><ul style="margin:0;padding-inline-start:18px;line-height:1.9"><li>الصلاحيات تفرضها قواعد Firestore على الخادم لكل مجموعة، لا إخفاء الأزرار فقط: تعديل الدرجة باعتراض يحتاج قرار رئيس اللجنة، والرصد يُرفض على المراحل المصادق عليها.</li><li>سجل التدقيق إضافة فقط ومسلسل ببصمات SHA‑256، ولا يملك أحد تعديله أو حذفه.</li><li>تنتهي الجلسة بعد ${esc(cfg().idleMin)} دقيقة دون نشاط، وتُقفل شاشة الدخول مؤقتاً بعد 5 محاولات خاطئة.</li><li>مفتاح Firebase في ملفات الواجهة معرّف عام للمشروع وليس سراً؛ الحماية في المصادقة والقواعد. لا توجد كلمات مرور أو مفاتيح سرية في الواجهة.</li></ul></div>`:
   `<div class="card" style="margin-bottom:14px"><h3>استيراد من ملفات Excel</h3><p class="mut" style="margin-top:0">يقرأ ملفات الجامعة كما هي: كشوف الطلبة (ورقة لكل مرحلة ودوام)، قاعدة المواد (رمز المقرر والفصل والقسم)، وسجلات الدرجات (ورقة لكل مادة بعناوين مثل «المشروع (10)»). يكتشف صف العناوين تلقائياً، ويطابق كل ورقة بمادتها، ويعرض الصفوف المرفوضة وسببها قبل الحفظ. لا يحذف شيئاً: يضيف الجديد ويحدّث الموجود.</p><label class="btn pri"${RO?' style="opacity:.45"':''}>اختيار ملفات Excel<input type="file" id="xlsxin" accept=".xlsx,.xls,.csv" multiple hidden${roBtn()}></label></div>
 <div class="card"><h3>البيانات والنسخ الاحتياطي</h3><p class="mut" style="margin-top:0">${MODE==='cloud'?'البيانات محفوظة في قاعدة مشتركة بين كل من يملك صلاحية على هذه الصفحة، وتتزامن لحظياً بين الحاسوب والهاتف والجهاز اللوحي.':'تعمل الآن في الوضع المحلي: البيانات محفوظة في هذا المتصفح فقط. للعمل المشترك أضف إعدادات Firebase في firebase-config.js.'}</p><div class="row"><button class="btn" data-act="backup">تنزيل نسخة احتياطية (JSON)</button><label class="btn"${RO?' style="opacity:.45"':''}>استعادة من نسخة<input type="file" id="restore" accept=".json,application/json" hidden${roBtn()}></label><button class="btn" data-act="sample"${roBtn()}>تحميل بيانات تجريبية</button>${UI.cdel==='ALL'?`<button class="btn bad" data-act="wipe"${roBtn()}>تأكيد مسح كل البيانات</button>`:`<button class="btn bad" data-act="askdel" data-k="ALL"${roBtn()}>مسح كل البيانات</button>`}</div></div>`);
 };
@@ -743,6 +782,182 @@ VIEW.roles=()=>{
 
 /* ============ الإجراءات ============ */
 const ACT={};
+VIEW.appeals=()=>{
+  const st=cfg(),now=Date.now();const all=apList();let list=all;
+  const k={open:all.filter(apOpen).length,late:all.filter(a=>apLate(a,now)).length,closed:all.filter(a=>!apOpen(a)).length,changed:all.filter(a=>a.st==='done'&&a.outcome==='changed').length,wait:all.filter(a=>a.st==='decision').length};
+  const cl=all.filter(a=>!apOpen(a)&&a.decidedAt&&a.at);const avg=cl.length?cl.reduce((x,a)=>x+(a.decidedAt-a.at),0)/cl.length/36e5:null;
+  const f=UI.apf||'open';
+  if(f==='open')list=list.filter(apOpen);else if(f==='late')list=list.filter(a=>apLate(a,now));else if(f==='wait')list=list.filter(a=>a.st==='decision');else if(f==='closed')list=list.filter(a=>!apOpen(a));
+  if(UI.q){const q=UI.q.trim();list=list.filter(a=>[a.ref,label.students(S.students.get(a.student)),label.courses(S.courses.get(a.course)),a.reason].some(v=>String(v||'').includes(q)))}
+  list.sort((a,b)=>(apOpen(b)-apOpen(a))||(apOpen(a)?apDue(a)-apDue(b):(b.decidedAt||0)-(a.decidedAt||0)));
+  const fl=[['open','المفتوحة',k.open],['late','المتأخرة',k.late],['wait','بانتظار القرار',k.wait],['closed','المغلقة',k.closed],['all','الكل',all.length]];
+  const act=`${expBtns('apexp','')}${can('ctrl')?`<button class="btn pri" data-act="apnew"${roBtn()}>تسجيل اعتراض</button>`:''}`;
+  return ph('الاعتراضات',`مسار موثق لكل تظلّم: تسجيل برقم مرجعي ← تدقيق الدفتر ← مراجعة اللجنة ← قرار رئيس اللجنة. المهلة ${st.appealHours} ساعة من التسجيل. لا تتغير أي درجة إلا بقرار معتمد من رئيس اللجنة، ويُحفظ قبلها وبعدها وسببها في سجل الاعتراض وسجل التدقيق.`,act)+
+  `<div class="grid g4" style="margin-bottom:12px">${[[k.open,'اعتراضاً مفتوحاً'],[k.late,'متأخراً عن المهلة'],[`${k.closed}`,`مغلقاً · ${k.changed} عُدلت درجته`],[avg==null?'—':r1(avg)+' ساعة','متوسط زمن البت']].map(([n,l],i)=>`<div class="card kpi"><b class="${i===1&&k.late?'red':''}">${n}</b><span>${l}</span></div>`).join('')}</div>`+
+  `<div class="row" style="margin-bottom:12px;align-items:flex-start"><div class="tabs" style="margin:0">${fl.map(([v,l,n])=>`<button class="${f===v?'on':''}" data-act="apf" data-v="${v}">${l} (${n})</button>`).join('')}</div><input type="search" id="q" placeholder="بحث بالمرجع أو الطالب أو المادة…" value="${esc(UI.q)}" data-ui="q" style="width:240px"></div>`+
+  (list.length?`<div class="tw"><table><thead><tr><th>المرجع</th><th>الطالب</th><th>المادة</th><th>الدور</th><th>المجموع قبل ← بعد</th><th>المسؤول</th><th>المهلة / القرار</th><th>الحالة</th><th></th></tr></thead><tbody>${list.map(a=>apRow(a,now)).join('')}</tbody></table></div>`:empty(f==='open'?'لا توجد اعتراضات مفتوحة':'لا توجد سجلات في هذا التصنيف','سجّل اعتراض الطالب ليحصل على رقم مرجعي ويبدأ عدّاد المهلة.'));
+};
+function apWho(id,full){if(!id)return'—';if(id===ME)return full?(MEPROF?MEPROF.name:'هذا الجهاز'):'أنت';const p=S.staff.get(id);return p?p.name:(NAMES.get(id)||id)}
+function apRow(a,now){
+  const left=(apDue(a)-now)/36e5;const r=res(a.course,a.student);
+  const after=a.st==='done'&&a.outcome==='changed'?`<b>${r1(r.total)}</b>`:apOpen(a)?'…':'بلا تغيير';
+  const stc=apOpen(a)?(apLate(a,now)?'bad':a.st==='decision'?'acc':'warn'):a.st==='done'?'ok':'';
+  return `<tr><td class="mono">${esc(a.ref||'—')}</td><td>${esc(label.students(S.students.get(a.student)))}</td><td>${esc((S.courses.get(a.course)||{}).name||'—')}</td><td>${a.round==='2'?'الثاني':'الأول'}</td><td>${a.oldTotal!=null?r1(a.oldTotal):'—'} ← ${after}</td><td>${esc(apWho(a.assignee))}</td><td>${apOpen(a)?(left>0?`<span class="${left<12?'red':''}">${Math.floor(left)} ساعة متبقية</span>`:`<span class="pill bad">متأخر ${Math.ceil(-left)} ساعة</span>`):(a.decidedAt?esc(fmtTs(a.decidedAt)):'—')}</td><td><span class="pill ${stc}">${esc(APST[a.st])}</span>${a.outcome&&!apOpen(a)?`<div class="mut" style="font-size:12px">${esc(APOUT[a.outcome]||'')}</div>`:''}</td><td><button class="btn sm" data-act="apopen" data-id="${esc(a.id)}">فتح</button></td></tr>`}
+ACT.apf=d=>{UI.apf=d.v;render()};
+function apStudentOpts(cid){const c=S.courses.get(cid);if(!c)return opt('','اختر المادة أولاً','');return opt('','— اختر —','')+courseStudents(c).map(s=>opt(s.id,label.students(s),'')).join('')}
+const staffSorted=()=>arr('staff').sort((a,b)=>String(a.name).localeCompare(String(b.name),'ar'));
+ACT.apnew=()=>{
+  if(!can('ctrl')||RO)throw new Error('تسجيل الاعتراضات لأعضاء الكنترول.');
+  const cs=arr('courses').filter(semOk).sort((a,b)=>label.courses(a).localeCompare(label.courses(b),'ar'));
+  $('#modal').innerHTML=`<form class="dlg" data-form="apnew"><h3>تسجيل اعتراض جديد</h3><p class="mut" style="margin-top:0">يحصل الاعتراض على رقم مرجعي، وتُحفظ درجة الطالب الحالية لحظة التسجيل للمقارنة بعد القرار. لا يُقبل اعتراض مفتوح مكرر للطالب في المادة والدور نفسيهما.</p><div class="fgrid">
+  <label class="f">المادة *<select name="course" id="ap_course" required data-apc>${opt('','— اختر —',UI.apCourse||'')}${cs.map(c=>opt(c.id,label.courses(c)+' — '+groupName(groupKey(c.dept,c.stage)),UI.apCourse||'')).join('')}</select></label>
+  <label class="f">الطالب *<select name="student" id="ap_student" required>${apStudentOpts(UI.apCourse)}</select></label>
+  <label class="f">الدور الامتحاني<select name="round" id="ap_round">${opt('1','الأول','1')}${opt('2','الثاني','1')}</select></label>
+  <label class="f">المدقق المسؤول<select name="assignee" id="ap_assignee">${opt('','— يُحدد لاحقاً —','')}${staffSorted().map(p=>opt(p.id,p.name,'')).join('')}</select></label>
+  <label class="f">تاريخ تقديم الطلب<input type="date" name="date" id="ap_date" value="${new Date().toISOString().slice(0,10)}"></label></div>
+  <label class="f" style="margin-top:10px">سبب الاعتراض *<textarea name="reason" id="ap_reason" required></textarea></label>
+  <div class="row" style="margin-top:12px"><button class="btn pri" type="submit">تسجيل الاعتراض</button><button class="btn" type="button" data-act="close">إلغاء</button></div><p class="red" id="ferr"></p></form>`;
+  $('#modal').hidden=false};
+async function apCreate(f){
+  const E=n=>(f.elements[n]?f.elements[n].value:'').trim();
+  const course=E('course'),student=E('student'),round=E('round')||'1',reason=E('reason');
+  const c=S.courses.get(course),s=S.students.get(student);
+  if(!c||!s)throw new Error('اختر المادة والطالب.');
+  if(!courseStudents(c).some(x=>x.id===student))throw new Error('الطالب ليس من طلبة هذه المادة (القسم والمرحلة).');
+  if(!reason)throw new Error('اكتب سبب الاعتراض.');
+  {const r0=res(course,student);if(r0.state==='dep')throw new Error('الطالب محروم في هذه المادة؛ الحرمان يُعالَج بقرار مستقل لا باعتراض على الدرجة.');if(r0.state==='pending')throw new Error('لا توجد نتيجة مكتملة للطالب في هذه المادة بعد (السعي أو النهائي غير مرصود أو فيه تعارض).')}
+  if(apList().some(a=>apOpen(a)&&a.course===course&&a.student===student&&String(a.round||'1')===round))throw new Error('يوجد اعتراض مفتوح للطالب نفسه في المادة والدور نفسيهما.');
+  const r=res(course,student);const now=Date.now();const yr=new Date().getFullYear();
+  const seq=Math.max(0,...apList().map(a=>{const m=/^AP-(\d{4})-(\d+)$/.exec(a.ref||'');return m&&+m[1]===yr?+m[2]:0}))+1;
+  const ref=`AP-${yr}-${String(seq).padStart(4,'0')}`;
+  const d={ref,student,course,round,reason,filedOn:E('date'),assignee:E('assignee'),st:'new',at:now,due:now+cfg().appealHours*36e5,
+    oldFin:r.fin??null,oldTotal:r.total??null,oldState:r.label||(r.pass?'ناجح':'راسب'),createdBy:ME,hist:[{ts:now,by:ME,from:'',to:'new',note:'تسجيل الاعتراض'}]};
+  await put('appeals',rid(),d);
+  await log('تسجيل اعتراض',`${ref} · ${label.students(s)} · ${label.courses(c)} · المجموع عند التسجيل ${r1(r.total)}`);
+  UI.apCourse='';closeModal();toast('سُجل الاعتراض برقم '+ref)}
+async function apAssign(id,staff){const a=S.appeals.get(id);if(!a)return;const n=apN(a);const now=Date.now();
+  await put('appeals',id,{...strip(a),st:n.st,assignee:staff,hist:[...(a.hist||[]),{ts:now,by:ME,from:n.st,to:n.st,note:'المسؤول: '+apWho(staff)}]});
+  await log('اعتراض: تكليف',`${n.ref||id} · ${apWho(staff)}`);toast('حُدد المسؤول')}
+ACT.apopen=d=>{UI.apId=d.id;apModal()};
+function apModal(){
+  const a=apN(S.appeals.get(UI.apId));if(!a){closeModal();return}
+  const s=S.students.get(a.student),c=S.courses.get(a.course),r=res(a.course,a.student),st=cfg(),now=Date.now();
+  const open=apOpen(a),gr=can('grade')&&!RO,ct=can('ctrl')&&!RO,ch=can('chair')&&!RO&&(MODE!=='fb'||IS_ADMIN);
+  const row=(k,v)=>v===''||v==null?'':`<tr><th style="width:32%">${k}</th><td class="wrap">${v}</td></tr>`;
+  const info=`<div class="tw"><table><tbody>${row('الرقم المرجعي',`<b class="mono">${esc(a.ref||a.id)}</b>`)}${row('الطالب',esc(label.students(s)))}${row('المادة',esc(label.courses(c))+(c?' — '+esc(groupName(groupKey(c.dept,c.stage))):''))}${row('الدور',a.round==='2'?'الثاني':'الأول')}${row('تاريخ تقديم الطلب',esc(a.filedOn||''))}${row('سجّله',esc(apWho(a.createdBy))+(a.at?' · '+esc(fmtTs(a.at)):''))}${row('المسؤول',esc(apWho(a.assignee)))}${row('المهلة',open?`${esc(fmtTs(apDue(a)))} ${apLate(a,now)?'<span class="pill bad">متأخر</span>':''}`:'')}${row('الحالة',`<span class="pill">${esc(APST[a.st])}</span>`)}${row('سبب الاعتراض',esc(a.reason))}
+  ${row('الدرجة عند التسجيل',a.oldTotal!=null||a.oldFin!=null?`النهائي ${r1(a.oldFin)} · المجموع ${r1(a.oldTotal)}${a.oldState?' · '+esc(a.oldState):''}`:'')}${row('الدرجة الآن',r.total!=null?`النهائي ${r1(r.fin)} · المجموع <b>${r1(r.total)}</b> · ${esc(r.pass?'ناجح':'راسب')}`:esc(r.label||''))}
+  ${row('نتيجة التدقيق',a.auditNote?esc(a.auditNote)+(a.proposedFin!=null?` · <b>الدرجة المقترحة ${r1(a.proposedFin)}</b>`:' · الدرجة صحيحة')+` <span class="mut">(${esc(apWho(a.auditBy))})</span>`:'')}${row('ملاحظات المراجعة',a.reviewNote?esc(a.reviewNote)+` <span class="mut">(${esc(apWho(a.reviewBy))})</span>`:'')}
+  ${row('القرار',!open&&a.outcome?`<b>${esc(APOUT[a.outcome]||a.outcome)}</b>${a.finalFin!=null&&a.outcome==='changed'?` · النهائي ${r1(a.oldFin)} ← <b>${r1(a.finalFin)}</b>`:''}<br>${esc(a.decisionReason||'')}<br><span class="mut">${esc(apWho(a.decidedBy))}${a.decidedAt?' · '+esc(fmtTs(a.decidedAt)):''}</span>`:'')}</tbody></table></div>`;
+  const hist=(a.hist||[]).length?`<h3 style="margin-top:14px">سجل الإجراءات</h3><ol style="margin:0;padding-inline-start:20px;line-height:1.8">${a.hist.map(h=>`<li><span class="mut">${esc(fmtTs(h.ts))} · ${esc(apWho(h.by))}</span> — ${h.from&&h.from!==h.to?esc(APST[h.from]||h.from)+' ← ':''}<b>${esc(APST[h.to]||h.to)}</b>${h.note?': '+esc(h.note):''}</li>`).join('')}</ol>`:'';
+  const F=(to,title,inner,btn,cls='pri')=>`<form class="card" data-form="apstep" data-to="${to}" style="margin-top:10px"><h3>${title}</h3>${inner}<div class="row" style="margin-top:10px"><button class="btn ${cls}" type="submit">${btn}</button></div><p class="red" id="ferr" style="margin:6px 0 0"></p></form>`;
+  let acts='';
+  if(open&&ct)acts+=`<label class="f" style="margin-top:12px">المدقق المسؤول<select data-apassign="${esc(a.id)}">${opt('','— غير محدد —',a.assignee||'')}${staffSorted().map(p=>opt(p.id,p.name,a.assignee||'')).join('')}</select></label>`;
+  if(a.st==='new'&&gr)acts+=F('audit','بدء التدقيق','<p class="mut" style="margin:0">يُثبت استلام الدفتر الامتحاني الأصلي وبدء تدقيقه، ويُسجَّل باسمك ووقته.</p>','استلام الدفتر وبدء التدقيق');
+  if(a.st==='audit'&&gr)acts+=F('review','نتيجة التدقيق',`<label class="f">ما وجده المدقق (إعادة الجمع، أسئلة غير مصححة، مطابقة الدرجة بالسجل) *<textarea name="auditNote" required>${esc(a.auditNote||'')}</textarea></label><label class="f" style="margin-top:8px">الدرجة ${a.round==='2'?'(الدور الثاني)':'النهائية'} المقترحة من ${st.finMax} — اتركها فارغة إن كانت الدرجة صحيحة<input type="number" step="any" min="0" max="${st.finMax}" name="proposedFin" value="${esc(a.proposedFin??'')}"></label>`,'إحالة إلى المراجعة');
+  if(a.st==='review'&&ct)acts+=F('decision','مراجعة اللجنة',`<label class="f">ملاحظات المراجعة *<textarea name="reviewNote" required>${esc(a.reviewNote||'')}</textarea></label>`,'رفع إلى رئيس اللجنة للقرار')+F('audit','إعادة إلى التدقيق',`<label class="f">سبب الإعادة *<textarea name="note" required></textarea></label>`,'إعادة إلى التدقيق','');
+  if(open&&ch)acts+=F('decide',a.st==='decision'?'قرار رئيس اللجنة':'قرار مباشر من رئيس اللجنة',`<div class="fgrid"><label class="f">القرار *<select name="outcome" required>${opt('','— اختر —','')}${Object.entries(APOUT).map(([k,l])=>opt(k,l,'')).join('')}</select></label><label class="f">الدرجة المعتمدة من ${st.finMax} (عند تعديل الدرجة)<input type="number" step="any" min="0" max="${st.finMax}" name="finalFin" value="${esc(a.proposedFin??'')}"></label></div><label class="f" style="margin-top:8px">سبب القرار *<textarea name="decisionReason" required></textarea></label><p class="mut" style="margin:6px 0 0">يُحفظ القرار باسمك ووقته، ويُسجل في سجل التدقيق مع الدرجة قبل وبعد. إن كانت النتائج منشورة تُحدَّث درجة الطالب المنشورة تلقائياً.</p>`,'اعتماد القرار');
+  else if(open&&a.st==='decision')acts+=`<div class="note" style="margin-top:10px">بانتظار قرار رئيس اللجنة.</div>`;
+  acts+=`<div class="row" style="margin-top:12px"><button class="btn" data-act="apprint">طباعة استمارة الاعتراض</button>${ch?`<button class="btn bad" data-act="apdel">حذف الاعتراض</button>`:''}<button class="btn" data-act="close">إغلاق</button></div>`;
+  $('#modal').innerHTML=`<div class="dlg" style="max-width:760px"><h3>اعتراض ${esc(a.ref||'')}</h3>${info}${hist}${acts}</div>`;$('#modal').hidden=false;
+}
+async function apStep(f){
+  const raw=S.appeals.get(UI.apId);const a=apN(raw);if(!a)throw new Error('الاعتراض غير موجود.');
+  if(!apOpen(a))throw new Error('الاعتراض مغلق.');
+  const to=f.dataset.to,E=n=>(f.elements[n]?f.elements[n].value:'').trim(),now=Date.now(),st=cfg();
+  const upd={};let note='';
+  if(to==='audit'){if(!can('grade'))throw new Error('للمدققين وأعضاء الكنترول.');
+    if(a.st==='review'){if(!E('note'))throw new Error('اكتب سبب الإعادة.');note='إعادة إلى التدقيق: '+E('note')}else note='استلام الدفتر وبدء التدقيق';
+    if(a.st==='new'&&!a.assignee)upd.assignee=ME}
+  else if(to==='review'){if(!can('grade'))throw new Error('للمدققين وأعضاء الكنترول.');if(!E('auditNote'))throw new Error('اكتب نتيجة التدقيق.');
+    const p=num(E('proposedFin'));if(p!=null&&(p<0||p>st.finMax))throw new Error(`الدرجة المقترحة بين 0 و${st.finMax}.`);
+    Object.assign(upd,{auditNote:E('auditNote'),proposedFin:p,auditBy:ME,auditAt:now});note='نتيجة التدقيق: '+E('auditNote')+(p!=null?` · المقترح ${p}`:' · الدرجة صحيحة')}
+  else if(to==='decision'){if(!can('ctrl'))throw new Error('لأعضاء الكنترول.');if(!E('reviewNote'))throw new Error('اكتب ملاحظات المراجعة.');
+    Object.assign(upd,{reviewNote:E('reviewNote'),reviewBy:ME,reviewAt:now});note='المراجعة: '+E('reviewNote')}
+  else if(to==='decide'){if(!can('chair')||(MODE==='fb'&&!IS_ADMIN))throw new Error('اعتماد القرار لرئيس اللجنة فقط.');
+    const out=E('outcome'),why=E('decisionReason');if(!APOUT[out])throw new Error('اختر القرار.');if(!why)throw new Error('اكتب سبب القرار.');
+    let fin=null;if(out==='changed'){fin=num(E('finalFin'));if(fin==null||fin<0||fin>st.finMax)throw new Error(`أدخل الدرجة المعتمدة بين 0 و${st.finMax}.`);if(a.oldFin!=null&&+a.oldFin===fin)throw new Error('الدرجة المعتمدة تساوي الدرجة الأصلية؛ اختر «الدرجة صحيحة — لا تعديل».')}
+    Object.assign(upd,{outcome:out,finalFin:fin,decisionReason:why,decidedBy:ME,decidedAt:now,st:out==='rejected'?'rejected':'done'});
+    note=`القرار: ${APOUT[out]}${fin!=null?` (النهائي ${a.oldFin??'—'} ← ${fin})`:''} · ${why}`}
+  else throw new Error('خطوة غير معروفة.');
+  if(!upd.st)upd.st=to;
+  await put('appeals',a.id,{...strip(raw),...upd,hist:[...(raw.hist||[]),{ts:now,by:ME,from:a.st,to:upd.st,note}]});
+  if(to==='decide'){
+    let pub='';
+    if(upd.outcome==='changed'&&MODE==='fb'){const c=S.courses.get(a.course);const gk=c&&groupKey(c.dept,c.stage);const L=gk&&(S.meta.get('locks')||{})[gk.replace('|','_')];
+      if(L&&L.published){const g=a.round==='2'?0:(num((G(a.course)[a.student]||{}).grace)||0);const s=S.students.get(a.student)||{};
+        await settle(FB.setDoc(FB.doc(FB.db,'grades',fsSafe(a.course+'_'+a.student)),{courseId:a.course,studentId:a.student,studentName:s.name||'',marks:{final:Math.round((upd.finalFin+g)*100)/100},updatedAt:now},{merge:true}));pub=' · حُدّثت الدرجة المنشورة للطالب'}}
+    await log('قرار اعتراض',`${a.ref||a.id} · ${label.students(S.students.get(a.student))} · ${label.courses(S.courses.get(a.course))} · ${APOUT[upd.outcome]}${upd.finalFin!=null?` · النهائي ${a.oldFin??'—'} ← ${upd.finalFin} · المجموع قبل ${r1(a.oldTotal)}`:''} · السبب: ${upd.decisionReason}${pub}`);
+  }else await log('اعتراض: '+APST[upd.st],`${a.ref||a.id} · ${note}`);
+  toast('حُفظ: '+APST[upd.st]);setTimeout(()=>{if(!$('#modal').hidden)apModal()},120);
+}
+ACT.apdel=async(d,b)=>{if(!can('chair'))throw new Error('الحذف لرئيس اللجنة فقط.');if(!b.dataset.sure){b.dataset.sure='1';b.textContent='اضغط مرة أخرى لتأكيد الحذف';return}
+  const a=apN(S.appeals.get(UI.apId));await del('appeals',UI.apId);await log('حذف اعتراض',`${a.ref||UI.apId} · ${label.students(S.students.get(a.student))} · الحالة ${APST[a.st]}`);closeModal();toast('حُذف الاعتراض')};
+ACT.apprint=()=>{const a=apN(S.appeals.get(UI.apId));if(!a)return;const s=S.students.get(a.student)||{},c=S.courses.get(a.course),r=res(a.course,a.student);
+  const tr=(k,v)=>`<tr><th style="width:30%">${k}</th><td>${v}</td></tr>`;
+  const body=`<h2>استمارة اعتراض على نتيجة امتحانية — ${esc(a.ref||'')}</h2><table>${tr('الطالب',esc(s.name)+' — <span class="mono">'+esc(s.no)+'</span>')}${tr('المادة',esc(label.courses(c)))}${tr('القسم والمرحلة',c?esc(groupName(groupKey(c.dept,c.stage))):'')}${tr('الدور',a.round==='2'?'الثاني':'الأول')}${tr('تاريخ تقديم الطلب',esc(a.filedOn||''))}${tr('سبب الاعتراض',esc(a.reason))}${tr('الدرجة عند التسجيل',`النهائي ${r1(a.oldFin)} · المجموع ${r1(a.oldTotal)}`)}${tr('نتيجة التدقيق',esc(a.auditNote||'—')+(a.proposedFin!=null?' · المقترح '+r1(a.proposedFin):''))}${tr('ملاحظات المراجعة',esc(a.reviewNote||'—'))}${tr('القرار',a.outcome&&!apOpen(a)?esc(APOUT[a.outcome])+(a.outcome==='changed'?` · النهائي ${r1(a.oldFin)} ← ${r1(a.finalFin)} (${esc(tafqeet(a.finalFin))})`:'')+'<br>'+esc(a.decisionReason||''):'لم يصدر بعد')}${tr('الدرجة الحالية',r.total!=null?`المجموع ${r1(r.total)} — ${esc(grade(r.total))}`:'—')}</table>
+  <h2>سجل الإجراءات</h2><table><tr><th>الوقت</th><th>المنفذ</th><th>الإجراء</th></tr>${(a.hist||[]).map(h=>`<tr><td>${esc(fmtTs(h.ts))}</td><td>${esc(apWho(h.by,1))}</td><td>${esc(APST[h.to]||h.to)}${h.note?': '+esc(h.note):''}</td></tr>`).join('')}</table>${sigs()}`;
+  printOut('اعتراض-'+(a.ref||a.id),printDoc('استمارة اعتراض '+(a.ref||''),body))};
+ACT.apexp=d=>{const now=Date.now();const list=apList().sort((a,b)=>(a.at||0)-(b.at||0));
+  const head=['الرقم المرجعي','الرقم المعرفي','الطالب','المادة','القسم والمرحلة','الدور','تاريخ التقديم','تاريخ التسجيل','نهاية المهلة','المسؤول','الحالة','متأخر','القرار','النهائي قبل','النهائي بعد','المجموع قبل','المجموع الآن','نتيجة التدقيق','سبب القرار','اعتمده','تاريخ القرار'];
+  const rows=list.map(a=>{const s=S.students.get(a.student)||{},c=S.courses.get(a.course),r=res(a.course,a.student);return [a.ref||'',s.no||'',s.name||'',c?label.courses(c):'',c?groupName(groupKey(c.dept,c.stage)):'',a.round==='2'?'الثاني':'الأول',a.filedOn||'',a.at?fmtTs(a.at):'',fmtTs(apDue(a)),apWho(a.assignee,1),APST[a.st],apLate(a,now)?'نعم':'',apOpen(a)?'':(APOUT[a.outcome]||''),a.oldFin??'',a.outcome==='changed'?a.finalFin:'',a.oldTotal??'',r.total??'',a.auditNote||'',a.decisionReason||'',a.decidedBy?apWho(a.decidedBy,1):'',a.decidedAt?fmtTs(a.decidedAt):'']});
+  const o=list.filter(apOpen).length,l=list.filter(a=>apLate(a,now)).length;
+  return exportTable('تقرير-الاعتراضات','تقرير الاعتراضات',head,rows,d.k,`مفتوحة ${o} · متأخرة ${l} · مغلقة ${list.length-o}`)};
+
+/* ============ فحص سلامة البيانات ============ */
+function integrityScan(){
+  const st=cfg();const out=[];const add=(sev,t,items,view)=>out.push({sev,t,items,view});
+  const studs=arr('students');
+  const byN=new Map();studs.forEach(s=>{const k=String(s.no??'').trim();if(k)byN.set(k,[...(byN.get(k)||[]),s])});
+  add('bad','أرقام معرفية مكررة',[...byN].filter(([,l])=>l.length>1).map(([k,l])=>`${k}: ${l.map(s=>s.name).join(' / ')}`),'students');
+  const nm=new Map();studs.forEach(s=>{const k=s.dept+'|'+s.stage+'|'+normAr(s.name);nm.set(k,[...(nm.get(k)||[]),s])});
+  add('warn','أسماء متطابقة في المرحلة نفسها (قد تكون تكراراً)',[...nm.values()].filter(l=>l.length>1).map(l=>`${l[0].name} — ${groupName(groupKey(l[0].dept,l[0].stage))}: ${l.map(s=>s.no).join('، ')}`),'students');
+  add('bad','طلبة بلا قسم صالح أو بلا مرحلة',studs.filter(s=>!S.depts.get(s.dept)||!s.stage).map(s=>label.students(s)),'students');
+  const cs=arr('courses').filter(semOk);
+  add('warn','مواد الفصل الحالي بلا أستاذ',cs.filter(c=>!c.teacher).map(c=>label.courses(c)+' — '+groupName(groupKey(c.dept,c.stage))),'courses');
+  add('warn','مواد الفصل الحالي غير مجدولة امتحانياً',cs.filter(c=>!examOf(c.id)).map(c=>label.courses(c)+' — '+groupName(groupKey(c.dept,c.stage))),'exams');
+  add('warn','مواد بلا طلبة في قسمها ومرحلتها',cs.filter(c=>!courseStudents(c).length).map(c=>label.courses(c)),'courses');
+  const orphan=[],range=[],mis=[];
+  arr('grades').forEach(g=>{const c=S.courses.get(g.id);if(!c)return;const ids=new Set(courseStudents(c).map(s=>s.id));
+    for(const [sid,r] of Object.entries(g.rows||{})){const nmS=(S.students.get(sid)||{}).name||sid;
+      if(!ids.has(sid)&&['cw','e1','e2','sec'].some(f=>num(r[f])!=null))orphan.push(`${label.courses(c)} · ${nmS}`);
+      const chk=(f,mx,l)=>{const v=num(r[f]);if(v!=null&&(v<0||v>mx))range.push(`${label.courses(c)} · ${nmS} · ${l} = ${v} (الحد ${mx})`)};
+      chk('cw',st.cwMax,'السعي');chk('e1',st.finMax,'النهائي 1');chk('e2',st.finMax,'النهائي 2');chk('sec',st.finMax,'الدور الثاني');chk('grace',st.gracePer,'الرأفة');
+      if(finalOf(r).mismatch)mis.push(`${label.courses(c)} · ${nmS}: ${r.e1} ≠ ${r.e2}`)}});
+  add('bad','درجات مرصودة لطلبة ليسوا من طلبة المادة',orphan,'grading');
+  add('bad','درجات خارج المدى المسموح',range,'grading');
+  add('warn','تعارض بين الإدخال الأول والثاني للنهائي',mis,'grading');
+  const ap=apList();const dup=new Map();ap.filter(apOpen).forEach(a=>{const k=a.course+'~'+a.student+'~'+(a.round||'1');dup.set(k,(dup.get(k)||0)+1)});
+  add('warn','اعتراضات مفتوحة مكررة للطالب والمادة نفسيهما',[...dup].filter(([,n])=>n>1).map(([k])=>{const [c,s]=k.split('~');return `${label.students(S.students.get(s))} · ${label.courses(S.courses.get(c))}`}),'appeals');
+  add('bad','اعتراضات تجاوزت المهلة دون قرار',ap.filter(a=>apLate(a)).map(a=>`${a.ref||'—'} · ${label.students(S.students.get(a.student))} · ${(S.courses.get(a.course)||{}).name||''}`),'appeals');
+  add('warn','اعتراضات مقبولة على مراحل مصادق عليها (راجع النشر)',ap.filter(a=>a.st==='done'&&a.outcome==='changed').filter(a=>{const c=S.courses.get(a.course);return c&&isLocked(groupKey(c.dept,c.stage))&&a.decidedAt<(((S.meta.get('locks')||{})[groupKey(c.dept,c.stage).replace('|','_')]||{}).at||0)}).map(a=>`${a.ref} · ${label.students(S.students.get(a.student))}`),'master');
+  return out}
+VIEW.integrity=()=>{const L=integrityScan();const nb=L.filter(x=>x.sev==='bad').reduce((a,x)=>a+x.items.length,0),nw=L.filter(x=>x.sev==='warn').reduce((a,x)=>a+x.items.length,0);
+  return ph('فحص سلامة البيانات','فحص آلي يكشف التكرار وعدم الاتساق قبل المصادقة. الفحص يُنبّه فقط ولا يعدّل أي درجة؛ المعالجة والقرار للجنة المخوّلة.',expBtns('intexp',''))+
+  `<div class="grid g4" style="margin-bottom:12px">${[[L.length,'فحصاً'],[nb,'مشكلة حرجة'],[nw,'تنبيهاً'],[L.filter(x=>!x.items.length).length,'فحصاً سليماً']].map(([n,l],i)=>`<div class="card kpi"><b class="${i===1&&n?'red':''}">${n}</b><span>${l}</span></div>`).join('')}</div>`+
+  L.map(x=>`<div class="card" style="margin-bottom:10px"><div class="row" style="justify-content:space-between"><b>${esc(x.t)}</b><span class="pill ${x.items.length?(x.sev==='bad'?'bad':'warn'):'ok'}">${x.items.length?x.items.length+(x.sev==='bad'?' حرجة':' تنبيه'):'سليم'}</span></div>${x.items.length?`<ul style="margin:8px 0 0;padding-inline-start:20px">${x.items.slice(0,12).map(i=>`<li>${esc(i)}</li>`).join('')}</ul>${x.items.length>12?`<p class="mut" style="margin:4px 0">و${x.items.length-12} غيرها — صدّر التقرير للقائمة الكاملة.</p>`:''}${viewOk(x.view)?`<a class="btn sm" href="#${x.view}" data-nav="${x.view}" style="margin-top:8px">الانتقال للمعالجة</a>`:''}`:''}</div>`).join('')};
+ACT.intexp=d=>{const L=integrityScan();const rows=L.flatMap(x=>x.items.length?x.items.map(i=>[x.t,x.sev==='bad'?'حرجة':'تنبيه',i]):[[x.t,'سليم','']]);return exportTable('فحص-سلامة-البيانات','تقرير فحص سلامة البيانات',['الفحص','المستوى','التفاصيل'],rows,d.k)};
+
+/* ============ التصدير: Excel وCSV وتقارير رسمية للطباعة ============ */
+const expBtns=(act,c)=>`<button class="btn sm" data-act="${act}" data-c="${esc(c)}" data-k="xlsx">Excel</button><button class="btn sm" data-act="${act}" data-c="${esc(c)}" data-k="csv">CSV</button><button class="btn sm" data-act="${act}" data-c="${esc(c)}" data-k="print">طباعة / PDF</button>`;
+function plain(h){const d=document.createElement('div');d.innerHTML=String(h??'');return d.textContent.trim()}
+async function exportTable(base,title,head,rows,kind,extra=''){
+  const st=cfg(),now=new Date();base=String(base).replace(/[\\/:*?"<>|]+/g,'-');
+  if(kind==='csv'){const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';return download(base+'.csv','﻿'+[head,...rows].map(r=>r.map(q).join(',')).join('\n'))}
+  if(kind==='xlsx'){if(!window.XLSX)throw new Error('مكتبة Excel لم تُحمّل بعد، أعد المحاولة بعد لحظات.');
+    const aoa=[[`${st.univ} — ${st.college}`],[`اللجنة الامتحانية · ${st.term} ${st.year}`],[title],[`تاريخ الإصدار: ${fmtTs(now)} · عدد السجلات: ${rows.length}${extra?' · '+extra:''}`],[],head,...rows];
+    const ws=XLSX.utils.aoa_to_sheet(aoa);ws['!cols']=head.map((h,i)=>({wch:Math.min(48,Math.max(8,String(h).length+2,...rows.slice(0,300).map(r=>String(r[i]??'').length+2)))}));
+    ws['!autofilter']={ref:XLSX.utils.encode_range({s:{r:5,c:0},e:{r:5+rows.length,c:Math.max(0,head.length-1)}})};
+    const wb=XLSX.utils.book_new();wb.Workbook={Views:[{RTL:true}]};XLSX.utils.book_append_sheet(wb,ws,(title.replace(/[\\/?*[\]:]/g,' ').slice(0,31))||'تقرير');
+    const out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+    return download(base+'.xlsx',new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}))}
+  const fp=(await sha256(JSON.stringify([title,head,rows]))).slice(0,16).toUpperCase().replace(/(.{4})(?!$)/g,'$1-');
+  const body=`<h2>${esc(title)}</h2><p>تاريخ الإصدار: ${esc(fmtTs(now))} · عدد السجلات: <b>${rows.length}</b>${extra?' · '+esc(extra):''} · أصدره: ${esc(MEPROF?MEPROF.name:'هذا الجهاز')}</p>${head.length>9?'<style>@page{size:A4 landscape}</style>':''}<table><tr><th>#</th>${head.map(h=>`<th>${esc(h)}</th>`).join('')}</tr>${rows.map((r,i)=>`<tr><td>${i+1}</td>${r.map(v=>`<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</table>${sigs()}<p class="mono" style="margin-top:14px;font-size:11px">بصمة الوثيقة: ${fp} — صادرة آلياً من نظام الكنترول، وأي تعديل على محتواها يغيّر البصمة.</p>`;
+  return printOut(base,printDoc(title,body))}
+function printOut(base,html){let w=null;try{w=window.open('','_blank')}catch(e){}
+  if(w){w.document.open();w.document.write(html.replace('</body>','<script>window.onload=()=>setTimeout(()=>window.print(),400)<\/script></body>'));w.document.close();return}
+  return download(base+'.html',html)}
+ACT.lexp=d=>{const sc=SCHEMA[d.c];const rows=listRows(d.c);const f=[UI.fd?label.depts(S.depts.get(UI.fd)):'',UI.fs?'المرحلة '+STAGES[+UI.fs-1]:'',UI.q?'بحث: '+UI.q:''].filter(Boolean).join(' · ');
+  return exportTable(sc.t,sc.t,sc.cols.map(k=>COLL[k]||k),rows.map(r=>sc.cols.map(k=>plain(cellVal(d.c,k,r)))),d.k,f)};
 ACT.close=closeModal;
 ACT.logout=async()=>{try{await FB.signOut(FB.auth)}catch(e){}};
 ACT.publish=async()=>{
@@ -782,7 +997,7 @@ ACT.allp=async()=>{const sd=S.slots.get(UI.slot);const att=sd.att||{};const o={}
 ACT.incnext=async d=>{const x=S.incidents.get(d.id);const st=SCHEMA.incidents.f.find(f=>f.k==='status').o;const nx=st[st.indexOf(x.status||'موثق')+1];if(nx==='صدر القرار'&&!x.decision){openForm('incidents',d.id,null);toast('اكتب نص القرار ثم اختر «صدر القرار»');return}await patch('incidents',d.id,{status:nx,[`t_${st.indexOf(nx)}`]:Date.now()});await log('محضر غش',`${label.students(S.students.get(x.student))} ← ${nx}`)};
 ACT.mkcodes=async d=>{await makeCodes(d.e);await log('توليد أرقام سرية',label.exams(S.exams.get(d.e)));toast('وُلدت الأرقام السرية — الرصد أعمى الآن')};
 ACT.decode=async d=>{if(!IS_ADMIN)throw new Error('فك التشفير صلاحية رئيس اللجنة فقط.');if(UI.cdel!=='DEC'+d.e){UI.cdel='DEC'+d.e;toast('اضغط «فك التشفير» مرة ثانية للتأكيد. العملية تُسجل ولا تُلغى.');setTimeout(()=>{UI.cdel=''},5000);return}UI.cdel='';await patch('codes',d.e,{decoded:true,decodedAt:Date.now(),decodedBy:ME});await log('فك التشفير',label.exams(S.exams.get(d.e)));toast('فُك التشفير وظهرت الأسماء')};
-ACT.savegrades=async()=>{const c=S.courses.get(UI.course);const dr=DRAFT[c.id]||{};const st=cfg();const rows={};let bad=0;
+ACT.savegrades=async()=>{const c=S.courses.get(UI.course);if(isLocked(groupKey(c.dept,c.stage)))throw new Error('نتائج هذه المرحلة مصادق عليها ومقفلة. يلغي رئيس اللجنة المصادقة أولاً، ويُسجَّل ذلك في سجل التدقيق.');const dr=DRAFT[c.id]||{};const st=cfg();const rows={};let bad=0;
   for(const [sid,o] of Object.entries(dr)){const r={};for(const [f,v] of Object.entries(o)){if(f==='dep'||f==='abs'){r[f]=!!v;continue}const n=num(v);const pp=(cfg().parts||PARTS).find(p=>'p_'+p[0]===f);const mx=pp?pp[2]:f==='cw'?st.cwMax:f==='absPct'?100:st.finMax;if(n!=null&&(n<0||n>mx)){bad++;continue}r[f]=n}rows[sid]=r}
   if(bad)throw new Error(`${bad} قيمة خارج المدى المسموح. صحّح الخانات المؤطرة بالأحمر.`);
   if(partsOn())for(const sid of Object.keys(rows)){if(Object.keys(rows[sid]).some(f=>f.startsWith('p_'))){const m={...(G(c.id)[sid]||{}),...rows[sid]};rows[sid].cw=partSum(sid,(x,f)=>m[f])}}
@@ -818,7 +1033,8 @@ ACT.syncstruct=async()=>{
   const items=ops.map(o=>o.link?{c:'depts',id:o.id,data:{...S.depts.get(o.id),college:cname[o.data.collegeId]||''}}:{c:'depts',id:o.id,data:{name:o.data.name,code:o.id,college:cname[o.data.collegeId]||''}});
   if(!items.length)return toast('الهيكل مكتمل');
   await bulk(items);await log('مزامنة هيكل الجامعة',`${items.length} قسم`);toast(`أُضيف ${items.length} قسم`)};
-ACT.backup=()=>{const o={app:'kontrol',v:2,at:new Date().toISOString()};COLLS.forEach(c=>o[c]=arr(c));download(`kontrol-backup-${new Date().toISOString().slice(0,10)}.json`,JSON.stringify(o,null,1))};
+ACT.backup=async()=>{const o={app:'kontrol',v:3,at:new Date().toISOString(),by:ME};COLLS.forEach(c=>o[c]=arr(c));await download(`kontrol-backup-${new Date().toISOString().slice(0,10)}.json`,JSON.stringify(o,null,1));
+  if(can('chair')&&!RO){try{await patch('meta','backup',{at:Date.now(),by:ME,n:COLLS.reduce((a,c)=>a+S[c].size,0)});await log('نسخة احتياطية','نُزّلت نسخة كاملة من سجلات الكنترول')}catch(e){}}};
 ACT.sample=async()=>{await loadSample();toast('حُمّلت البيانات التجريبية');go('dash')};
 
 /* ============ استيراد Excel ============ */
@@ -924,8 +1140,10 @@ ACT.dlduty=()=>{const body=`<table><tr><th>الجلسة</th><th>القاعة</th
 ACT.dlcovers=d=>{const e=S.exams.get(d.e);const c=S.codes.get(d.e);const co=S.courses.get(e.course)||{};const body=examStudents(e).map(s=>{const code=c.map[s.id];return `<div style="border:2px solid #111;margin-bottom:16px;page-break-inside:avoid"><div style="padding:10px;border-bottom:2px dashed #111;display:flex;justify-content:space-between"><div><b>قسيمة الاسم (تُفصل عند الاستلام)</b><br>${esc(s.name)} — <span class="mono">${esc(s.no)}</span></div><div class="mono">${esc(code)}</div></div><div style="padding:10px;display:flex;gap:16px;align-items:center"><div style="width:110px">${qrSvg(code).replace('<svg','<svg width="110" height="110"')}</div><div><div style="font-size:12px">${esc(co.code)} ${esc(co.name)} · ${esc(e.date)}</div><div class="mono" style="font-size:26px;font-weight:700">${esc(code)}</div><div style="font-size:12px">الرقم السري للدفتر — لا يُكتب الاسم داخل الدفتر</div></div></div></div>`}).join('');download(`أغلفة-${co.code||'exam'}.html`,printDoc('أغلفة دفاتر الإجابة المشفرة',body))};
 ACT.dlinc=d=>{const x=S.incidents.get(d.id);const s=S.students.get(x.student)||{};const body=`<h2>محضر ضبط حالة غش</h2><table><tr><th>الطالب</th><td>${esc(s.name)} — ${esc(s.no)}</td></tr><tr><th>الامتحان</th><td>${esc(label.exams(S.exams.get(x.exam)))}</td></tr><tr><th>القاعة</th><td>${esc(label.halls(S.halls.get(x.hall)))}</td></tr><tr><th>وقت الواقعة</th><td>${esc(x.time)}</td></tr><tr><th>الأداة المحرزة</th><td>${esc(x.tool)}</td></tr><tr><th>الوصف</th><td>${esc(x.desc)}</td></tr><tr><th>الشهود</th><td>${esc(x.witnesses)}</td></tr><tr><th>إفادة الطالب</th><td>${x.statement?'أُخذت وأُرفقت':'لم تؤخذ'}</td></tr><tr><th>المرحلة</th><td>${esc(x.status)}</td></tr>${x.decision?`<tr><th>القرار</th><td>${esc(x.decision)}</td></tr>`:''}</table><p>يُرفع هذا المحضر مع المضبوطات وإفادة الطالب إلى عميد الكلية لإحالته إلى لجنة انضباط الطلبة.</p><div class="sig"><div>المراقب الأول</div><div>المراقب الثاني</div><div>رئيس القاعة</div></div>${sigs()}`;download(`محضر-غش-${s.no}.html`,printDoc('محضر غش',body))};
 function masterRows(k){const cs=groupCourses(k);return groupStudents(k).map(s=>{const st=studentStatus(k,s.id);return {s,st,rs:cs.map(c=>res(c.id,s.id)),vc:(VC.get(s.id)||{}).code||''}})}
-ACT.dlmaster=()=>{const k=UI.group;const cs=groupCourses(k);const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';let csv='﻿'+['الرقم الامتحاني','الاسم',...cs.flatMap(c=>[c.name+' سعي',c.name+' نهائي',c.name+' رأفة',c.name+' مجموع',c.name+' تقدير']),'النتيجة','رمز التحقق'].map(q).join(',')+'\n';
-  masterRows(k).forEach(r=>{csv+=[r.s.no,r.s.name,...r.rs.flatMap(x=>x.total==null?[x.label,'','','','']:[x.cw,x.abs?'غائب':x.fin,x.grace||'',x.total,grade(x.total)]),r.st.label,r.vc].map(q).join(',')+'\n'});download(`ماستر-شيت-${groupName(k)}.csv`,csv)};
+ACT.dlmaster=d=>{const k=UI.group;const cs=groupCourses(k);
+  const head=['الرقم الامتحاني','الاسم',...cs.flatMap(c=>[c.name+' سعي',c.name+' نهائي',c.name+' رأفة',c.name+' مجموع',c.name+' تقدير']),'النتيجة','رمز التحقق'];
+  const rows=masterRows(k).map(r=>[r.s.no,r.s.name,...r.rs.flatMap(x=>x.total==null?[x.label,'','','','']:[x.cw,x.abs?'غائب':x.fin,x.grace||'',x.total,grade(x.total)]),r.st.label,r.vc]);
+  return exportTable(`ماستر-شيت-${groupName(k)}`,`الماستر شيت — ${groupName(k)}${isLocked(k)?' (مصادق عليها)':' (مسودة)'}`,head,rows,(d&&d.k)||'xlsx')};
 ACT.dlmasterhtml=()=>{const k=UI.group;const cs=groupCourses(k);const body=`<h2>${esc(groupName(k))} ${isLocked(k)?'— مصادق عليها':'— مسودة غير مصادق عليها'}</h2><table><tr><th>الرقم</th><th>الاسم</th>${cs.map(c=>`<th>${esc(c.name)}</th>`).join('')}<th>النتيجة</th><th>رمز التحقق</th></tr>${masterRows(k).map(r=>`<tr><td class="mono">${esc(r.s.no)}</td><td>${esc(r.s.name)}</td>${r.rs.map(x=>`<td>${x.total==null?esc(x.label):r1(x.total)+(x.grace?` (ر${x.grace})`:'')+(x.round===2?' د2':'')}</td>`).join('')}<td>${esc(r.st.label)}</td><td class="mono">${esc(r.vc)}</td></tr>`).join('')}</table>${sigs()}`;download(`النتائج-${groupName(k)}.html`,printDoc('السجل المركزي للنتائج',body))};
 ACT.dlaudit=()=>{const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';download('سجل-التدقيق.csv','﻿'+'الوقت,المنفذ,العملية,التفاصيل,البصمة السابقة,البصمة\n'+arr('audit').sort((a,b)=>a.ts-b.ts).map(x=>[new Date(x.ts).toISOString(),x.by,x.action,x.detail,x.prev,x.hash].map(q).join(',')).join('\n'))};
 
@@ -952,15 +1170,16 @@ async function loadSample(){
   Object.entries(CN).forEach(([k,list])=>list.forEach(([code,name,t])=>add('courses','c_'+code,{code,name,dept:k.slice(0,4),stage:k.slice(4),teacher:t,units:3})));
   const dates=['2027-01-10','2027-01-11','2027-01-12'];
   ['1','2','3'].forEach((n,di)=>{add('exams','e_CE20'+n,{course:'c_CE20'+n,date:dates[di],period:'1',dur:120});add('exams','e_EE20'+n,{course:'c_EE20'+n,date:dates[di],period:'1',dur:120});add('exams','e_CE30'+n,{course:'c_CE30'+n,date:dates[di],period:'2',dur:120});add('exams','e_EE30'+n,{course:'c_EE30'+n,date:dates[di],period:'2',dur:120})});
-  add('meta','settings',{univ:'جامعة المعقل الدولية',college:'كلية الهندسة',year:'2026–2027',term:'الفصل الدراسي الأول — الدور الأول',cwMax:40,finMax:60,pass:50,maxCarry:2,graceTotal:5,gracePer:5,double:true,useParts:false,curSem:'1',requireCoi:false,appealHours:48,p1:'09:00',p2:'11:30'});
+  add('meta','settings',{univ:'جامعة المعقل الدولية',college:'كلية الهندسة',year:'2026–2027',term:'الفصل الدراسي الأول — الدور الأول',cwMax:40,finMax:60,pass:50,maxCarry:2,graceTotal:5,gracePer:5,double:true,useParts:false,curSem:'1',requireCoi:false,appealHours:48,idleMin:30,p1:'09:00',p2:'11:30'});
   add('meta','committee',{chair:'p0',rap:'p2',m1:'p1',m2:'p6',m3:'p7',tech:'p11'});
   // درجات لمواد اليومين الأولين
   const graded=['CE201','CE202','CE203','CE301','CE302','CE303','EE201','EE301','EE202','EE302'];
   Object.entries(CN).forEach(([k,list])=>list.forEach(([code])=>{if(!graded.includes(code))return;const rows={};studIds[k].forEach((sid,i)=>{const ab=R();const cw=Math.round((18+R()*20)*2)/2;let fin=Math.round((14+R()*44)*2)/2;if(code==='CE302')fin=Math.max(0,fin-12);if(i===3&&code==='CE201')fin=Math.max(0,47-cw);const r={cw,absPct:Math.round(R()*12)};if(code==='EE202'&&i===14){r.dep=true;r.absPct=18}else if(ab<0.04){r.abs=true;r.e1=0;r.e2=0}else{r.e1=fin;r.e2=(code==='CE202'&&i===6)?fin+5:(code==='EE302'&&i>=12)?null:fin}rows[sid]=r});add('grades','c_'+code,{rows})}));
   add('incidents','inc1',{student:'s_25CE3_9',exam:'e_CE301',hall:'h205',time:'12:10',tool:'سماعة لاسلكية',desc:'ضُبطت سماعة لاسلكية دقيقة في أذن الطالب بعد مرور 40 دقيقة على بدء الامتحان، وسُحب الدفتر وحُرزت الأداة.',witnesses:'م.م. علي عبد الحسين، م.د. أسيل كريم',statement:true,status:'محال إلى العميد',at:Date.now()-26*36e5});
-  add('appeals','ap1',{student:'s_26CE2_2',course:'c_CE201',reason:'يعتقد الطالب أن السؤال الثالث لم يُصحح كاملاً.',status:'قيد التدقيق',at:Date.now()-30*36e5});
-  add('appeals','ap2',{student:'s_26EE2_7',course:'c_EE201',reason:'خطأ محتمل في جمع درجات الأسئلة الفرعية.',status:'جديد',at:Date.now()-5*36e5});
+  {const t=Date.now()-30*36e5;add('appeals','ap1',{ref:'AP-2026-0001',student:'s_26CE2_2',course:'c_CE201',round:'1',reason:'يعتقد الطالب أن السؤال الثالث لم يُصحح كاملاً.',st:'audit',at:t,due:t+48*36e5,filedOn:new Date(t).toISOString().slice(0,10),createdBy:ME,hist:[{ts:t,by:ME,from:'',to:'new',note:'تسجيل الاعتراض'},{ts:t+2*36e5,by:ME,from:'new',to:'audit',note:'استلام الدفتر وبدء التدقيق'}]})}
+  {const t=Date.now()-5*36e5;add('appeals','ap2',{ref:'AP-2026-0002',student:'s_26EE2_7',course:'c_EE201',round:'1',reason:'خطأ محتمل في جمع درجات الأسئلة الفرعية.',st:'new',at:t,due:t+48*36e5,filedOn:new Date(t).toISOString().slice(0,10),createdBy:ME,hist:[{ts:t,by:ME,from:'',to:'new',note:'تسجيل الاعتراض'}]})}
   await bulk(items);
+  for(const id of ['ap1','ap2']){const a=S.appeals.get(id);if(!a)continue;const r=res(a.course,a.student);await patch('appeals',id,{oldFin:r.fin??null,oldTotal:r.total??null})}
   // توزيع المقاعد والمراقبين لكل الجلسات، وتسجيل حضور الأيام المنقضية، وتشفير اليوم الأول
   const all=['h101','h102','h205','hbig'];
   for(const s of slotList()){const seats=seatPlan(s,all);const att={};if(s.date<='2027-01-11')seats.forEach(x=>{att[x.s]=R()<0.04?'a':'p'});await put('slots',s.key,{seats,halls:all,att,duties:[],dwarn:[],at:Date.now()})}
@@ -987,6 +1206,8 @@ document.addEventListener('submit',e=>{const f=e.target.closest('form[data-form]
 });
 document.addEventListener('change',e=>{
   const t=e.target;
+  if(t.dataset.apc!==undefined){UI.apCourse=t.value;const x=$('#ap_student');if(x)x.innerHTML=apStudentOpts(t.value);return}
+  if(t.dataset.apassign){apAssign(t.dataset.apassign,t.value).catch(err=>toast(errMsg(err),'bad'));return}
   if(t.dataset.ui){UI[t.dataset.ui]=t.value;if(t.dataset.ui==='course')UI.gtab=UI.gtab||'cw';render();return}
   if(t.dataset.draft&&t.type==='checkbox'){setDraft(t);render();return}
   if(t.dataset.hall){const sd=S.slots.get(UI.slot);if(sd&&!RO){patch('slots',UI.slot,{halls:hallsChecked()}).catch(()=>{})}else render();return}
@@ -996,7 +1217,7 @@ document.addEventListener('change',e=>{
   if(t.dataset.rubric){patch('envelopes',t.dataset.rubric,{rubric:t.checked}).catch(err=>toast(errMsg(err),'bad'));return}
   if((t.id==='xlsxin'||t.id==='xlsxin2')&&t.files.length){startImport([...t.files]);t.value='';return}
   if(t.dataset.impdept!==undefined&&IMP){IMP.dept=t.value;IMP.res=analyze(IMP.books,IMP.dept);$('#modal').innerHTML=importView();return}
-  if(t.id==='restore'&&t.files[0]){const r=new FileReader();r.onload=async()=>{try{const o=JSON.parse(r.result);if(o.app!=='kontrol')throw new Error('الملف ليس نسخة احتياطية من هذا النظام.');const items=[];COLLS.forEach(c=>(o[c]||[]).forEach(x=>items.push({c,id:x.id,data:x})));await bulk(items);await log('استعادة نسخة احتياطية',`${items.length} سجل`);toast(`استُعيد ${items.length} سجل`)}catch(err){toast(errMsg(err),'bad')}};r.readAsText(t.files[0])}
+  if(t.id==='restore'&&t.files[0]){const r=new FileReader();r.onload=async()=>{try{const o=JSON.parse(r.result);if(o.app!=='kontrol')throw new Error('الملف ليس نسخة احتياطية من هذا النظام.');if(MODE==='fb'&&!can('chair'))throw new Error('الاستعادة لرئيس اللجنة فقط.');const items=[];COLLS.filter(c=>MODE!=='fb'||(KCOL[c]&&c!=='audit')).forEach(c=>(o[c]||[]).forEach(x=>items.push({c,id:x.id,data:x})));if(!items.length)throw new Error('لا توجد سجلات قابلة للاستعادة في الملف.');await bulk(items);await log('استعادة نسخة احتياطية',`${items.length} سجل`);toast(`استُعيد ${items.length} سجل`)}catch(err){toast(errMsg(err),'bad')}};r.readAsText(t.files[0])}
 });
 function setDraft(t){const [cid,sid,f]=t.dataset.draft.split('~');DRAFT[cid]=DRAFT[cid]||{};DRAFT[cid][sid]=DRAFT[cid][sid]||{};DRAFT[cid][sid][f]=t.type==='checkbox'?t.checked:t.value;
   const btn=document.querySelector('[data-act="savegrades"]');if(btn){const n=Object.keys(DRAFT[cid]).length;btn.disabled=RO||isLocked(groupKey(S.courses.get(cid).dept,S.courses.get(cid).stage));btn.textContent=`حفظ الرصد (${n})`}}

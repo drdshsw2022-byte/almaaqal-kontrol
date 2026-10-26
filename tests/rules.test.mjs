@@ -1,0 +1,94 @@
+// اختبار قواعد Firestore لنظام الكنترول على المحاكي: يُشغَّل تلقائياً في GitHub Actions عند تعديل القواعد.
+import { test, before, after } from 'node:test';
+import { initializeTestEnvironment, assertSucceeds, assertFails } from '@firebase/rules-unit-testing';
+import { doc, getDoc, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { readFileSync } from 'node:fs';
+
+let env;
+const D = '@almaaqal.edu.iq';
+const as = (name) => env.authenticatedContext(name, { email: `${name}@pw.almaaqal.app` }).firestore();
+
+before(async () => {
+  env = await initializeTestEnvironment({
+    projectId: 'demo-kontrol',
+    firestore: { rules: readFileSync('firestore.rules', 'utf8'), host: '127.0.0.1', port: 8080 },
+  });
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    const staff = { admin: 'admin', chair1: 'doctor', mem1: 'doctor', aud1: 'doctor', inv1: 'doctor', view1: 'doctor', none1: 'doctor' };
+    for (const [n, role] of Object.entries(staff)) await setDoc(doc(db, 'staff', n + D), { name: n, role });
+    for (const [n, role] of Object.entries({ chair1: 'chair', mem1: 'member', aud1: 'auditor', inv1: 'invigilator', view1: 'viewer' }))
+      await setDoc(doc(db, 'k_roles', n + D), { role });
+    await setDoc(doc(db, 'courses', 'cyber|3|CYS300'), { deptId: 'cyber', stage: 3 });
+    await setDoc(doc(db, 'courses', 'ai|1|AI100'), { deptId: 'ai', stage: 1 });
+    await setDoc(doc(db, 'k_meta', 'locks'), { cyber_3: { at: 1 }, ai_1: null });
+    const base = { ref: 'AP-2026-0001', student: 's1', course: 'ai|1|AI100', round: '1', at: 1, createdBy: 'mem1' + D, oldFin: 20, oldTotal: 45 };
+    await setDoc(doc(db, 'k_appeals', 'a_new'), { ...base, st: 'new' });
+    await setDoc(doc(db, 'k_appeals', 'a_dec'), { ...base, st: 'decision', proposedFin: 25 });
+    await setDoc(doc(db, 'k_appeals', 'a_done'), { ...base, st: 'done', outcome: 'upheld', decidedBy: 'chair1' + D });
+    await setDoc(doc(db, 'k_appeals', 'a_legacy'), { student: 's1', course: 'ai|1|AI100', status: 'جديد', at: 1 });
+    await setDoc(doc(db, 'k_audit', 'x1'), { by: 'mem1' + D, ts: 1 });
+  });
+});
+after(async () => { await env.cleanup(); });
+
+const newAp = (by, extra = {}) => ({ ref: 'AP-2026-0009', student: 's2', course: 'ai|1|AI100', round: '1', st: 'new', at: 2, createdBy: by + D, reason: 'x', ...extra });
+
+test('عضو الكنترول يسجل اعتراضاً جديداً باسمه فقط', async () => {
+  await assertSucceeds(setDoc(doc(as('mem1'), 'k_appeals', 'n1'), newAp('mem1')));
+  await assertFails(setDoc(doc(as('mem1'), 'k_appeals', 'n2'), newAp('chair1')));
+  await assertFails(setDoc(doc(as('mem1'), 'k_appeals', 'n3'), newAp('mem1', { st: 'done' })));
+  await assertFails(setDoc(doc(as('mem1'), 'k_appeals', 'n4'), newAp('mem1', { finalFin: 40 })));
+  await assertFails(setDoc(doc(as('aud1'), 'k_appeals', 'n5'), newAp('aud1')));
+  await assertFails(setDoc(doc(as('view1'), 'k_appeals', 'n6'), newAp('view1')));
+});
+
+test('المدقق يدقق ولا يقرر', async () => {
+  await assertSucceeds(updateDoc(doc(as('aud1'), 'k_appeals', 'a_new'), { st: 'audit', auditNote: 'ok', assignee: 'aud1' + D }));
+  await assertSucceeds(updateDoc(doc(as('aud1'), 'k_appeals', 'a_legacy'), { st: 'audit' }));
+  await assertFails(updateDoc(doc(as('aud1'), 'k_appeals', 'a_dec'), { st: 'done', outcome: 'changed', finalFin: 30, decidedBy: 'aud1' + D }));
+  await assertFails(updateDoc(doc(as('aud1'), 'k_appeals', 'a_dec'), { finalFin: 30 }));
+  await assertFails(updateDoc(doc(as('mem1'), 'k_appeals', 'a_dec'), { oldTotal: 99 }));
+  await assertFails(updateDoc(doc(as('mem1'), 'k_appeals', 'a_dec'), { st: 'rejected', decidedBy: 'mem1' + D }));
+});
+
+test('رئيس اللجنة يعتمد القرار باسمه فقط، والاعتراض المغلق لا يُعدَّل', async () => {
+  await assertFails(updateDoc(doc(as('chair1'), 'k_appeals', 'a_dec'), { st: 'done', outcome: 'changed', finalFin: 30, decidedBy: 'mem1' + D }));
+  await assertSucceeds(updateDoc(doc(as('chair1'), 'k_appeals', 'a_dec'), { st: 'done', outcome: 'changed', finalFin: 30, decidedBy: 'chair1' + D, decidedAt: 5 }));
+  await assertFails(updateDoc(doc(as('chair1'), 'k_appeals', 'a_done'), { finalFin: 44 }));
+  await assertFails(updateDoc(doc(as('admin'), 'k_appeals', 'a_done'), { outcome: 'changed' }));
+});
+
+test('القراءة والحذف حسب الدور', async () => {
+  await assertSucceeds(getDoc(doc(as('view1'), 'k_appeals', 'a_new')));
+  await assertSucceeds(getDoc(doc(as('inv1'), 'k_appeals', 'a_new')));
+  await assertFails(getDoc(doc(as('none1'), 'k_appeals', 'a_new')));
+  await assertFails(deleteDoc(doc(as('mem1'), 'k_appeals', 'a_legacy')));
+  await assertSucceeds(deleteDoc(doc(as('chair1'), 'k_appeals', 'a_legacy')));
+});
+
+test('الرصد مرفوض على مرحلة مصادق عليها إلا لرئيس اللجنة', async () => {
+  const rows = { rows: { s1: { e1: 30 } } };
+  await assertFails(setDoc(doc(as('aud1'), 'k_marks', 'cyber|3|CYS300'), rows, { merge: true }));
+  await assertFails(setDoc(doc(as('mem1'), 'k_marks', 'cyber|3|CYS300'), rows, { merge: true }));
+  await assertSucceeds(setDoc(doc(as('aud1'), 'k_marks', 'ai|1|AI100'), rows, { merge: true }));
+  await assertSucceeds(setDoc(doc(as('chair1'), 'k_marks', 'cyber|3|CYS300'), rows, { merge: true }));
+  await assertFails(setDoc(doc(as('view1'), 'k_marks', 'ai|1|AI100'), rows, { merge: true }));
+  await assertFails(getDoc(doc(as('inv1'), 'k_marks', 'ai|1|AI100')));
+});
+
+test('سجل التدقيق إضافة فقط وباسم المستخدم نفسه', async () => {
+  await assertSucceeds(setDoc(doc(as('inv1'), 'k_audit', 'x2'), { by: 'inv1' + D, ts: 2 }));
+  await assertFails(setDoc(doc(as('inv1'), 'k_audit', 'x3'), { by: 'chair1' + D, ts: 3 }));
+  await assertFails(updateDoc(doc(as('chair1'), 'k_audit', 'x1'), { ts: 9 }));
+  await assertFails(deleteDoc(doc(as('admin'), 'k_audit', 'x1')));
+});
+
+test('هيكل الجامعة والصلاحيات للإدارة العليا ورئيس اللجنة', async () => {
+  await assertSucceeds(setDoc(doc(as('admin'), 'colleges', 'eng'), { name: 'كلية الهندسة' }));
+  await assertFails(setDoc(doc(as('chair1'), 'colleges', 'eng2'), { name: 'x' }));
+  await assertFails(setDoc(doc(as('mem1'), 'departments', 'x'), { name: 'x', collegeId: 'eng' }));
+  await assertSucceeds(setDoc(doc(as('chair1'), 'k_roles', 'none1' + D), { role: 'viewer' }));
+  await assertFails(setDoc(doc(as('mem1'), 'k_roles', 'none1' + D), { role: 'chair' }));
+  await assertFails(setDoc(doc(as('mem1'), 'k_meta', 'locks'), { cyber_3: null }, { merge: true }));
+});

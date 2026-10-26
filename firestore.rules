@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// قواعد حماية قاعدة بيانات نظام جامعة المعقل الأهلية (تسلسل هرمي للصلاحيات RBAC)
+// قواعد حماية قاعدة بيانات نظام جامعة المعقل الدولية (تسلسل هرمي للصلاحيات RBAC)
 // انسخ هذا الملف إلى: Firebase Console > Firestore Database > Rules ثم اضغط Publish
 //
 // طرق الدخول:
@@ -202,9 +202,37 @@ service cloud.firestore {
       allow create: if kInvig();
       allow update, delete: if kCtrl();
     }
-    match /k_appeals/{id}  { allow read: if kGrader(); allow write: if kCtrl(); }
-    // الرصد المزدوج الأعمى والرأفة
-    match /k_marks/{id}    { allow read, write: if kGrader(); }
+    // الاعتراضات: مسار موثق. التسجيل لأعضاء الكنترول، والتدقيق والمراجعة للمدققين،
+    // وإغلاق الاعتراض (القرار وتعديل الدرجة) لرئيس اللجنة باسمه فقط.
+    function apClosed(d) { return d.get('st', 'new') in ['done', 'rejected']; }
+    function apDecisionKeys() {
+      return ['outcome', 'finalFin', 'decidedBy', 'decidedAt', 'decisionReason',
+              'oldFin', 'oldTotal', 'student', 'course', 'round', 'ref', 'at', 'createdBy'];
+    }
+    match /k_appeals/{id} {
+      allow read: if kAny();
+      allow create: if kCtrl() && request.resource.data.get('st', '') == 'new' &&
+        request.resource.data.get('createdBy', '') == email() &&
+        !request.resource.data.keys().hasAny(['outcome', 'finalFin', 'decidedBy']);
+      allow update: if
+        (kChair() && !apClosed(resource.data) &&
+          (!apClosed(request.resource.data) || request.resource.data.get('decidedBy', '') == email())) ||
+        (kGrader() && !apClosed(resource.data) && !apClosed(request.resource.data) &&
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(apDecisionKeys()));
+      allow delete: if kChair();
+    }
+    // الرصد المزدوج الأعمى والرأفة: يُرفض الرصد على مرحلة صادق رئيس اللجنة على نتائجها
+    function marksLocked(cid) {
+      return exists(/databases/$(database)/documents/k_meta/locks) &&
+        exists(/databases/$(database)/documents/courses/$(cid)) &&
+        get(/databases/$(database)/documents/k_meta/locks).data.get(
+          get(/databases/$(database)/documents/courses/$(cid)).data.deptId + '_' +
+          string(get(/databases/$(database)/documents/courses/$(cid)).data.stage), null) != null;
+    }
+    match /k_marks/{id} {
+      allow read: if kGrader();
+      allow write: if kChair() || (kGrader() && !marksLocked(id));
+    }
     // الأرقام السرية: يولّدها الكنترول، ويفك تشفيرها رئيس اللجنة فقط
     match /k_codes/{id} {
       allow read, create: if kCtrl();
