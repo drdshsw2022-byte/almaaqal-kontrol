@@ -1,0 +1,20 @@
+name: تنظيف المستودع
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/cleanup.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: حذف فرع الالتقاط المؤقت ref-capture (فيه ملف APK بحجم 74 ميغابايت)
+        run: |
+          if git ls-remote --exit-code --heads origin ref-capture >/dev/null; then
+            git push origin --delete ref-capture && echo "::notice title=تنظيف::حُذف الفرع ref-capture"
+          else
+            echo "::notice title=تنظيف::الفرع ref-capture غير موجود"
+          fi

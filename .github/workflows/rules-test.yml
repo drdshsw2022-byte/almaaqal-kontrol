@@ -1,6 +1,7 @@
-name: اختبار قواعد Firestore
+name: اختبار قواعد Firestore ونشرها
 on:
   push:
+    branches: [main]
     paths: ['firestore.rules', 'tests/**', 'firebase.json', '.github/workflows/rules-test.yml']
   workflow_dispatch:
 jobs:
@@ -23,3 +24,32 @@ jobs:
           grep -E "^# (tests|pass|fail)" out.txt | while read -r l; do echo "::notice title=النتيجة::$l"; done
           grep -vE "^\s*$" out.txt | grep -A7 -E "^not ok|^    not ok" | grep -vE "duration_ms|failureType|code: |stack|^--$" | head -60 | while read -r l; do echo "::error title=فشل::$l"; done
           exit $code
+
+  # ينشر القواعد على مشروع Firebase تلقائياً بعد نجاح الاختبارات، متى أُضيف سر FIREBASE_SERVICE_ACCOUNT مرة واحدة.
+  deploy:
+    needs: rules
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+      PROJECT: ${{ secrets.FB_PROJECT_ID || 'almaqal-uni' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: التحقق من وجود صلاحية النشر
+        id: chk
+        run: |
+          if [ -z "$SA" ]; then
+            echo "::warning title=لم تُنشر القواعد::أضف سر FIREBASE_SERVICE_ACCOUNT (مفتاح حساب خدمة Firebase بصيغة JSON) لتُنشر القواعد تلقائياً."
+            echo "go=0" >> "$GITHUB_OUTPUT"
+          else echo "go=1" >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/setup-node@v4
+        if: steps.chk.outputs.go == '1'
+        with: { node-version: 20 }
+      - name: نشر firestore.rules
+        if: steps.chk.outputs.go == '1'
+        run: |
+          printf '%s' "$SA" > "$RUNNER_TEMP/sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
+          npx -y firebase-tools@13 deploy --only firestore:rules --project "$PROJECT" --non-interactive
+          echo "::notice title=نُشرت القواعد::نُشرت قواعد Firestore على المشروع $PROJECT"
+          rm -f "$RUNNER_TEMP/sa.json"
