@@ -171,15 +171,24 @@ service cloud.firestore {
     //   chair: رئيس اللجنة • member: عضو كنترول • auditor: مدقق درجات
     //   invigilator: مراقب • viewer: اطلاع. مدير النظام والإدارة العليا رؤساء تلقائياً.
     // =====================================================================
-    function kRole() {
-      return (isStaff() && exists(/databases/$(database)/documents/k_roles/$(email())))
-        ? get(/databases/$(database)/documents/k_roles/$(email())).data.role : '';
+    // الدور في الكنترول يُحسب مرة واحدة لكل دالة (let) لتبقى القواعد ضمن حد التقييم.
+    function kRoleNow() {
+      let e = email();
+      let staffOk = signedIn() && (isStaffPw() || (request.auth.token.email_verified == true &&
+        authEmail().matches('.*@almaaqal[.]edu[.]iq'))) &&
+        exists(/databases/$(database)/documents/staff/$(e));
+      return isSuperAdmin() ? 'chair' :
+        !staffOk ? '' :
+        get(/databases/$(database)/documents/staff/$(e)).data.get('role', '') in ['admin', 'president'] ? 'chair' :
+        exists(/databases/$(database)/documents/k_roles/$(e)) ?
+          get(/databases/$(database)/documents/k_roles/$(e)).data.get('role', '') : '';
     }
-    function kChair()  { return isTop() || kRole() == 'chair'; }
-    function kCtrl()   { return kChair() || kRole() == 'member'; }
-    function kGrader() { return kCtrl() || kRole() == 'auditor'; }
-    function kInvig()  { return kCtrl() || kRole() == 'invigilator'; }
-    function kAny()    { return kGrader() || kRole() in ['invigilator', 'viewer']; }
+    function kRole()   { return kRoleNow(); }
+    function kChair()  { return kRoleNow() == 'chair'; }
+    function kCtrl()   { return kRoleNow() in ['chair', 'member']; }
+    function kGrader() { return kRoleNow() in ['chair', 'member', 'auditor']; }
+    function kInvig()  { return kRoleNow() in ['chair', 'member', 'invigilator']; }
+    function kAny()    { return kRoleNow() in ['chair', 'member', 'auditor', 'invigilator', 'viewer']; }
 
     match /k_roles/{e} {
       allow read: if kChair() || (isMember() && e == email());
@@ -209,16 +218,19 @@ service cloud.firestore {
       return ['outcome', 'finalFin', 'decidedBy', 'decidedAt', 'decisionReason',
               'oldFin', 'oldTotal', 'student', 'course', 'round', 'ref', 'at', 'createdBy'];
     }
+    function apUpdateOk(r) {
+      return !apClosed(resource.data) && (
+        (r == 'chair' &&
+          (!apClosed(request.resource.data) || request.resource.data.get('decidedBy', '') == email())) ||
+        (r in ['member', 'auditor'] && !apClosed(request.resource.data) &&
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(apDecisionKeys())));
+    }
     match /k_appeals/{id} {
       allow read: if kAny();
       allow create: if kCtrl() && request.resource.data.get('st', '') == 'new' &&
         request.resource.data.get('createdBy', '') == email() &&
         !request.resource.data.keys().hasAny(['outcome', 'finalFin', 'decidedBy']);
-      allow update: if
-        (kChair() && !apClosed(resource.data) &&
-          (!apClosed(request.resource.data) || request.resource.data.get('decidedBy', '') == email())) ||
-        (kGrader() && !apClosed(resource.data) && !apClosed(request.resource.data) &&
-          !request.resource.data.diff(resource.data).affectedKeys().hasAny(apDecisionKeys()));
+      allow update: if apUpdateOk(kRoleNow());
       allow delete: if kChair();
     }
     // الرصد المزدوج الأعمى والرأفة: يُرفض الرصد على مرحلة صادق رئيس اللجنة على نتائجها
@@ -229,9 +241,12 @@ service cloud.firestore {
           get(/databases/$(database)/documents/courses/$(cid)).data.deptId + '_' +
           string(get(/databases/$(database)/documents/courses/$(cid)).data.stage), null) != null;
     }
+    function marksWriteOk(r, cid) {
+      return r == 'chair' || (r in ['member', 'auditor'] && !marksLocked(cid));
+    }
     match /k_marks/{id} {
       allow read: if kGrader();
-      allow write: if kChair() || (kGrader() && !marksLocked(id));
+      allow write: if marksWriteOk(kRoleNow(), id);
     }
     // الأرقام السرية: يولّدها الكنترول، ويفك تشفيرها رئيس اللجنة فقط
     match /k_codes/{id} {
