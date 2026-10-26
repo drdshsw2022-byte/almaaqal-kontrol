@@ -21,5 +21,5 @@ jobs:
           tail -n 120 out.txt
           # تظهر النتائج كملاحظات على التشغيل (تُقرأ من واجهة GitHub ومن API)
           grep -E "^# (tests|pass|fail)" out.txt | while read -r l; do echo "::notice title=النتيجة::$l"; done
-          grep -nE "not ok|Error:|error:|FAILED|expected" out.txt | head -25 | while read -r l; do echo "::error title=فشل::$l"; done
+          grep -vE "^\s*$" out.txt | grep -A7 -E "^not ok|^    not ok" | grep -vE "duration_ms|failureType|code: |stack|^--$" | head -60 | while read -r l; do echo "::error title=فشل::$l"; done
           exit $code
