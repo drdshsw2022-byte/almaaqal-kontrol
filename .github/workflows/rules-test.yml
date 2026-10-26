@@ -13,4 +13,13 @@ jobs:
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 21 }
       - run: npm i --no-save --no-audit --no-fund firebase-tools@13 @firebase/rules-unit-testing@3 firebase@10
-      - run: npx firebase emulators:exec --only firestore --project demo-kontrol "node --test tests/"
+      - name: تشغيل الاختبارات على المحاكي
+        run: |
+          set +e
+          npx firebase emulators:exec --only firestore --project demo-kontrol "node --test --test-reporter=tap tests/" > out.txt 2>&1
+          code=$?
+          tail -n 120 out.txt
+          # تظهر النتائج كملاحظات على التشغيل (تُقرأ من واجهة GitHub ومن API)
+          grep -E "^# (tests|pass|fail)" out.txt | while read -r l; do echo "::notice title=النتيجة::$l"; done
+          grep -nE "not ok|Error:|error:|FAILED|expected" out.txt | head -25 | while read -r l; do echo "::error title=فشل::$l"; done
+          exit $code
