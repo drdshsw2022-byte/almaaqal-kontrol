@@ -9,6 +9,12 @@
   <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
   <link rel="icon" type="image/svg+xml" href="../icons/icon.svg">
   <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+  <!-- تسخين الاتصال بخوادم Drive لتسريع المصغرات وفتح الكتب -->
+  <link rel="preconnect" href="https://drive.google.com">
+  <link rel="preconnect" href="https://lh3.googleusercontent.com">
+  <link rel="preconnect" href="https://drive-thirdparty.googleusercontent.com">
+  <link rel="preconnect" href="https://www.gstatic.com">
+  <link rel="dns-prefetch" href="https://docs.google.com">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
@@ -173,8 +179,14 @@
       backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); color: inherit; transition: all .28s cubic-bezier(.16,1,.3,1);
     }
     .book:hover, .book:focus-visible { transform: translateY(-4px); border-color: #D97706; box-shadow: 0 24px 44px -8px rgba(217,119,6,.32); outline: none; }
-    .cover { position: relative; height: 112px; display: flex; align-items: flex-end; padding: 12px 14px; color: #fff; overflow: hidden; }
+    .cover { position: relative; height: 210px; display: flex; align-items: flex-end; padding: 12px 14px; color: #fff; overflow: hidden; }
     .cover::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(to right, rgba(255,255,255,.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.08) 1px, transparent 1px); background-size: 16px 16px; }
+    .cover .thumb { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top center; background: #fff; opacity: 0; transition: opacity .4s ease, transform .5s ease; z-index: 0; }
+    .cover .thumb.ok { opacity: 1; }
+    .book:hover .cover .thumb.ok { transform: scale(1.04); }
+    .cover.has-thumb::after { content: ''; position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 55%, rgba(0,0,0,.55)); }
+    .cover.has-thumb .ico { opacity: 0; }
+    .cover .cat, .cover .spine { z-index: 2; }
     .cover .spine { position: absolute; top: 0; bottom: 0; right: 0; width: 8px; background: rgba(0,0,0,.25); }
     .cover .ico { position: absolute; left: 12px; top: 12px; width: 34px; height: 34px; opacity: .9; }
     .cover .cat { position: relative; font-size: 11px; font-weight: 800; padding: 3px 9px; border-radius: 999px; background: rgba(0,0,0,.28); backdrop-filter: blur(4px); }
@@ -214,6 +226,13 @@
     /* يغطي زر «فتح في نافذة جديدة» في عارض Drive حتى تبقى القراءة داخل البوابة */
     .rshield { position: absolute; top: 0; right: 0; width: 76px; height: 60px; z-index: 3; background: transparent; }
     .rstage .wm { position: absolute; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; opacity: .07; display: flex; flex-wrap: wrap; align-content: space-around; justify-content: space-around; transform: rotate(-24deg) scale(1.4); font: 800 15px 'JetBrains Mono', monospace; color: #000; }
+    .rload { z-index: 4; background: #0B1222; transition: opacity .35s ease; }
+    .rload.gone { opacity: 0; pointer-events: none; }
+    .rload img { width: 150px; max-height: 210px; object-fit: cover; object-position: top; border-radius: 10px; box-shadow: 0 18px 40px rgba(0,0,0,.55); border: 2px solid rgba(245,158,11,.5); }
+    .rload small { font-size: 11.5px; color: #94A3B8; font-weight: 700; max-width: 300px; text-align: center; line-height: 1.8; }
+    .rbar-prog { position: absolute; top: 0; left: 0; right: 0; height: 3px; z-index: 5; background: linear-gradient(90deg, transparent, #F59E0B, #FDE047, #F59E0B, transparent); background-size: 50% 100%; background-repeat: no-repeat; animation: rprog 1.1s linear infinite; }
+    .rload.gone + .rbar-prog, .rbar-prog.gone { display: none; }
+    @keyframes rprog { from { background-position: -50% 0; } to { background-position: 150% 0; } }
     .rload { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #CBD5E1; font-weight: 800; font-size: 13px; z-index: 1; }
     .label-sm { display: inline; }
 
@@ -242,7 +261,7 @@
       .hide-sm { display: none !important; }
       .label-sm { display: none; }
       .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-      .cover { height: 84px; }
+      .cover { height: 168px; }
       .book h3 { font-size: 13px; }
       .meta .read-hint { display: none; }
       .gate-inner { padding: 26px 18px; }
@@ -367,8 +386,9 @@
       </button>
     </div>
     <div class="rstage" id="rStage" oncontextmenu="return false">
-      <div class="rload"><div class="spin"></div>جارٍ فتح الكتاب…</div>
       <iframe id="rFrame" title="قارئ الكتاب" allow="autoplay" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <div class="rload" id="rLoad"><img id="rCover" alt="" referrerpolicy="no-referrer" hidden><div class="spin"></div><span id="rLoadMsg">جارٍ فتح الكتاب…</span><small id="rLoadHint"></small></div>
+      <div class="rbar-prog" id="rProg"></div>
       <div class="wm" id="rWm" aria-hidden="true"></div>
       <div class="rshield" aria-hidden="true"></div>
     </div>
@@ -461,6 +481,7 @@
       $('grid').innerHTML = list.map((b) => `
         <button type="button" class="book" data-id="${b.id}" aria-label="قراءة ${esc(b.t)}">
           <div class="cover c-${b.c}">
+            <img class="thumb" loading="lazy" alt="" referrerpolicy="no-referrer" src="https://drive.google.com/thumbnail?id=${encodeURIComponent(b.id)}&sz=w400" onload="if(this.naturalWidth>40){this.classList.add('ok');this.parentNode.classList.add('has-thumb')}else{this.remove()}" onerror="this.remove()">
             <span class="spine"></span>
             <svg class="ico" fill="none" viewBox="0 0 24 24" stroke="currentColor">${ICONS[b.c] || ICONS.gen}</svg>
             <span class="cat">${esc(CAT_NAME[b.c] || 'عام')}</span>
@@ -494,14 +515,55 @@
       $('rDl').href = `https://drive.google.com/uc?export=download&id=${encodeURIComponent(b.id)}`;
       $('rDrive').href = `https://drive.google.com/file/d/${encodeURIComponent(b.id)}/view`;
       $('rWm').innerHTML = st.admin ? '' : Array.from({ length: 40 }, () => `<span style="padding:24px 30px">${mark}</span>`).join('');
-      $('rFrame').src = `https://drive.google.com/file/d/${encodeURIComponent(b.id)}/preview`;
+      startFrame(b, true);
       $('reader').classList.add('open');
       document.body.style.overflow = 'hidden';
       history.pushState({ reader: b.id }, '', '#read=' + b.id);
     }
+    // ---------- تسريع الفتح ----------
+    // يبدأ تحميل عارض Drive مسبقاً عند الوقوف على الكتاب أو لمسه، فيكون جاهزاً لحظة الضغط
+    const previewUrl = (id) => `https://drive.google.com/file/d/${encodeURIComponent(id)}/preview`;
+    let frameId = null, frameReady = false, slowT = 0;
+    function startFrame(b, visible) {
+      const fr = $('rFrame');
+      if (visible) {
+        const ld = $('rLoad');
+        const cov = $('rCover');
+        cov.hidden = true; cov.onload = () => { cov.hidden = false; }; cov.onerror = () => { cov.hidden = true; };
+        cov.src = `https://drive.google.com/thumbnail?id=${encodeURIComponent(b.id)}&sz=w400`;
+        $('rLoadMsg').textContent = 'جارٍ فتح الكتاب…';
+        $('rLoadHint').textContent = b.s >= 20 ? `الكتاب كبير (${b.s} MB)، قد يستغرق فتح أول مرة بضع ثوانٍ.` : '';
+        clearTimeout(slowT);
+        slowT = setTimeout(() => { $('rLoadHint').textContent = 'ما زال يُحمَّل… عارض Google يجهّز الصفحات الأولى، والكتب الكبيرة تأخذ وقتاً أطول.'; }, 7000);
+        if (frameId === b.id && frameReady) { ld.classList.add('gone'); $('rProg').classList.add('gone'); return; }
+        ld.classList.remove('gone'); $('rProg').classList.remove('gone');
+      }
+      if (frameId !== b.id) { frameId = b.id; frameReady = false; fr.src = previewUrl(b.id); }
+    }
+    $('rFrame').addEventListener('load', () => {
+      if (!frameId || $('rFrame').src === 'about:blank') return;
+      frameReady = true; clearTimeout(slowT);
+      // مهلة قصيرة ليرسم عارض Drive الصفحة الأولى قبل إزالة الغطاء
+      setTimeout(() => { $('rLoad').classList.add('gone'); $('rProg').classList.add('gone'); }, 350);
+    });
+    let warmT = 0;
+    function warm(card) {
+      if (!user || !card || $('reader').classList.contains('open')) return;
+      const b = BOOKS.find((x) => x.id === card.dataset.id); if (!b || b.id === frameId) return;
+      startFrame(b, false);
+    }
+    $('grid').addEventListener('pointerover', (e) => {
+      const card = e.target.closest('.book'); if (!card) return;
+      clearTimeout(warmT); warmT = setTimeout(() => warm(card), 300);
+    });
+    $('grid').addEventListener('pointerout', () => clearTimeout(warmT));
+    $('grid').addEventListener('touchstart', (e) => warm(e.target.closest('.book')), { passive: true });
+    $('grid').addEventListener('focusin', (e) => warm(e.target.closest('.book')));
+
     function closeBook(fromPop) {
       $('reader').classList.remove('open');
-      $('rFrame').src = 'about:blank';
+      clearTimeout(slowT);
+      // يبقى العارض محمَّلاً لو أعاد القارئ فتح الكتاب نفسه
       document.body.style.overflow = '';
       current = null;
       if (!fromPop && location.hash.startsWith('#read=')) history.back();
