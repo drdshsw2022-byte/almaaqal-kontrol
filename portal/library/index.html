@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>المكتبة الإلكترونية · جامعة المعقل الدولية</title>
+  <meta name="description" content="المكتبة الإلكترونية لجامعة المعقل الدولية — مختصرات وكتب للقراءة المباشرة">
+  <meta name="theme-color" content="#0C1224">
+  <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
+  <link rel="icon" type="image/svg+xml" href="../icons/icon.svg">
+  <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <script>
+    // نفس سمة البوابة (amu_theme) حتى لا تومض الصفحة عند الفتح
+    (function () {
+      var t = null; try { t = localStorage.getItem('amu_theme'); } catch (e) {}
+      if (t === 'dark' || (!t && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.remove('light'); document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+  <style>
+    :root {
+      --page-bg: radial-gradient(circle at 50% 12%, #FFFDF7 0%, #FEF8E7 40%, #FCEFC7 80%, #F9E4A6 100%);
+      --text-primary: #0A0F1D;
+      --text-secondary: #374151;
+      --muted: #6B7280;
+      --glass-surface: rgba(255, 255, 255, 0.88);
+      --glass-border: rgba(217, 119, 6, 0.4);
+      --glass-shadow: 0 16px 36px -10px rgba(180, 83, 9, 0.22);
+      --grid-stroke: rgba(217, 119, 6, 0.08);
+      --chip-bg: rgba(245, 158, 11, 0.14);
+      --chip-text: #92400E;
+      --header-bg: rgba(255, 255, 255, 0.75);
+      --input-bg: #FFFFFF;
+      --accent: #D97706;
+      --accent-strong: #B45309;
+      --sky: #0284C7;
+    }
+    .dark {
+      --page-bg: radial-gradient(circle at 50% 15%, #0D1428 0%, #060A17 55%, #02040A 100%);
+      --text-primary: #F8FAFC;
+      --text-secondary: #CBD5E1;
+      --muted: #94A3B8;
+      --glass-surface: rgba(13, 20, 36, 0.88);
+      --glass-border: rgba(245, 158, 11, 0.28);
+      --glass-shadow: 0 20px 45px -12px rgba(0, 0, 0, 0.65);
+      --grid-stroke: rgba(245, 158, 11, 0.05);
+      --chip-bg: rgba(245, 158, 11, 0.16);
+      --chip-text: #FCD34D;
+      --header-bg: rgba(6, 10, 23, 0.85);
+      --input-bg: #0B1222;
+      --accent: #F59E0B;
+      --accent-strong: #FBBF24;
+      --sky: #38BDF8;
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0; min-height: 100vh; background: var(--page-bg); background-attachment: fixed;
+      color: var(--text-primary); font-family: 'Cairo', sans-serif; overflow-x: hidden;
+      transition: background .4s ease, color .4s ease;
+    }
+    .grid-overlay {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image: linear-gradient(to right, var(--grid-stroke) 1px, transparent 1px), linear-gradient(to bottom, var(--grid-stroke) 1px, transparent 1px);
+      background-size: 34px 34px;
+    }
+    .wrap { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+    a { color: inherit; }
+    button { font-family: inherit; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* ===== Header ===== */
+    header.top {
+      position: sticky; top: 0; z-index: 30; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      background: var(--header-bg); border-bottom: 1px solid rgba(217, 119, 6, .3);
+      padding-top: max(10px, env(safe-area-inset-top));
+    }
+    header.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 0; padding-bottom: 10px; flex-wrap: wrap; }
+    .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .brand img { width: 38px; height: 38px; border-radius: 10px; box-shadow: 0 4px 14px rgba(217,119,6,.35); }
+    .brand b { display: block; font-weight: 900; font-size: 15px; line-height: 1.2; }
+    .brand small { display: block; font-size: 11px; color: var(--muted); font-weight: 700; }
+    .actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    .btn-gold {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; cursor: pointer; text-decoration: none;
+      background: linear-gradient(135deg, #F59E0B 0%, #D97706 50%, #B45309 100%); color: #fff; font-weight: 800;
+      box-shadow: 0 4px 18px rgba(217, 119, 6, .4), inset 0 1px 1px rgba(255, 255, 255, .5);
+      transition: all .2s ease; border-radius: 12px; padding: 8px 14px; font-size: 13px;
+    }
+    .btn-gold:hover { transform: translateY(-2px); filter: brightness(1.08); box-shadow: 0 8px 24px rgba(217, 119, 6, .55); }
+    .btn-soft {
+      display: inline-flex; align-items: center; gap: 8px; cursor: pointer; text-decoration: none; font-weight: 800; font-size: 13px;
+      border: 1px solid rgba(245, 158, 11, .4); background: rgba(245, 158, 11, .18); color: var(--chip-text);
+      padding: 8px 14px; border-radius: 12px; transition: background .2s;
+    }
+    .btn-soft:hover { background: rgba(245, 158, 11, .3); }
+    .btn-soft svg, .btn-gold svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    .user-chip { display: none; align-items: center; gap: 8px; padding: 4px 4px 4px 12px; border-radius: 999px; border: 1px solid var(--glass-border); background: var(--glass-surface); font-size: 12px; font-weight: 800; max-width: 260px; }
+    .user-chip img, .user-chip .av { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; background: linear-gradient(135deg,#F59E0B,#B45309); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; object-fit: cover; }
+    .user-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .user-chip .dot { width: 8px; height: 8px; border-radius: 50%; background: #10B981; box-shadow: 0 0 0 3px rgba(16,185,129,.22); flex-shrink: 0; }
+    .signed .user-chip { display: inline-flex; }
+
+    /* ===== Hero ===== */
+    .hero { padding: 34px 0 18px; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; border-bottom: 2px solid rgba(217, 119, 6, .3); }
+    .tag { display: inline-block; padding: 2px 10px; border-radius: 6px; font-size: 12px; font-weight: 800; letter-spacing: .06em; background: var(--chip-bg); color: var(--chip-text); border: 1px solid rgba(245,158,11,.4); }
+    .hero h1 { margin: 8px 0 4px; font-size: clamp(26px, 5vw, 38px); font-weight: 900; line-height: 1.25; }
+    .hero h1 em { font-style: normal; background: linear-gradient(135deg, #F59E0B, #B45309); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .dark .hero h1 em { background: linear-gradient(135deg, #FDE047, #F59E0B); -webkit-background-clip: text; background-clip: text; }
+    .hero p { margin: 0; color: var(--text-secondary); font-weight: 600; font-size: 14px; max-width: 640px; }
+    .stats { display: flex; gap: 10px; flex-wrap: wrap; }
+    .stat { padding: 10px 16px; border-radius: 16px; background: var(--glass-surface); border: 1.5px solid var(--glass-border); box-shadow: var(--glass-shadow); text-align: center; min-width: 96px; }
+    .stat b { display: block; font-size: 22px; font-weight: 900; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+    .stat span { font-size: 11px; font-weight: 800; color: var(--muted); }
+
+    /* ===== Gate (sign in) ===== */
+    .gate { display: none; padding: 40px 0 60px; }
+    .gate-card {
+      max-width: 520px; margin: 0 auto; border-radius: 28px; padding: 6px;
+      background: linear-gradient(135deg, #F59E0B, #B45309 55%, #0284C7); box-shadow: 0 30px 60px -20px rgba(180, 83, 9, .45);
+    }
+    .gate-inner { border-radius: 23px; background: var(--glass-surface); backdrop-filter: blur(16px); padding: 32px 26px; text-align: center; }
+    .lock { width: 68px; height: 68px; margin: 0 auto 14px; border-radius: 20px; display: flex; align-items: center; justify-content: center; background: var(--chip-bg); border: 1.5px solid rgba(245,158,11,.45); color: var(--accent); }
+    .lock svg { width: 34px; height: 34px; }
+    .gate h2 { margin: 0 0 6px; font-size: 22px; font-weight: 900; }
+    .gate p { margin: 0 0 20px; color: var(--text-secondary); font-size: 14px; font-weight: 600; line-height: 1.8; }
+    .gbtn {
+      width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px; cursor: pointer;
+      padding: 14px 18px; border-radius: 14px; font-size: 15px; font-weight: 800;
+      background: #fff; color: #1F2937; border: 1.5px solid #DADCE0; box-shadow: 0 6px 20px -8px rgba(0,0,0,.25); transition: transform .15s, box-shadow .15s;
+    }
+    .gbtn:hover { transform: translateY(-2px); box-shadow: 0 12px 26px -10px rgba(0,0,0,.35); }
+    .gbtn:disabled { opacity: .6; cursor: progress; transform: none; }
+    .gbtn svg { width: 22px; height: 22px; }
+    .gate-perks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 18px; }
+    .gate-perks div { font-size: 11px; font-weight: 800; color: var(--muted); padding: 10px 6px; border-radius: 12px; border: 1px dashed var(--glass-border); }
+    .gate-perks b { display: block; color: var(--accent); font-size: 13px; margin-bottom: 2px; }
+    .gate-err { display: none; margin-top: 14px; padding: 10px 12px; border-radius: 12px; font-size: 12.5px; font-weight: 700; background: rgba(244,63,94,.12); color: #E11D48; border: 1px solid rgba(244,63,94,.35); text-align: right; line-height: 1.8; }
+    .loading { text-align: center; padding: 80px 0; color: var(--muted); font-weight: 800; }
+    .spin { width: 34px; height: 34px; margin: 0 auto 12px; border-radius: 50%; border: 3px solid rgba(245,158,11,.25); border-top-color: var(--accent); animation: rot .9s linear infinite; }
+    @keyframes rot { to { transform: rotate(360deg); } }
+
+    /* ===== Library ===== */
+    .lib { display: none; padding: 22px 0 60px; }
+    .toolbar { display: flex; flex-direction: column; gap: 12px; margin-bottom: 18px; }
+    .search { position: relative; }
+    .search input {
+      width: 100%; padding: 13px 46px 13px 16px; border-radius: 14px; border: 1.5px solid var(--glass-border);
+      background: var(--input-bg); color: var(--text-primary); font: 700 14px 'Cairo', sans-serif; outline: none; transition: border-color .2s, box-shadow .2s;
+    }
+    .search input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(245,158,11,.18); }
+    .search svg { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: var(--accent); }
+    .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+    .chips::-webkit-scrollbar { display: none; }
+    .chip {
+      flex-shrink: 0; cursor: pointer; padding: 7px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 800;
+      border: 1px solid var(--glass-border); background: var(--glass-surface); color: var(--text-secondary); transition: all .2s;
+    }
+    .chip i { font-style: normal; font-family: 'JetBrains Mono', monospace; font-size: 11px; opacity: .7; margin-right: 4px; }
+    .chip.on { background: linear-gradient(135deg, #F59E0B, #B45309); color: #fff; border-color: transparent; box-shadow: 0 4px 14px rgba(217,119,6,.35); }
+    .count { font-size: 12px; font-weight: 800; color: var(--muted); }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+    .book {
+      position: relative; display: flex; flex-direction: column; gap: 10px; text-align: right; cursor: pointer; padding: 0; overflow: hidden;
+      border-radius: 18px; background: var(--glass-surface); border: 1.5px solid var(--glass-border); box-shadow: var(--glass-shadow);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); color: inherit; transition: all .28s cubic-bezier(.16,1,.3,1);
+    }
+    .book:hover, .book:focus-visible { transform: translateY(-4px); border-color: #D97706; box-shadow: 0 24px 44px -8px rgba(217,119,6,.32); outline: none; }
+    .cover { position: relative; height: 112px; display: flex; align-items: flex-end; padding: 12px 14px; color: #fff; overflow: hidden; }
+    .cover::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(to right, rgba(255,255,255,.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.08) 1px, transparent 1px); background-size: 16px 16px; }
+    .cover .spine { position: absolute; top: 0; bottom: 0; right: 0; width: 8px; background: rgba(0,0,0,.25); }
+    .cover .ico { position: absolute; left: 12px; top: 12px; width: 34px; height: 34px; opacity: .9; }
+    .cover .cat { position: relative; font-size: 11px; font-weight: 800; padding: 3px 9px; border-radius: 999px; background: rgba(0,0,0,.28); backdrop-filter: blur(4px); }
+    .c-cyber { background: linear-gradient(135deg, #0C1224, #1E3A5F 60%, #0284C7); }
+    .c-ai { background: linear-gradient(135deg, #4C1D95, #7C3AED 60%, #0EA5E9); }
+    .c-prog { background: linear-gradient(135deg, #064E3B, #059669 60%, #0284C7); }
+    .c-elec { background: linear-gradient(135deg, #78350F, #D97706 60%, #F59E0B); }
+    .c-lang { background: linear-gradient(135deg, #831843, #DB2777 60%, #F59E0B); }
+    .c-gen { background: linear-gradient(135deg, #1F2937, #475569 60%, #D97706); }
+    .book .body { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .book h3 { margin: 0; font-size: 14.5px; font-weight: 800; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .book h3:dir(ltr) { text-align: left; }
+    .meta { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 6px; font-size: 11px; font-weight: 800; color: var(--muted); }
+    .meta .pill { padding: 2px 8px; border-radius: 6px; background: var(--chip-bg); color: var(--chip-text); font-family: 'JetBrains Mono', monospace; }
+    .read-hint { display: inline-flex; align-items: center; gap: 4px; color: var(--accent); }
+    .empty { display: none; text-align: center; padding: 50px 10px; color: var(--muted); font-weight: 800; }
+
+    .notice { margin-top: 26px; display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: 16px; border: 1px dashed var(--glass-border); background: var(--glass-surface); font-size: 13px; font-weight: 600; color: var(--text-secondary); line-height: 1.9; }
+    .notice svg { width: 22px; height: 22px; color: var(--accent); flex-shrink: 0; margin-top: 3px; }
+
+    /* ===== Reader ===== */
+    .reader { position: fixed; inset: 0; z-index: 60; display: none; flex-direction: column; background: #02040A; }
+    .reader.open { display: flex; }
+    .rbar {
+      display: flex; align-items: center; gap: 10px; padding: 10px 14px; padding-top: max(10px, env(safe-area-inset-top));
+      background: linear-gradient(180deg, #0D1428, #060A17); border-bottom: 1px solid rgba(245,158,11,.35); color: #F8FAFC;
+    }
+    .rbar .ttl { flex: 1; min-width: 0; }
+    .rbar .ttl b { display: block; font-size: 14px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rbar .ttl small { font-size: 11px; color: #FCD34D; font-weight: 700; }
+    .rbtn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(245,158,11,.45); background: rgba(245,158,11,.15); color: #FDE68A; font-weight: 800; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
+    .rbtn:hover { background: rgba(245,158,11,.28); }
+    .rbtn svg { width: 16px; height: 16px; }
+    .rbtn.close { padding: 8px; border-color: rgba(255,255,255,.2); background: rgba(255,255,255,.06); color: #fff; }
+    .rstage { position: relative; flex: 1; overflow: hidden; background: #1F2937; }
+    .rstage iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #fff; }
+    /* يغطي زر «فتح في نافذة جديدة» في عارض Drive حتى تبقى القراءة داخل البوابة */
+    .rshield { position: absolute; top: 0; right: 0; width: 76px; height: 60px; z-index: 3; background: transparent; }
+    .rstage .wm { position: absolute; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; opacity: .07; display: flex; flex-wrap: wrap; align-content: space-around; justify-content: space-around; transform: rotate(-24deg) scale(1.4); font: 800 15px 'JetBrains Mono', monospace; color: #000; }
+    .rload { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #CBD5E1; font-weight: 800; font-size: 13px; z-index: 1; }
+    .label-sm { display: inline; }
+
+    /* ===== Request dialog ===== */
+    .dlg { position: fixed; inset: 0; z-index: 70; display: none; align-items: center; justify-content: center; padding: 16px; background: rgba(2,4,10,.65); backdrop-filter: blur(4px); }
+    .dlg.open { display: flex; }
+    .dlg-card { width: 100%; max-width: 460px; border-radius: 22px; background: var(--glass-surface); border: 1.5px solid var(--glass-border); box-shadow: 0 30px 60px -20px rgba(0,0,0,.6); padding: 22px; backdrop-filter: blur(16px); }
+    .dark .dlg-card { background: #0D1424; }
+    .dlg-card h3 { margin: 0 0 6px; font-size: 18px; font-weight: 900; }
+    .dlg-card p { margin: 0 0 14px; font-size: 13px; color: var(--text-secondary); font-weight: 600; line-height: 1.9; }
+    .dlg-card label { display: block; font-size: 12px; font-weight: 800; color: var(--muted); margin-bottom: 6px; }
+    .dlg-card textarea { width: 100%; min-height: 88px; resize: vertical; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--glass-border); background: var(--input-bg); color: var(--text-primary); font: 600 13px 'Cairo', sans-serif; outline: none; }
+    .dlg-card textarea:focus { border-color: var(--accent); }
+    .dlg-row { display: flex; gap: 8px; margin-top: 14px; }
+    .dlg-row > * { flex: 1; }
+    .to { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 12px; background: var(--chip-bg); font-size: 12px; font-weight: 800; color: var(--chip-text); margin-bottom: 12px; word-break: break-all; }
+
+    #toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 30px); opacity: 0; z-index: 80; pointer-events: none; transition: all .3s; background: #0F172A; color: #F8FAFC; border: 1px solid rgba(245,158,11,.5); padding: 10px 16px; border-radius: 12px; font-size: 13px; font-weight: 800; box-shadow: 0 12px 30px rgba(0,0,0,.35); }
+    #toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+    footer { position: relative; z-index: 1; border-top: 1px solid rgba(217,119,6,.3); padding: 18px 0 calc(18px + env(safe-area-inset-bottom)); font-size: 12px; font-weight: 700; color: var(--muted); }
+    footer .wrap { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; }
+
+    @media (max-width: 640px) {
+      .brand small { display: none; }
+      .hide-sm { display: none !important; }
+      .label-sm { display: none; }
+      .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .cover { height: 84px; }
+      .book h3 { font-size: 13px; }
+      .meta .read-hint { display: none; }
+      .gate-inner { padding: 26px 18px; }
+      .user-chip { max-width: 150px; }
+    }
+    @media (max-width: 360px) { .grid { grid-template-columns: 1fr; } }
+    @media print { body * { display: none !important; } }
+  </style>
+</head>
+<body>
+  <div class="grid-overlay"></div>
+
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="../index.html">
+        <img src="../icons/icon-192.png" alt="">
+        <span><b>المكتبة الإلكترونية</b><small>جامعة المعقل الدولية · البوابة</small></span>
+      </a>
+      <div class="actions">
+        <a class="btn-soft" href="../index.html" title="العودة إلى البوابة">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5l7 7-7 7"/></svg>
+          <span class="label-sm">البوابة</span>
+        </a>
+        <button class="btn-soft" id="themeToggle" type="button" title="تبديل الوضع">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+          <span class="label-sm" id="themeLabel">الوضع الليلي</span>
+        </button>
+        <div class="user-chip" id="userChip" title="">
+          <span class="dot" title="تم تسجيل الدخول"></span>
+          <span id="userName">—</span>
+          <span class="av" id="userAv">م</span>
+        </div>
+        <button class="btn-soft" id="signOutBtn" type="button" style="display:none" title="تسجيل الخروج">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          <span class="label-sm">خروج</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <div>
+        <span class="tag mono" dir="ltr">05. LIBRARY</span>
+        <h1>المكتبة <em>الإلكترونية</em></h1>
+        <p>مختصرات الكتب والمراجع العلمية للقراءة المباشرة داخل البوابة. القراءة متاحة لكل من يسجّل الدخول بحساب Google، والتنزيل بموافقة إدارة النظام.</p>
+      </div>
+      <div class="stats">
+        <div class="stat"><b id="statBooks">0</b><span>كتاب ومختصر</span></div>
+        <div class="stat"><b id="statCats">0</b><span>تصنيف</span></div>
+      </div>
+    </section>
+
+    <div class="loading" id="loading"><div class="spin"></div>جارٍ التحقق من تسجيل الدخول…</div>
+
+    <!-- ===== شاشة تسجيل الدخول ===== -->
+    <section class="gate" id="gate" aria-labelledby="gateTitle">
+      <div class="gate-card"><div class="gate-inner">
+        <div class="lock"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></div>
+        <h2 id="gateTitle">سجّل الدخول للتمتّع بالقراءة</h2>
+        <p>ادخل بحساب Google مرة واحدة، وستُفتح المكتبة تلقائياً في كل زيارة لاحقة على هذا الجهاز.</p>
+        <button class="gbtn" id="googleBtn" type="button">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
+          <span id="googleBtnText">الدخول بحساب Google</span>
+        </button>
+        <div class="gate-perks">
+          <div><b>قراءة فورية</b>داخل البوابة</div>
+          <div><b>دخول تلقائي</b>في الزيارات القادمة</div>
+          <div><b>طلب تنزيل</b>بموافقة الإدارة</div>
+        </div>
+        <div class="gate-err" id="gateErr"></div>
+      </div></div>
+    </section>
+
+    <!-- ===== المكتبة ===== -->
+    <section class="lib" id="lib" aria-label="الكتب">
+      <div class="toolbar">
+        <div class="search">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"/></svg>
+          <input id="q" type="search" placeholder="ابحث باسم الكتاب أو الموضوع… (مثال: Kali، الأردوينو، Python)" autocomplete="off">
+        </div>
+        <div class="chips" id="chips" role="tablist" aria-label="التصنيفات"></div>
+        <div class="count" id="count"></div>
+      </div>
+      <div class="grid" id="grid"></div>
+      <div class="empty" id="empty">لا توجد نتائج مطابقة لبحثك.</div>
+      <div class="notice">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div>الكتب في المكتبة <b>للقراءة فقط</b> داخل البوابة. إن احتجت نسخة للتنزيل، افتح الكتاب واضغط <b>«طلب تنزيل»</b>، فتصل رسالتك إلى بريد إدارة نظام الكنترول، ويُرسل لك رابط التنزيل بعد الموافقة.</div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>© 2026 جامعة المعقل الدولية · المكتبة الإلكترونية</span>
+      <span class="mono" style="color:var(--accent)">READ-ONLY · GOOGLE SIGN-IN</span>
+    </div>
+  </footer>
+
+  <!-- ===== القارئ ===== -->
+  <div class="reader" id="reader" role="dialog" aria-modal="true" aria-labelledby="rTitle">
+    <div class="rbar">
+      <button class="rbtn close" id="rClose" type="button" aria-label="إغلاق">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+      <div class="ttl"><b id="rTitle">—</b><small id="rSub">قراءة فقط</small></div>
+      <button class="rbtn" id="rReq" type="button">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        <span>طلب تنزيل</span>
+      </button>
+    </div>
+    <div class="rstage" id="rStage" oncontextmenu="return false">
+      <div class="rload"><div class="spin"></div>جارٍ فتح الكتاب…</div>
+      <iframe id="rFrame" title="قارئ الكتاب" allow="autoplay" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <div class="wm" id="rWm" aria-hidden="true"></div>
+      <div class="rshield" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <!-- ===== طلب التنزيل ===== -->
+  <div class="dlg" id="dlg" role="dialog" aria-modal="true" aria-labelledby="dTitle">
+    <div class="dlg-card">
+      <h3 id="dTitle">طلب تنزيل كتاب</h3>
+      <p>سيُفتح تطبيق البريد برسالة جاهزة إلى إدارة نظام الكنترول، فيها اسم الكتاب وبيانات حسابك. اضغط «إرسال» في تطبيق البريد لإتمام الطلب.</p>
+      <div class="to">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        <span>إلى: <span class="mono" id="dTo"></span></span>
+      </div>
+      <label for="dWhy">سبب الطلب (اختياري)</label>
+      <textarea id="dWhy" placeholder="مثال: أحتاجه للمذاكرة دون اتصال قبل الامتحان"></textarea>
+      <div class="dlg-row">
+        <button class="btn-gold" id="dSend" type="button">إرسال الطلب</button>
+        <button class="btn-soft" id="dCancel" type="button" style="justify-content:center">إلغاء</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script src="books.js"></script>
+  <!-- إعدادات Firebase نفسها التي يستخدمها نظام الكنترول (تُولَّد عند النشر من أسرار المستودع) -->
+  <script src="https://drdshsw2022-byte.github.io/almaaqal-kontrol/kontrol/firebase-config.js"></script>
+  <script type="module">
+    // بريد إدارة نظام الكنترول (المدير العام في SUPER_ADMINS) — إليه تُرسل طلبات التنزيل
+    const ADMIN_EMAIL = 'drdsh.sw2022@gmail.com';
+    const FB_V = '10.12.2';
+
+    const $ = (id) => document.getElementById(id);
+    const BOOKS = window.LIB_BOOKS || [];
+    const CATS = window.LIB_CATS || [];
+    const CAT_NAME = Object.fromEntries(CATS.map((c) => [c.id, c.name]));
+    let user = null, current = null, filter = 'all', fb = null;
+
+    // ---------- سمة الصفحة (مشتركة مع البوابة) ----------
+    function applyTheme(dark) {
+      document.documentElement.classList.toggle('dark', dark);
+      document.documentElement.classList.toggle('light', !dark);
+      $('themeLabel').textContent = dark ? 'الوضع النهاري' : 'الوضع الليلي';
+    }
+    applyTheme(document.documentElement.classList.contains('dark'));
+    $('themeToggle').addEventListener('click', () => {
+      const dark = !document.documentElement.classList.contains('dark');
+      applyTheme(dark);
+      try { localStorage.setItem('amu_theme', dark ? 'dark' : 'light'); } catch (e) {}
+    });
+
+    function toast(msg) {
+      const t = $('toast'); t.textContent = msg; t.classList.add('show');
+      clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2600);
+    }
+
+    // ---------- العرض ----------
+    $('statBooks').textContent = BOOKS.length;
+    $('statCats').textContent = CATS.filter((c) => BOOKS.some((b) => b.c === c.id)).length;
+
+    const ICONS = {
+      cyber: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m5.6-4A12 12 0 0112 3a12 12 0 01-8.6 3A12 12 0 003 9c0 5.6 3.8 10.3 9 11.6 5.2-1.3 9-6 9-11.6 0-1-.1-2-.4-3z"/>',
+      ai: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 3v2m6-2v2M9 19v2m6-2v2M3 9h2m-2 6h2m14-6h2m-2 6h2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>',
+      prog: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>',
+      elec: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 10V3L4 14h7v7l9-11h-7z"/>',
+      lang: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 5h12M9 3v2m1.05 9.5A18 18 0 016.4 9m6.1 9h7M11 21l5-10 5 10M12.75 5C11.8 10.8 8.1 15.6 3 18.1"/>',
+      gen: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.6a1 1 0 01.7.3l5.4 5.4a1 1 0 01.3.7V19a2 2 0 01-2 2z"/>'
+    };
+    const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const norm = (s) => String(s).toLowerCase().replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/[ً-ْ]/g, '');
+
+    function renderChips() {
+      const counts = {}; BOOKS.forEach((b) => { counts[b.c] = (counts[b.c] || 0) + 1; });
+      const list = [{ id: 'all', name: 'الكل', n: BOOKS.length }].concat(CATS.filter((c) => counts[c.id]).map((c) => ({ ...c, n: counts[c.id] })));
+      $('chips').innerHTML = list.map((c) => `<button type="button" role="tab" class="chip${c.id === filter ? ' on' : ''}" data-c="${c.id}" aria-selected="${c.id === filter}">${esc(c.name)}<i>${c.n}</i></button>`).join('');
+    }
+    $('chips').addEventListener('click', (e) => {
+      const b = e.target.closest('.chip'); if (!b) return;
+      filter = b.dataset.c; renderChips(); renderGrid();
+    });
+
+    function renderGrid() {
+      const q = norm($('q').value.trim());
+      const list = BOOKS.filter((b) => (filter === 'all' || b.c === filter) && (!q || norm(b.t).includes(q) || norm(CAT_NAME[b.c] || '').includes(q)));
+      $('count').textContent = `${list.length} من ${BOOKS.length} كتاباً`;
+      $('empty').style.display = list.length ? 'none' : 'block';
+      $('grid').innerHTML = list.map((b) => `
+        <button type="button" class="book" data-id="${b.id}" aria-label="قراءة ${esc(b.t)}">
+          <div class="cover c-${b.c}">
+            <span class="spine"></span>
+            <svg class="ico" fill="none" viewBox="0 0 24 24" stroke="currentColor">${ICONS[b.c] || ICONS.gen}</svg>
+            <span class="cat">${esc(CAT_NAME[b.c] || 'عام')}</span>
+          </div>
+          <div class="body">
+            <h3 dir="auto">${esc(b.t)}</h3>
+            <div class="meta">
+              <span class="pill">${b.x}${b.s ? ' · ' + b.s + ' MB' : ''}</span>
+              <span class="read-hint">قراءة ←</span>
+            </div>
+          </div>
+        </button>`).join('');
+    }
+    $('q').addEventListener('input', () => { clearTimeout(renderGrid._t); renderGrid._t = setTimeout(renderGrid, 120); });
+    $('grid').addEventListener('click', (e) => {
+      const card = e.target.closest('.book'); if (!card) return;
+      openBook(BOOKS.find((b) => b.id === card.dataset.id));
+    });
+
+    // ---------- القارئ (قراءة فقط) ----------
+    function openBook(b) {
+      if (!b || !user) return;
+      current = b;
+      $('rTitle').textContent = b.t;
+      $('rSub').textContent = `${CAT_NAME[b.c] || ''} · قراءة فقط`;
+      const mark = esc(user.email || '');
+      $('rWm').innerHTML = Array.from({ length: 40 }, () => `<span style="padding:24px 30px">${mark}</span>`).join('');
+      $('rFrame').src = `https://drive.google.com/file/d/${encodeURIComponent(b.id)}/preview`;
+      $('reader').classList.add('open');
+      document.body.style.overflow = 'hidden';
+      history.pushState({ reader: b.id }, '', '#read=' + b.id);
+    }
+    function closeBook(fromPop) {
+      $('reader').classList.remove('open');
+      $('rFrame').src = 'about:blank';
+      document.body.style.overflow = '';
+      current = null;
+      if (!fromPop && location.hash.startsWith('#read=')) history.back();
+    }
+    $('rClose').addEventListener('click', () => closeBook(false));
+    window.addEventListener('popstate', () => { if ($('reader').classList.contains('open')) closeBook(true); });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { if ($('dlg').classList.contains('open')) closeDlg(); else if (current) closeBook(false); }
+      // منع اختصارات الحفظ والطباعة أثناء القراءة
+      if (current && (e.ctrlKey || e.metaKey) && ['s', 'p'].includes(e.key.toLowerCase())) { e.preventDefault(); toast('القراءة فقط — اطلب التنزيل من الإدارة'); }
+    });
+
+    // ---------- طلب التنزيل ----------
+    $('dTo').textContent = ADMIN_EMAIL;
+    function closeDlg() { $('dlg').classList.remove('open'); }
+    $('rReq').addEventListener('click', () => { $('dWhy').value = ''; $('dlg').classList.add('open'); setTimeout(() => $('dWhy').focus(), 50); });
+    $('dCancel').addEventListener('click', closeDlg);
+    $('dlg').addEventListener('click', (e) => { if (e.target.id === 'dlg') closeDlg(); });
+    $('dSend').addEventListener('click', () => {
+      if (!current || !user) return;
+      const when = new Date().toLocaleString('ar-IQ', { timeZone: 'Asia/Baghdad' });
+      const subject = `طلب تنزيل من المكتبة الإلكترونية: ${current.t}`;
+      const body = [
+        'السلام عليكم،',
+        '',
+        'أطلب الموافقة على تنزيل الكتاب التالي من المكتبة الإلكترونية لجامعة المعقل الدولية:',
+        '',
+        `الكتاب: ${current.t}`,
+        `التصنيف: ${CAT_NAME[current.c] || '—'}`,
+        `رابط الملف (للإدارة): https://drive.google.com/file/d/${current.id}/view`,
+        '',
+        `الاسم: ${user.displayName || '—'}`,
+        `البريد: ${user.email || '—'}`,
+        `وقت الطلب: ${when}`,
+        '',
+        `سبب الطلب: ${$('dWhy').value.trim() || '—'}`,
+        '',
+        'للموافقة: شارك الملف مع بريد الطالب أعلاه، أو أرسل له رابط التنزيل.'
+      ].join('\n');
+      location.href = `mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      closeDlg();
+      toast('فُتح تطبيق البريد — اضغط «إرسال» لإتمام الطلب');
+    });
+
+    // ---------- الحالات ----------
+    function show(state) {
+      $('loading').style.display = state === 'loading' ? 'block' : 'none';
+      $('gate').style.display = state === 'gate' ? 'block' : 'none';
+      $('lib').style.display = state === 'lib' ? 'block' : 'none';
+      document.body.classList.toggle('signed', state === 'lib');
+      $('signOutBtn').style.display = state === 'lib' ? 'inline-flex' : 'none';
+    }
+    function gateError(msg) { const e = $('gateErr'); e.innerHTML = msg; e.style.display = msg ? 'block' : 'none'; }
+
+    function onUser(u) {
+      user = u;
+      if (!u) { show('gate'); return; }
+      const name = u.displayName || u.email || 'مستخدم';
+      $('userName').textContent = name;
+      $('userChip').title = `مسجّل الدخول: ${u.email || name}`;
+      const av = $('userAv');
+      if (u.photoURL) { av.outerHTML = `<img id="userAv" src="${esc(u.photoURL)}" alt="" referrerpolicy="no-referrer">`; }
+      else av.textContent = name.trim().charAt(0);
+      show('lib');
+      renderChips(); renderGrid();
+      const m = location.hash.match(/^#read=([\w-]+)/);
+      if (m) { history.replaceState(null, '', location.pathname); openBook(BOOKS.find((b) => b.id === m[1])); }
+    }
+
+    function authErr(e) {
+      const c = (e && e.code) || '';
+      if (c === 'auth/unauthorized-domain') return `هذا النطاق (<b>${esc(location.hostname)}</b>) غير مضاف إلى النطاقات المصرّح بها في Firebase. أضِفه من Firebase Console ← Authentication ← Settings ← Authorized domains، أو افتح المكتبة من <a href="https://drdshsw2022-byte.github.io/almaaqal-kontrol/portal/library/" style="color:inherit;font-weight:900">نسخة GitHub</a>.`;
+      if (c === 'auth/popup-closed-by-user' || c === 'auth/cancelled-popup-request') return '';
+      if (c === 'auth/network-request-failed') return 'تعذّر الاتصال بالإنترنت. تحقق من الشبكة ثم حاول مجدداً.';
+      return 'تعذّر تسجيل الدخول: ' + esc((e && e.message) || String(e));
+    }
+
+    async function boot() {
+      show('loading');
+      const cfg = window.FIREBASE_CONFIG;
+      if (!cfg || !cfg.apiKey) {
+        show('gate'); $('googleBtn').disabled = true;
+        gateError('تعذّر تحميل إعدادات تسجيل الدخول. تأكد من اتصالك بالإنترنت ثم أعد تحميل الصفحة.');
+        return;
+      }
+      try {
+        const base = `https://www.gstatic.com/firebasejs/${FB_V}`;
+        const [appM, authM] = await Promise.all([import(`${base}/firebase-app.js`), import(`${base}/firebase-auth.js`)]);
+        const app = appM.initializeApp(cfg, 'library');
+        const auth = authM.getAuth(app);
+        auth.languageCode = 'ar';
+        await authM.setPersistence(auth, authM.browserLocalPersistence); // الدخول التلقائي في الزيارات القادمة
+        fb = { auth, ...authM };
+        try { await authM.getRedirectResult(auth); } catch (e) { gateError(authErr(e)); }
+        authM.onAuthStateChanged(auth, onUser);
+      } catch (e) {
+        console.error(e); show('gate'); gateError('تعذّر تحميل خدمة تسجيل الدخول. أعد تحميل الصفحة.');
+      }
+    }
+
+    $('googleBtn').addEventListener('click', async () => {
+      if (!fb) return;
+      gateError('');
+      const btn = $('googleBtn'); btn.disabled = true; $('googleBtnText').textContent = 'جارٍ فتح نافذة Google…';
+      const provider = new fb.GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      try {
+        await fb.signInWithPopup(fb.auth, provider);
+      } catch (e) {
+        const c = e && e.code;
+        if (c === 'auth/popup-blocked' || c === 'auth/operation-not-supported-in-this-environment') {
+          try { await fb.signInWithRedirect(fb.auth, provider); return; } catch (e2) { gateError(authErr(e2)); }
+        } else gateError(authErr(e));
+      } finally {
+        btn.disabled = false; $('googleBtnText').textContent = 'الدخول بحساب Google';
+      }
+    });
+
+    $('signOutBtn').addEventListener('click', async () => {
+      if (!fb) return;
+      closeBook(true);
+      await fb.signOut(fb.auth);
+      toast('تم تسجيل الخروج');
+    });
+
+    boot();
+  </script>
+</body>
+</html>
