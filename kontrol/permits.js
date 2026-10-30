@@ -54,7 +54,7 @@ function joinFlow(u, email, prof) {
 }
 function joinRender() {
   const J = $('#joinbox'); if (!J || !JOIN) return; const r = JOIN.req;
-  const head = `<span class="tag t2">ACCESS REQUEST</span><h3>طلب الانضمام إلى الكنترول</h3>
+  const head = `<span class="tag t2">طلب انضمام</span><h3>طلب الانضمام إلى الكنترول</h3>
     <p class="mut" style="margin:0">دخلت بحساب <b dir="ltr">${esc(JOIN.email)}</b>. هذا الحساب لا يملك تصريح دخول بعد.</p>`;
   const out = `<button class="btn" type="button" data-kjoin="out">الخروج</button>`;
   if (r === undefined) { J.innerHTML = head + '<p class="mut">جارٍ التحقق من طلبك…</p>'; return; }
