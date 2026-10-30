@@ -189,15 +189,6 @@
     .amu-gbtn:hover { transform: translateY(-2px); }
     .amu-gbtn:disabled { opacity: .6; cursor: progress; transform: none; }
     .amu-gbtn svg { width: 20px; height: 20px; }
-    #amuModal { position: fixed; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center; padding: 16px; background: rgba(2,4,10,.62); backdrop-filter: blur(4px); }
-    #amuModal.open { display: flex; }
-    #amuModal .card { width: 100%; max-width: 440px; border-radius: 26px; padding: 6px; background: linear-gradient(135deg, #F59E0B, #B45309 55%, #0284C7); box-shadow: 0 30px 60px -20px rgba(0,0,0,.6); }
-    #amuModal .in { border-radius: 21px; background: #fff; padding: 26px 22px; text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: stretch; }
-    .dark #amuModal .in { background: #0D1424; color: #F8FAFC; }
-    #amuModal h3 { margin: 0; font: 900 20px 'Cairo', sans-serif; }
-    #amuModal p { margin: 0; font-size: 13px; font-weight: 600; line-height: 1.9; color: var(--text-secondary); }
-    #amuModal .err { display: none; padding: 9px 12px; border-radius: 12px; font-size: 12.5px; font-weight: 700; background: rgba(244,63,94,.12); color: #E11D48; border: 1px solid rgba(244,63,94,.35); }
-    #amuModal .x { align-self: flex-start; background: none; border: 0; cursor: pointer; color: var(--text-secondary); font-size: 22px; line-height: 1; margin: -10px -6px -14px 0; }
     .amu-chip { display: inline-flex; align-items: center; gap: 7px; padding: 3px 3px 3px 10px; border-radius: 999px; border: 1px solid rgba(245,158,11,.4); background: rgba(245,158,11,.15); font-size: 12px; font-weight: 800; max-width: 210px; cursor: pointer; color: inherit; }
     .amu-chip img, .amu-chip .av { width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; background: linear-gradient(135deg,#F59E0B,#B45309); color: #fff; display: inline-flex; align-items: center; justify-content: center; object-fit: cover; }
     .amu-chip .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -566,8 +557,8 @@
         <div class="amu-lock" role="note">
           <span class="ic"><svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg></span>
           <b>سجّل الدخول لعرض هذا القسم</b>
-          <p>بالبريد الجامعي <span><bdi dir="ltr">@almaaqal.edu.iq</bdi></span> أو بحساب Google المسجّل للأساتذة المخوَّلين</p>
-          <button type="button" class="amu-gbtn" data-amu-login><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg><span>الدخول بحساب Google</span></button>
+          <p>الطلبة والموظفون بالبريد الجامعي (<bdi dir="ltr">almaaqal.edu.iq</bdi>)، والأساتذة باسم المستخدم وكلمة المرور</p>
+          <button type="button" class="amu-gbtn" data-amu-login><svg fill="none" viewBox="0 0 24 24" stroke="#B45309"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg><span>تسجيل الدخول</span></button>
         </div>
 
         <!-- 3 Platform Cards: Android, iOS, Desktop/Web -->
@@ -790,8 +781,8 @@
         <div class="amu-lock" role="note">
           <span class="ic"><svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg></span>
           <b>سجّل الدخول لعرض هذا القسم</b>
-          <p>بالبريد الجامعي <span><bdi dir="ltr">@almaaqal.edu.iq</bdi></span> أو بحساب Google المسجّل للأساتذة المخوَّلين</p>
-          <button type="button" class="amu-gbtn" data-amu-login><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg><span>الدخول بحساب Google</span></button>
+          <p>الطلبة والموظفون بالبريد الجامعي (<bdi dir="ltr">almaaqal.edu.iq</bdi>)، والأساتذة باسم المستخدم وكلمة المرور</p>
+          <button type="button" class="amu-gbtn" data-amu-login><svg fill="none" viewBox="0 0 24 24" stroke="#B45309"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg><span>تسجيل الدخول</span></button>
         </div>
 
         <!-- Examination Terminal Master Container -->
@@ -936,8 +927,8 @@
         <div class="amu-lock" role="note">
           <span class="ic"><svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg></span>
           <b>سجّل الدخول لعرض هذا القسم</b>
-          <p>بالبريد الجامعي <span><bdi dir="ltr">@almaaqal.edu.iq</bdi></span> أو بحساب Google المسجّل للأساتذة المخوَّلين</p>
-          <button type="button" class="amu-gbtn" data-amu-login><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg><span>الدخول بحساب Google</span></button>
+          <p>الطلبة والموظفون بالبريد الجامعي (<bdi dir="ltr">almaaqal.edu.iq</bdi>)، والأساتذة باسم المستخدم وكلمة المرور</p>
+          <button type="button" class="amu-gbtn" data-amu-login><svg fill="none" viewBox="0 0 24 24" stroke="#B45309"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg><span>تسجيل الدخول</span></button>
         </div>
 
         <div class="relative rounded-3xl overflow-hidden p-1.5 bg-gradient-to-br from-amber-500 via-amber-700 to-sky-600 shadow-2xl">
@@ -1069,8 +1060,8 @@
         <div class="amu-lock" role="note">
           <span class="ic"><svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg></span>
           <b>سجّل الدخول لعرض هذا القسم</b>
-          <p>بالبريد الجامعي <span><bdi dir="ltr">@almaaqal.edu.iq</bdi></span> أو بحساب Google المسجّل للأساتذة المخوَّلين</p>
-          <button type="button" class="amu-gbtn" data-amu-login><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg><span>الدخول بحساب Google</span></button>
+          <p>الطلبة والموظفون بالبريد الجامعي (<bdi dir="ltr">almaaqal.edu.iq</bdi>)، والأساتذة باسم المستخدم وكلمة المرور</p>
+          <button type="button" class="amu-gbtn" data-amu-login><svg fill="none" viewBox="0 0 24 24" stroke="#B45309"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg><span>تسجيل الدخول</span></button>
         </div>
 
         <div class="relative rounded-3xl overflow-hidden p-1.5 bg-gradient-to-br from-amber-500 via-amber-700 to-sky-600 shadow-2xl">
@@ -1247,17 +1238,6 @@
 
   </div>
 
-
-  <!-- ===== نافذة تسجيل الدخول ===== -->
-  <div id="amuModal" role="dialog" aria-modal="true" aria-labelledby="amuTitle">
-    <div class="card"><div class="in">
-      <button type="button" class="x" id="amuClose" aria-label="إغلاق">×</button>
-      <h3 id="amuTitle">سجّل الدخول للمتابعة</h3>
-      <p id="amuText">تُعرض الواجهة والإعلانات للجميع. لبقية الأقسام ادخل ببريدك الجامعي <b><bdi dir="ltr">@almaaqal.edu.iq</bdi></b> أو بحساب Google المسجّل للأساتذة المخوَّلين. يبقى الدخول محفوظاً على جهازك.</p>
-      <button type="button" class="amu-gbtn" id="amuGo"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg><span id="amuGoText">الدخول بحساب Google</span></button>
-      <div class="err" id="amuErr"></div>
-    </div></div>
-  </div>
 
   <!-- ===== Mobile App Tab Bar ===== -->
   <nav class="app-tabbar fixed bottom-0 inset-x-0 z-40 border-t border-amber-500/40 bg-white/90 dark:bg-[#060A17]/95 backdrop-blur-xl justify-around items-stretch px-2 pt-1.5" style="padding-bottom: max(0.4rem, env(safe-area-inset-bottom));" aria-label="التنقل">
@@ -1964,66 +1944,43 @@
   <script src="https://drdshsw2022-byte.github.io/almaaqal-kontrol/kontrol/firebase-config.js"></script>
   <script src="access.js"></script>
   <script src="auth.js"></script>
+  <script src="auth-ui.js"></script>
   <script>
   (function () {
     const root = document.documentElement;
-    const modal = document.getElementById('amuModal');
     const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     let pending = null; // الرابط الذي طلبه الزائر قبل الدخول
     // روابط الأقسام المحمية: كل شيء عدا الواجهة والإعلانات
     const GATED = /(^|\/)library\/|almaaqal-kontrol\/kontrol|cyb\.ces|almaqal-12\.apk|github\.io\/almaaqal\/?$|github\.com\/drdshsw2022-byte\/almaaqal\/releases|#(dl|ex|kc|lib)$/;
 
-    function openModal() {
-      const st = AMU_AUTH.state;
-      const denied = st.status === 'denied';
-      document.getElementById('amuTitle').textContent = denied ? 'هذا الحساب غير مخوَّل' : 'سجّل الدخول للمتابعة';
-      document.getElementById('amuText').innerHTML = denied
-        ? `الحساب <b><bdi dir="ltr">${esc(st.user && st.user.email || '')}</bdi></b> ليس من حسابات الجامعة ولا من الأساتذة المخوَّلين. ادخل ببريدك الجامعي <b><bdi dir="ltr">@almaaqal.edu.iq</bdi></b>.`
-        : 'تُعرض الواجهة والإعلانات للجميع. لبقية الأقسام ادخل ببريدك الجامعي <b><bdi dir="ltr">@almaaqal.edu.iq</bdi></b> أو بحساب Google المسجّل للأساتذة المخوَّلين. يبقى الدخول محفوظاً على جهازك.';
-      document.getElementById('amuGoText').textContent = denied ? 'الدخول بحساب آخر' : 'الدخول بحساب Google';
-      const err = document.getElementById('amuErr'); err.textContent = st.error || ''; err.style.display = st.error ? 'block' : 'none';
-      modal.classList.add('open');
-    }
-    function closeModal() { modal.classList.remove('open'); }
-    document.getElementById('amuClose').addEventListener('click', () => { pending = null; closeModal(); });
-    modal.addEventListener('click', (e) => { if (e.target === modal) { pending = null; closeModal(); } });
-
-    async function doLogin() {
-      const b = document.getElementById('amuGo'); b.disabled = true;
-      try {
-        if (AMU_AUTH.state.status === 'denied') await AMU_AUTH.signOut();
-        await AMU_AUTH.signIn();
-      } finally { b.disabled = false; }
-    }
-    document.getElementById('amuGo').addEventListener('click', doLogin);
     document.addEventListener('click', (e) => {
-      if (e.target.closest('[data-amu-login]')) { e.preventDefault(); openModal(); return; }
+      if (e.target.closest('[data-amu-login]')) { e.preventDefault(); AMU_UI.open(); return; }
       if (root.classList.contains('amu-in')) return;
       const a = e.target.closest('a[href]');
       if (!a || !GATED.test(a.getAttribute('href'))) return;
       e.preventDefault();
       pending = { href: a.href, blank: a.target === '_blank' };
-      openModal();
+      AMU_UI.open();
     }, true);
-
-    document.getElementById('amuChip').addEventListener('click', async () => {
-      if (confirm('تسجيل الخروج من البوابة؟')) { await AMU_AUTH.signOut(); if (typeof showToast === 'function') showToast('تم تسجيل الخروج'); }
-    });
+    document.getElementById('amuChip').addEventListener('click', () => AMU_UI.account());
+    function go() { if (!pending) return; const p = pending; pending = null; if (p.blank) window.open(p.href, '_blank', 'noopener'); else location.href = p.href; }
+    // بعد إغلاق نافذة الدخول (أو تغيير كلمة المرور الأولية) يكمل الزائر إلى ما طلبه
+    window.addEventListener('amu-ui-close', () => { if (root.classList.contains('amu-in')) go(); else pending = null; });
 
     AMU_AUTH.onChange((st) => {
       root.classList.toggle('amu-in', st.status === 'in');
+      root.classList.toggle('amu-admin', st.status === 'in' && st.admin);
       if (st.user) {
-        const name = st.user.displayName || st.user.email || 'مستخدم';
-        document.getElementById('amuName').textContent = name;
+        const name = AMU_AUTH.displayName();
+        document.getElementById('amuName').textContent = st.admin ? name + ' · المدير' : name;
         const av = document.getElementById('amuAv');
         if (st.user.photoURL) av.outerHTML = `<img id="amuAv" src="${esc(st.user.photoURL)}" alt="" referrerpolicy="no-referrer">`;
         else av.textContent = name.trim().charAt(0);
       }
       if (st.status === 'in') {
-        closeModal();
-        if (pending) { const p = pending; pending = null; if (p.blank) window.open(p.href, '_blank', 'noopener'); else location.href = p.href; }
-      } else if (st.status !== 'loading' && (modal.classList.contains('open') || pending)) {
-        openModal();
+        if (!AMU_UI.isOpen()) go();
+      } else if (st.status === 'denied' && (pending || AMU_UI.isOpen())) {
+        AMU_UI.open();
       }
     });
   })();
