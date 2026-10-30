@@ -552,7 +552,7 @@
       <!-- مصغرات الخدمات تحت الإعلانات -->
       <section class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-2" aria-label="خدمات البوابة">
         
-        <div class="glass-box p-5 rounded-2xl flex items-center gap-4">
+        <a href="https://it-basra.com/amu/lectures/" class="glass-box p-5 rounded-2xl flex items-center gap-4">
           <div class="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-900 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/30">
             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
           </div>
@@ -560,9 +560,9 @@
             <h5 class="text-sm font-display font-extrabold text-gray-900 dark:text-white">المحاضرات والمناهج</h5>
             <p class="text-xs text-gray-700 dark:text-gray-400 font-medium">تحديثات الدروس الأكاديمية والملازم</p>
           </div>
-        </div>
+        </a>
 
-        <div class="glass-box p-5 rounded-2xl flex items-center gap-4">
+        <a href="https://drdshsw2022-byte.github.io/almaaqal/" target="_blank" rel="noopener" class="glass-box p-5 rounded-2xl flex items-center gap-4">
           <div class="w-12 h-12 rounded-xl bg-sky-500/20 text-sky-800 dark:text-sky-400 flex items-center justify-center shrink-0 border border-sky-500/30">
             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
           </div>
@@ -570,9 +570,9 @@
             <h5 class="text-sm font-display font-extrabold text-gray-900 dark:text-white">الحضور والغيابات</h5>
             <p class="text-xs text-gray-700 dark:text-gray-400 font-medium">رصد ذكي بالبطاقة والباركود الجامعي</p>
           </div>
-        </div>
+        </a>
 
-        <div class="glass-box p-5 rounded-2xl flex items-center gap-4">
+        <a href="https://drdshsw2022-byte.github.io/almaaqal/" target="_blank" rel="noopener" class="glass-box p-5 rounded-2xl flex items-center gap-4">
           <div class="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-800 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </div>
@@ -580,7 +580,7 @@
             <h5 class="text-sm font-display font-extrabold text-gray-900 dark:text-white">النتائج والسعيات</h5>
             <p class="text-xs text-gray-700 dark:text-gray-400 font-medium">إعلان النتائج الفصلية والنهائية</p>
           </div>
-        </div>
+        </a>
 
         <a href="library/" class="glass-box p-5 rounded-2xl flex items-center gap-4">
           <div class="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-900 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/30">
@@ -1991,7 +1991,7 @@
     const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     let pending = null; // الرابط الذي طلبه الزائر قبل الدخول
     // روابط الأقسام المحمية: كل شيء عدا الواجهة والإعلانات
-    const GATED = /(^|\/)library\/|almaaqal-kontrol\/kontrol|cyb\.ces|almaqal-12\.apk|github\.io\/almaaqal\/?$|github\.com\/drdshsw2022-byte\/almaaqal\/releases|#(dl|ex|kc|lib)$/;
+    const GATED = /(^|\/)library\/|amu\/lectures|almaaqal-kontrol\/kontrol|cyb\.ces|almaqal-12\.apk|github\.io\/almaaqal\/?$|github\.com\/drdshsw2022-byte\/almaaqal\/releases|#(dl|ex|kc|lib)$/;
 
     document.addEventListener('click', (e) => {
       if (e.target.closest('[data-amu-login]')) { e.preventDefault(); AMU_UI.open(); return; }
