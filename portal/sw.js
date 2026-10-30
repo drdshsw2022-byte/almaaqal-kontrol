@@ -1,5 +1,5 @@
 /* Al-Maaqal Portal Service Worker — يعمل بدون إنترنت بعد أول فتح */
-const VERSION = 'amu-v2.6.1';
+const VERSION = 'amu-v2.7.0';
 const CORE = [
   './',
   './index.html',
@@ -20,7 +20,7 @@ const CORE = [
 const CDN_HOSTS = ['cdnjs.cloudflare.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 const SCOPE_PATH = new URL(self.registration.scope).pathname; // مثال: /amu/
 // ملفات لا تُحفظ أبداً (كبيرة أو يجب أن تكون حديثة دائماً)
-const NEVER_CACHE = /\.(apk|aab|zip|ipa|exe|msi|dmg|php)$/i;
+const NEVER_CACHE = /(\.(apk|aab|zip|ipa|exe|msi|dmg|php)|amu-nav\.js)$/i;
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(CORE)).then(() => self.skipWaiting()));
