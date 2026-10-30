@@ -288,7 +288,7 @@
       <div>
         <span class="tag mono" dir="ltr">05. LIBRARY</span>
         <h1>المكتبة <em>الإلكترونية</em></h1>
-        <p>مختصرات الكتب والمراجع العلمية للقراءة المباشرة داخل البوابة. القراءة متاحة لكل من يسجّل الدخول بحساب Google، والتنزيل بموافقة إدارة النظام.</p>
+        <p>مختصرات الكتب والمراجع العلمية للقراءة المباشرة داخل البوابة. القراءة لحسابات الجامعة والأساتذة المخوَّلين بعد تسجيل الدخول بحساب Google، والتنزيل بموافقة إدارة النظام.</p>
       </div>
       <div class="stats">
         <div class="stat"><b id="statBooks">0</b><span>كتاب ومختصر</span></div>
@@ -303,7 +303,7 @@
       <div class="gate-card"><div class="gate-inner">
         <div class="lock"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></div>
         <h2 id="gateTitle">سجّل الدخول للتمتّع بالقراءة</h2>
-        <p>ادخل بحساب Google مرة واحدة، وستُفتح المكتبة تلقائياً في كل زيارة لاحقة على هذا الجهاز.</p>
+        <p id="gateText">ادخل ببريدك الجامعي أو بحساب Google المسجّل للأساتذة المخوَّلين.</p>
         <button class="gbtn" id="googleBtn" type="button">
           <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
           <span id="googleBtnText">الدخول بحساب Google</span>
@@ -386,16 +386,17 @@
   <script src="books.js"></script>
   <!-- إعدادات Firebase نفسها التي يستخدمها نظام الكنترول (تُولَّد عند النشر من أسرار المستودع) -->
   <script src="https://drdshsw2022-byte.github.io/almaaqal-kontrol/kontrol/firebase-config.js"></script>
-  <script type="module">
+  <script src="../access.js"></script>
+  <script src="../auth.js"></script>
+  <script>
     // بريد إدارة نظام الكنترول (المدير العام في SUPER_ADMINS) — إليه تُرسل طلبات التنزيل
-    const ADMIN_EMAIL = 'drdsh.sw2022@gmail.com';
-    const FB_V = '10.12.2';
+    const ADMIN_EMAIL = (window.AMU_ACCESS && window.AMU_ACCESS.adminEmail) || 'drdsh.sw2022@gmail.com';
 
     const $ = (id) => document.getElementById(id);
     const BOOKS = window.LIB_BOOKS || [];
     const CATS = window.LIB_CATS || [];
     const CAT_NAME = Object.fromEntries(CATS.map((c) => [c.id, c.name]));
-    let user = null, current = null, filter = 'all', fb = null;
+    let user = null, current = null, filter = 'all';
 
     // ---------- سمة الصفحة (مشتركة مع البوابة) ----------
     function applyTheme(dark) {
@@ -537,78 +538,50 @@
     }
     function gateError(msg) { const e = $('gateErr'); e.innerHTML = msg; e.style.display = msg ? 'block' : 'none'; }
 
-    function onUser(u) {
-      user = u;
-      if (!u) { show('gate'); return; }
+    function setChip(u) {
       const name = u.displayName || u.email || 'مستخدم';
       $('userName').textContent = name;
       $('userChip').title = `مسجّل الدخول: ${u.email || name}`;
       const av = $('userAv');
       if (u.photoURL) { av.outerHTML = `<img id="userAv" src="${esc(u.photoURL)}" alt="" referrerpolicy="no-referrer">`; }
       else av.textContent = name.trim().charAt(0);
+    }
+
+    function gateMode(denied) {
+      $('gateTitle').textContent = denied ? 'هذا الحساب غير مخوَّل' : 'سجّل الدخول للتمتّع بالقراءة';
+      $('gateText').innerHTML = denied
+        ? `الحساب <b><bdi dir="ltr">${esc(user.email || '')}</bdi></b> ليس من حسابات الجامعة ولا من الأساتذة المخوَّلين. ادخل ببريدك الجامعي <b><bdi dir="ltr">@almaaqal.edu.iq</bdi></b>، أو راسل الإدارة لإضافتك.`
+        : 'ادخل ببريدك الجامعي <b><bdi dir="ltr">@almaaqal.edu.iq</bdi></b> أو بحساب Google المسجّل للأساتذة المخوَّلين، مرة واحدة، وستُفتح المكتبة تلقائياً في كل زيارة لاحقة.';
+      $('googleBtnText').textContent = denied ? 'الدخول بحساب آخر' : 'الدخول بحساب Google';
+    }
+
+    window.AMU_AUTH.onChange((st) => {
+      gateError(st.error ? esc(st.error) : '');
+      if (st.status === 'loading') { show('loading'); return; }
+      if (st.status === 'error') { show('gate'); $('googleBtn').disabled = true; return; }
+      $('googleBtn').disabled = false;
+      user = st.user;
+      if (st.status === 'out') { gateMode(false); show('gate'); return; }
+      setChip(st.user);
+      if (st.status === 'denied') { gateMode(true); show('gate'); document.body.classList.add('signed'); $('signOutBtn').style.display = 'inline-flex'; return; }
       show('lib');
       renderChips(); renderGrid();
       const m = location.hash.match(/^#read=([\w-]+)/);
       if (m) { history.replaceState(null, '', location.pathname); openBook(BOOKS.find((b) => b.id === m[1])); }
-    }
-
-    function authErr(e) {
-      const c = (e && e.code) || '';
-      if (c === 'auth/unauthorized-domain') return `هذا النطاق (<b>${esc(location.hostname)}</b>) غير مضاف إلى النطاقات المصرّح بها في Firebase. أضِفه من Firebase Console ← Authentication ← Settings ← Authorized domains، أو افتح المكتبة من <a href="https://drdshsw2022-byte.github.io/almaaqal-kontrol/portal/library/" style="color:inherit;font-weight:900">نسخة GitHub</a>.`;
-      if (c === 'auth/popup-closed-by-user' || c === 'auth/cancelled-popup-request') return '';
-      if (c === 'auth/network-request-failed') return 'تعذّر الاتصال بالإنترنت. تحقق من الشبكة ثم حاول مجدداً.';
-      return 'تعذّر تسجيل الدخول: ' + esc((e && e.message) || String(e));
-    }
-
-    async function boot() {
-      show('loading');
-      const cfg = window.FIREBASE_CONFIG;
-      if (!cfg || !cfg.apiKey) {
-        show('gate'); $('googleBtn').disabled = true;
-        gateError('تعذّر تحميل إعدادات تسجيل الدخول. تأكد من اتصالك بالإنترنت ثم أعد تحميل الصفحة.');
-        return;
-      }
-      try {
-        const base = `https://www.gstatic.com/firebasejs/${FB_V}`;
-        const [appM, authM] = await Promise.all([import(`${base}/firebase-app.js`), import(`${base}/firebase-auth.js`)]);
-        const app = appM.initializeApp(cfg, 'library');
-        const auth = authM.getAuth(app);
-        auth.languageCode = 'ar';
-        await authM.setPersistence(auth, authM.browserLocalPersistence); // الدخول التلقائي في الزيارات القادمة
-        fb = { auth, ...authM };
-        try { await authM.getRedirectResult(auth); } catch (e) { gateError(authErr(e)); }
-        authM.onAuthStateChanged(auth, onUser);
-      } catch (e) {
-        console.error(e); show('gate'); gateError('تعذّر تحميل خدمة تسجيل الدخول. أعد تحميل الصفحة.');
-      }
-    }
+    });
 
     $('googleBtn').addEventListener('click', async () => {
-      if (!fb) return;
       gateError('');
-      const btn = $('googleBtn'); btn.disabled = true; $('googleBtnText').textContent = 'جارٍ فتح نافذة Google…';
-      const provider = new fb.GoogleAuthProvider();
-      provider.setCustomParameters({ prompt: 'select_account' });
-      try {
-        await fb.signInWithPopup(fb.auth, provider);
-      } catch (e) {
-        const c = e && e.code;
-        if (c === 'auth/popup-blocked' || c === 'auth/operation-not-supported-in-this-environment') {
-          try { await fb.signInWithRedirect(fb.auth, provider); return; } catch (e2) { gateError(authErr(e2)); }
-        } else gateError(authErr(e));
-      } finally {
-        btn.disabled = false; $('googleBtnText').textContent = 'الدخول بحساب Google';
-      }
+      const btn = $('googleBtn'); btn.disabled = true; const txt = $('googleBtnText').textContent; $('googleBtnText').textContent = 'جارٍ فتح نافذة Google…';
+      if (window.AMU_AUTH.state.status === 'denied') await window.AMU_AUTH.signOut();
+      try { await window.AMU_AUTH.signIn(); } finally { btn.disabled = false; $('googleBtnText').textContent = txt; }
     });
 
     $('signOutBtn').addEventListener('click', async () => {
-      if (!fb) return;
       closeBook(true);
-      await fb.signOut(fb.auth);
+      await window.AMU_AUTH.signOut();
       toast('تم تسجيل الخروج');
     });
-
-    boot();
   </script>
 </body>
 </html>
