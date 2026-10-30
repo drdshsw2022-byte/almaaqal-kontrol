@@ -1384,8 +1384,8 @@ document.addEventListener('change',e=>{
   if(t.dataset.hall){const sd=S.slots.get(UI.slot);if(sd&&!RO){patch('slots',UI.slot,{halls:hallsChecked()}).catch(()=>{})}else render();return}
   if(t.dataset.com){patch('meta','committee',{[t.dataset.com]:t.value||null}).then(()=>log('تشكيل اللجنة',t.closest('label').firstChild.textContent+': '+label.staff(S.staff.get(t.value)))).catch(err=>toast(errMsg(err),'bad'));return}
   if(t.dataset.kuntil!==undefined){kSetUntil(t.dataset.kuntil,t.value).catch(err=>toast(errMsg(err),'bad'));return}
-  if(t.dataset.krole!==undefined){const em=t.dataset.krole,r=t.value;const ref=FB.doc(FB.db,'k_roles',em);
-    settle(r?FB.setDoc(ref,{role:r,by:ME,at:Date.now()}):FB.deleteDoc(ref)).then(()=>log('صلاحيات الكنترول',`${label.staff(S.staff.get(em))} ← ${KROLES[r]||'بلا صلاحية'}`)).then(()=>toast('حُفظت الصلاحية')).catch(err=>toast(errMsg(err),'bad'));return}
+  if(t.dataset.krole!==undefined){const em=t.dataset.krole,r=t.value;if(!KROLES[r])return;
+    kPatch(em,{role:r}).then(()=>log('تصاريح الدخول',`${kWho(em)} ← ${KROLES[r]}`)).then(()=>toast('حُفظ الدور')).catch(err=>toast(errMsg(err),'bad'));return}
   if(t.dataset.rubric){patch('envelopes',t.dataset.rubric,{rubric:t.checked}).catch(err=>toast(errMsg(err),'bad'));return}
   if((t.id==='xlsxin'||t.id==='xlsxin2')&&t.files.length){startImport([...t.files]);t.value='';return}
   if(t.dataset.impdept!==undefined&&IMP){IMP.dept=t.value;IMP.res=analyze(IMP.books,IMP.dept);$('#modal').innerHTML=importView();return}
