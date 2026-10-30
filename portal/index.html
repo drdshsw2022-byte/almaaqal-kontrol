@@ -193,6 +193,27 @@
     .amu-chip img, .amu-chip .av { width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; background: linear-gradient(135deg,#F59E0B,#B45309); color: #fff; display: inline-flex; align-items: center; justify-content: center; object-fit: cover; }
     .amu-chip .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .amu-chip .dot { width: 8px; height: 8px; border-radius: 50%; background: #10B981; box-shadow: 0 0 0 3px rgba(16,185,129,.22); flex-shrink: 0; }
+    /* ===== زر الدعم الفني العائم (شعار الموقع) ===== */
+    .sup-fab { position: fixed; left: 18px; bottom: calc(18px + env(safe-area-inset-bottom)); z-index: 45; display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: 0; cursor: pointer; padding: 0; font-family: 'Cairo', sans-serif; -webkit-tap-highlight-color: transparent; }
+    @media (max-width: 767px) { .sup-fab { bottom: calc(84px + env(safe-area-inset-bottom)); left: 12px; } }
+    @media (display-mode: standalone) { .sup-fab { bottom: calc(84px + env(safe-area-inset-bottom)); } }
+    .sup-orb { position: relative; width: 62px; height: 62px; border-radius: 50%; animation: supFloat 3.2s ease-in-out infinite; }
+    .sup-orb img { position: absolute; inset: 5px; width: 52px; height: 52px; border-radius: 50%; box-shadow: 0 8px 24px rgba(217,119,6,.45); }
+    .sup-orb::before { content: ''; position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg, #F59E0B, #FDE047, #0284C7, #B45309, #F59E0B); animation: supSpin 3.5s linear infinite; -webkit-mask: radial-gradient(circle, transparent 27px, #000 28px); mask: radial-gradient(circle, transparent 27px, #000 28px); }
+    .sup-orb::after { content: ''; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid rgba(245,158,11,.55); animation: supPulse 2.2s ease-out infinite; }
+    .sup-fab span.lbl { font-size: 11px; font-weight: 900; padding: 2px 10px; border-radius: 999px; color: #fff; background: linear-gradient(135deg,#F59E0B,#B45309); box-shadow: 0 4px 12px rgba(217,119,6,.4); white-space: nowrap; }
+    .sup-fab:hover .sup-orb { animation-play-state: paused; transform: scale(1.06); }
+    @keyframes supSpin { to { transform: rotate(360deg); } }
+    @keyframes supFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+    @keyframes supPulse { 0% { transform: scale(.9); opacity: .9; } 100% { transform: scale(1.35); opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .sup-orb, .sup-orb::before, .sup-orb::after { animation: none; } }
+    .sup-panel { position: fixed; left: 18px; bottom: calc(118px + env(safe-area-inset-bottom)); z-index: 46; width: min(320px, calc(100vw - 32px)); display: none; flex-direction: column; gap: 10px; padding: 16px; border-radius: 20px; background: var(--glass-surface); border: 1.5px solid var(--glass-border); box-shadow: 0 24px 50px -12px rgba(0,0,0,.45); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); text-align: right; }
+    @media (max-width: 767px) { .sup-panel { bottom: calc(184px + env(safe-area-inset-bottom)); left: 12px; } }
+    .sup-panel.open { display: flex; animation: sheetUp .25s cubic-bezier(.16,1,.3,1); }
+    .sup-panel h4 { margin: 0; font-weight: 900; font-size: 16px; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+    .sup-panel h4 img { width: 28px; height: 28px; border-radius: 50%; }
+    .sup-panel p { margin: 0; font-size: 12.5px; font-weight: 600; line-height: 1.8; color: var(--text-secondary); }
+    .sup-panel a { text-decoration: none; }
   </style>
 </head>
 
@@ -558,16 +579,6 @@
           <div>
             <h5 class="text-sm font-display font-extrabold text-gray-900 dark:text-white">النتائج والسعيات</h5>
             <p class="text-xs text-gray-700 dark:text-gray-400 font-medium">إعلان النتائج الفصلية والنهائية</p>
-          </div>
-        </div>
-
-        <div class="glass-box p-5 rounded-2xl flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl bg-purple-500/20 text-purple-800 dark:text-purple-400 flex items-center justify-center shrink-0 border border-purple-500/30">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-          </div>
-          <div>
-            <h5 class="text-sm font-display font-extrabold text-gray-900 dark:text-white">الدعم الفني السريع</h5>
-            <p class="text-xs text-gray-700 dark:text-gray-400 font-medium">فريق هندسة الحاسوب ونظم المعلومات</p>
           </div>
         </div>
 
@@ -1235,6 +1246,38 @@
 
   </div>
 
+
+  <!-- ===== الدعم الفني (زر عائم بشعار الموقع) ===== -->
+  <button type="button" class="sup-fab" id="supFab" aria-expanded="false" aria-controls="supPanel" aria-label="الدعم الفني">
+    <span class="sup-orb"><img src="icons/icon-192.png" alt=""></span>
+    <span class="lbl">الدعم الفني</span>
+  </button>
+  <div class="sup-panel" id="supPanel" role="dialog" aria-label="الدعم الفني">
+    <h4><img src="icons/icon-192.png" alt="">الدعم الفني</h4>
+    <p>فريق هندسة الحاسوب ونظم المعلومات. راسلنا بأي مشكلة في البوابة أو التطبيق أو المكتبة أو منصة الاختبارات، وسنرد عليك في أقرب وقت.</p>
+    <a id="supMail" class="btn-gold flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm" href="#">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+      <span>راسل الدعم الفني</span>
+    </a>
+  </div>
+  <script>
+  (function () {
+    const fab = document.getElementById('supFab'), panel = document.getElementById('supPanel');
+    const to = (window.AMU_ACCESS && window.AMU_ACCESS.adminEmail) || 'drdsh.sw2022@gmail.com';
+    function toggle(open) { panel.classList.toggle('open', open); fab.setAttribute('aria-expanded', open ? 'true' : 'false'); }
+    fab.addEventListener('click', (e) => { e.stopPropagation(); toggle(!panel.classList.contains('open')); });
+    document.addEventListener('click', (e) => { if (!panel.contains(e.target) && e.target !== fab) toggle(false); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') toggle(false); });
+    document.getElementById('supMail').addEventListener('click', (e) => {
+      e.preventDefault();
+      const st = window.AMU_AUTH && window.AMU_AUTH.state;
+      const who = st && st.user ? (st.staff ? st.username + ' (أستاذ)' : st.user.email) : 'زائر';
+      const body = ['السلام عليكم،', '', 'المشكلة: ', '', '—', 'الحساب: ' + who, 'الصفحة: ' + location.href, 'الجهاز: ' + navigator.userAgent].join('\n');
+      location.href = 'mailto:' + to + '?subject=' + encodeURIComponent('طلب دعم فني — بوابة جامعة المعقل') + '&body=' + encodeURIComponent(body);
+      toggle(false);
+    });
+  })();
+  </script>
 
   <!-- ===== Mobile App Tab Bar ===== -->
   <nav class="app-tabbar fixed bottom-0 inset-x-0 z-40 border-t border-amber-500/40 bg-white/90 dark:bg-[#060A17]/95 backdrop-blur-xl justify-around items-stretch px-2 pt-1.5" style="padding-bottom: max(0.4rem, env(safe-area-inset-bottom));" aria-label="التنقل">
