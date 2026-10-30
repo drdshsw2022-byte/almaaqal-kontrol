@@ -458,6 +458,21 @@
                 <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                 Cyber Security Engineering
               </span>
+              <!-- الطقس الآن في البصرة -->
+              <span id="wxChip" class="flex items-center gap-1.5 bg-black/40 px-3 py-1.5 rounded-lg border border-amber-500/30" title="الطقس الآن في البصرة">
+                <span id="wxIcon" aria-hidden="true">⛅</span>
+                <span class="font-sans">البصرة</span>
+                <b id="wxTemp" class="text-amber-300" dir="ltr">--°</b>
+                <span id="wxDesc" class="font-sans text-gray-300">جارٍ جلب الطقس…</span>
+              </span>
+              <!-- عداد الزوار -->
+              <span id="visChip" class="flex items-center gap-1.5 bg-black/40 px-3 py-1.5 rounded-lg border border-amber-500/30" title="عدد زوار البوابة">
+                <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                <span class="font-sans">الزوار</span>
+                <b id="visTotal" class="text-emerald-300" dir="ltr">—</b>
+                <span class="font-sans text-gray-400">· اليوم</span>
+                <b id="visToday" class="text-emerald-300" dir="ltr">—</b>
+              </span>
               <a href="https://drdshsw2022-byte.github.io/almaaqal-kontrol/kontrol/" target="_blank" rel="noopener" class="btn-gold flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-sans text-xs">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                 نظام اللجنة الامتحانية (الكنترول)
@@ -1236,6 +1251,7 @@
 
         <div class="pt-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-600 dark:text-gray-400 font-semibold">
           <p>© 2026 جميع الحقوق محفوظة لجامعة المعقل الدولية · البصرة، العراق.</p>
+          <p id="visFoot" class="font-mono" dir="rtl">زوار البوابة: <b class="text-amber-800 dark:text-amber-300" id="visFootTotal" dir="ltr">—</b> · اليوم <b class="text-amber-800 dark:text-amber-300" id="visFootToday" dir="ltr">—</b></p>
           <div class="font-mono text-[11px] text-amber-800 dark:text-amber-300">
             ENGINEERING & CYBER SECURITY DEPT.
           </div>
@@ -2023,6 +2039,60 @@
         AMU_UI.open();
       }
     });
+  })();
+  </script>
+  <!-- ===== الطقس الآن وعداد الزوار ===== -->
+  <script>
+  (function () {
+    const fmt = (n) => Number(n).toLocaleString('ar-IQ-u-nu-latn');
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+
+    // ---- الطقس في البصرة (Open-Meteo، بلا مفتاح) ----
+    const WX = {
+      0: ['☀️', 'صافٍ'], 1: ['🌤️', 'صافٍ غالباً'], 2: ['⛅', 'غائم جزئياً'], 3: ['☁️', 'غائم'],
+      45: ['🌫️', 'ضباب'], 48: ['🌫️', 'ضباب متجمد'],
+      51: ['🌦️', 'رذاذ خفيف'], 53: ['🌦️', 'رذاذ'], 55: ['🌧️', 'رذاذ كثيف'],
+      61: ['🌦️', 'مطر خفيف'], 63: ['🌧️', 'مطر'], 65: ['🌧️', 'مطر غزير'],
+      66: ['🌧️', 'مطر متجمد'], 67: ['🌧️', 'مطر متجمد غزير'],
+      71: ['🌨️', 'ثلج خفيف'], 73: ['🌨️', 'ثلج'], 75: ['❄️', 'ثلج كثيف'], 77: ['🌨️', 'حبيبات ثلج'],
+      80: ['🌦️', 'زخات مطر'], 81: ['🌧️', 'زخات مطر'], 82: ['⛈️', 'زخات غزيرة'],
+      85: ['🌨️', 'زخات ثلج'], 86: ['🌨️', 'زخات ثلج'],
+      95: ['⛈️', 'عاصفة رعدية'], 96: ['⛈️', 'عاصفة رعدية وبرد'], 99: ['⛈️', 'عاصفة رعدية وبرد']
+    };
+    async function weather() {
+      try {
+        const u = 'https://api.open-meteo.com/v1/forecast?latitude=30.5085&longitude=47.7804&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,is_day&timezone=Asia%2FBaghdad';
+        const r = await fetch(u, { cache: 'no-store' }); if (!r.ok) throw 0;
+        const c = (await r.json()).current;
+        let [ic, desc] = WX[c.weather_code] || ['🌡️', 'الطقس'];
+        if (!c.is_day && c.weather_code <= 1) ic = '🌙';
+        set('wxIcon', ic); set('wxTemp', Math.round(c.temperature_2m) + '°'); set('wxDesc', desc);
+        const chip = document.getElementById('wxChip');
+        if (chip) chip.title = `الطقس الآن في البصرة: ${desc} · ${Math.round(c.temperature_2m)}° (المحسوسة ${Math.round(c.apparent_temperature)}°) · الرطوبة ${c.relative_humidity_2m}% · الرياح ${Math.round(c.wind_speed_10m)} كم/س`;
+      } catch (e) { set('wxDesc', 'الطقس غير متاح'); }
+    }
+    weather(); setInterval(weather, 15 * 60 * 1000);
+
+    // ---- عداد الزوار (visits.php على it-basra.com) ----
+    const API = /(^|\.)it-basra\.com$/.test(location.hostname) ? 'visits.php' : 'https://it-basra.com/amu/visits.php';
+    function show(d) {
+      if (!d || d.total == null) return;
+      set('visTotal', fmt(d.total)); set('visToday', fmt(d.today));
+      set('visFootTotal', fmt(d.total)); set('visFootToday', fmt(d.today));
+    }
+    async function visits() {
+      let day = '', mark = '';
+      try { mark = localStorage.getItem('amu_visit_day') || ''; } catch (e) {}
+      day = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Baghdad' });
+      const hit = mark !== day; // زيارة واحدة لكل متصفح في اليوم
+      try {
+        const r = await fetch(API, { method: hit ? 'POST' : 'GET', cache: 'no-store' });
+        if (!r.ok) throw 0;
+        show(await r.json());
+        if (hit) { try { localStorage.setItem('amu_visit_day', day); } catch (e) {} }
+      } catch (e) { ['visChip', 'visFoot'].forEach((id) => { const el = document.getElementById(id); if (el) el.style.display = 'none'; }); }
+    }
+    visits(); setInterval(() => fetch(API, { cache: 'no-store' }).then((r) => r.json()).then(show).catch(() => {}), 5 * 60 * 1000);
   })();
   </script>
 </body>
