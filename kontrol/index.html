@@ -19,6 +19,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
 <script src="firebase-config.js"></script>
 <script type="module" src="fb.js"></script>
+<script src="permits.js" defer></script>
 <script src="app.js" defer></script>
 </head>
 <body>
@@ -51,13 +52,17 @@
     <form class="loginbox" id="loginform" autocomplete="on">
       <span class="tag t2">SECURE SIGN-IN</span>
       <h3>تسجيل الدخول</h3>
-      <p class="mut" style="margin:0">بحساب تطبيق الحضور نفسه (مثل doc01 أو admin).</p>
+      <p class="mut" style="margin:0">الدخول مقصور على المخوّلين في لجنة الكنترول. أدخل اسم المستخدم وكلمة المرور الممنوحين لك.</p>
       <label class="f">اسم المستخدم<input type="text" id="lg_user" name="username" autocomplete="username" required dir="ltr"></label>
       <label class="f">كلمة المرور<input type="password" id="lg_pass" name="password" autocomplete="current-password" required dir="ltr"></label>
       <button class="btn pri" type="submit" id="lg_btn">دخول</button>
-      <button class="btn" type="button" id="lg_google">الدخول بحساب Google الجامعي</button>
+      <div class="lgsep"><span>المشرفون والأساتذة</span></div>
+      <button class="btn" type="button" id="lg_google">الدخول بحساب Google</button>
+      <p class="mut" style="margin:0;font-size:13px">أول دخول بحساب Google يرسل طلب انضمام إلى مدير النظام، ولا تُعرض أي بيانات قبل الموافقة.</p>
+      <button class="btn pri" type="button" id="lg_retry" hidden onclick="location.reload()">إعادة المحاولة</button>
       <p class="red" id="lg_err" role="alert" style="margin:0"></p>
     </form>
+    <div class="loginbox" id="joinbox" hidden></div>
   </div>
 </div>
 <div id="modal" hidden></div>

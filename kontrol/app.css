@@ -271,3 +271,11 @@ input[type=checkbox]{accent-color:var(--accent)}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 @media print{aside,.topbar,#toasts,.tabs,.scan,.btn{display:none!important}.app{display:block}main{padding:0}body{background:#fff}}
+
+/* فاصل خيارات الدخول، وصندوق طلب الانضمام */
+.lgsep{display:flex;align-items:center;gap:10px;color:var(--mut,#64748b);font-size:13px;margin-top:2px}
+.lgsep::before,.lgsep::after{content:"";flex:1;height:1px;background:currentColor;opacity:.3}
+#joinbox fieldset label{cursor:pointer}
+#joinbox .note{line-height:1.8}
+.loginbox [hidden]{display:none!important}
+.loginbox[hidden]{display:none!important}

@@ -66,19 +66,19 @@ service cloud.firestore {
     }
 
     // الهيكل والإعدادات
-    match /colleges/{id}    { allow read: if isMember(); allow write: if isTop(); }
-    match /departments/{id} { allow read: if isMember(); allow write: if isTop(); }
+    match /colleges/{id}    { allow read: if isMember() || kAny(); allow write: if isTop(); }
+    match /departments/{id} { allow read: if isMember() || kAny(); allow write: if isTop(); }
     match /settings/{id}    { allow read: if isMember(); allow write: if isTop(); }
     match /meta/{id}        { allow read: if isMember(); allow write: if isTop(); }
 
     match /courses/{id} {
-      allow read: if isMember();
+      allow read: if isMember() || kAny();
       allow create, update: if managesDept(request.resource.data.deptId);
       allow delete: if managesDept(resource.data.deptId);
     }
 
     match /students/{id} {
-      allow read: if isMember() || (isStudentPw() && id == localPart());
+      allow read: if isMember() || (isStudentPw() && id == localPart()) || kAny();
       allow create: if managesDept(request.resource.data.deptId);
       allow update: if managesDept(request.resource.data.deptId) ||
         (isStaff() && onlyChanges(['nfcUid'])) ||
@@ -95,7 +95,7 @@ service cloud.firestore {
     }
 
     match /staff/{staffEmail} {
-      allow read: if isMember() || (signedIn() && staffEmail == email());
+      allow read: if isMember() || (signedIn() && staffEmail == email()) || kAny();
       allow create: if canAssign(request.resource.data) ||
         (staffEmail == email() && isSuperAdmin()) ||
         // أول دخول لمدير النظام admin بكلمة المرور
@@ -145,13 +145,13 @@ service cloud.firestore {
     }
 
     match /schemes/{id} {
-      allow read: if isMember();
+      allow read: if isMember() || kAny();
       allow write: if canGrade(request.resource.data.courseId) || kChair();
     }
 
     match /grades/{id} {
       // الكادر يرى الدرجات؛ الطالب يرى درجاته فقط
-      allow read: if isStaff() ||
+      allow read: if isStaff() || kGrader() ||
         (isMember() && (resource.data.studentId == localPart() ||
                         resource.data.studentEmail == authEmail()));
       allow create, update: if canGrade(request.resource.data.courseId) ||
@@ -172,16 +172,33 @@ service cloud.firestore {
     //   invigilator: مراقب • viewer: اطلاع. مدير النظام والإدارة العليا رؤساء تلقائياً.
     // =====================================================================
     // الدور في الكنترول يُحسب مرة واحدة لكل دالة (let) لتبقى القواعد ضمن حد التقييم.
+    // ثلاث هويات تدخل الكنترول:
+    //  1) كادر تطبيق الحضور (كلمة مرور أو Google الجامعي) — مدير النظام والإدارة العليا رؤساء تلقائياً
+    //  2) حسابات الكنترول المخوّلة <اسم>@k.almaaqal.app (رئيس النظام ومعاونه، رؤساء المشرفين والأساتذة ومعاونوهم)
+    //     تُربط بمعرّف الحساب (uid) عند إنشائها حتى لا ينتحلها حساب آخر بالاسم نفسه
+    //  3) حساب Google مقبول طلب انضمامه (مشرف أو أستاذ)
+    // التصريح في k_roles/<الهوية>: role، rank، cat، uid، until (انتهاء اختياري بالمللي ثانية)، off (موقوف)
+    function kAcct() { return signedIn() && authEmail().matches('.*@k[.]almaaqal[.]app'); }
+    function kGoogle() {
+      return signedIn() && request.auth.token.email_verified == true &&
+        request.auth.token.firebase.sign_in_provider == 'google.com';
+    }
+    function kMe() {
+      let p = /databases/$(database)/documents/k_roles/$(email());
+      return signedIn() && exists(p) ? get(p).data : {};
+    }
     function kRoleNow() {
       let e = email();
       let staffOk = signedIn() && (isStaffPw() || (request.auth.token.email_verified == true &&
         authEmail().matches('.*@almaaqal[.]edu[.]iq'))) &&
         exists(/databases/$(database)/documents/staff/$(e));
+      let kr = kMe();
+      let live = kr.get('off', false) != true &&
+        (kr.get('until', 0) == 0 || kr.get('until', 0) > request.time.toMillis()) &&
+        (!kAcct() || kr.get('uid', '') == request.auth.uid);
       return isSuperAdmin() ? 'chair' :
-        !staffOk ? '' :
-        get(/databases/$(database)/documents/staff/$(e)).data.get('role', '') in ['admin', 'president'] ? 'chair' :
-        exists(/databases/$(database)/documents/k_roles/$(e)) ?
-          get(/databases/$(database)/documents/k_roles/$(e)).data.get('role', '') : '';
+        staffOk && get(/databases/$(database)/documents/staff/$(e)).data.get('role', '') in ['admin', 'president'] ? 'chair' :
+        (staffOk || kAcct() || kGoogle()) && live ? kr.get('role', '') : '';
     }
     function kRole()   { return kRoleNow(); }
     function kChair()  { return kRoleNow() == 'chair'; }
@@ -189,10 +206,46 @@ service cloud.firestore {
     function kGrader() { return kRoleNow() in ['chair', 'member', 'auditor']; }
     function kInvig()  { return kRoleNow() in ['chair', 'member', 'invigilator']; }
     function kAny()    { return kRoleNow() in ['chair', 'member', 'auditor', 'invigilator', 'viewer']; }
+    // الفئة التي يمنح لها المستخدم تصاريح: رئيس المشرفين ومعاونه ← sup، رئيس الأساتذة ومعاونه ← prof
+    function kGrantCat() {
+      let kr = kMe();
+      return kRoleNow() != '' && kr.get('rank', '') in ['m1', 'm2'] ? 'sup' :
+        kRoleNow() != '' && kr.get('rank', '') in ['d1', 'd2'] ? 'prof' : '';
+    }
+    // تصريح فئة: المشرف مراقب، والأستاذ مدقق درجات
+    function kCatOk(d, cat) {
+      return d.get('cat', '') == cat && d.get('rank', '') == cat &&
+        d.get('role', '') == (cat == 'sup' ? 'invigilator' : 'auditor');
+    }
 
     match /k_roles/{e} {
-      allow read: if kChair() || (isMember() && e == email());
-      allow write: if kChair();
+      allow read: if kChair() || kGrantCat() != '' || (signedIn() && e == email());
+      // رئيس اللجنة يمنح كل شيء، عدا تصريحه هو (منعاً لإقفال نفسه) وتصريح رئيس النظام (لرئيس النظام والمدير العام)
+      allow create, update: if kChair() && e != email() &&
+        (resource == null || resource.data.get('rank', '') != 'g1' || isSuperAdmin() || kMe().get('rank', '') == 'g1') &&
+        (request.resource.data.get('rank', '') != 'g1' || isSuperAdmin() || kMe().get('rank', '') == 'g1') &&
+        request.resource.data.role in ['chair', 'member', 'auditor', 'invigilator', 'viewer'] &&
+        request.resource.data.by == email();
+      allow delete: if kChair() && e != email() &&
+        (resource.data.get('rank', '') != 'g1' || isSuperAdmin() || kMe().get('rank', '') == 'g1');
+      // رئيس المشرفين/الأساتذة ومعاونه: تصاريح فئته فقط
+      allow create, update: if kGrantCat() != '' && e != email() &&
+        (resource == null || kCatOk(resource.data, kGrantCat())) &&
+        kCatOk(request.resource.data, kGrantCat()) && request.resource.data.by == email();
+      allow delete: if kGrantCat() != '' && kCatOk(resource.data, kGrantCat());
+    }
+    // طلبات الانضمام: صاحب الحساب يطلب (مشرفاً أو أستاذاً)، ويقبله المدير أو رئيس اللجنة أو رئيس الفئة
+    match /k_requests/{e} {
+      allow read: if (signedIn() && e == email()) || kChair() || kGrantCat() != '';
+      allow create: if signedIn() && e == email() && (kGoogle() || isStaff()) &&
+        request.resource.data.keys().hasOnly(['email', 'name', 'photo', 'cat', 'note', 'at', 'status']) &&
+        request.resource.data.status == 'pending' && request.resource.data.cat in ['sup', 'prof'] &&
+        request.resource.data.email == e;
+      allow update: if (signedIn() && e == email() && resource.data.status == 'pending' &&
+          onlyChanges(['cat', 'note', 'name']) && request.resource.data.cat in ['sup', 'prof']) ||
+        kChair() || (kGrantCat() != '' && resource.data.cat == kGrantCat() &&
+          request.resource.data.cat == kGrantCat() && onlyChanges(['status', 'decidedBy', 'decidedAt']));
+      allow delete: if (signedIn() && e == email()) || kChair();
     }
     // الإعدادات والتشكيل والمصادقة (locks)
     match /k_meta/{id}     { allow read: if kAny(); allow write: if kChair(); }

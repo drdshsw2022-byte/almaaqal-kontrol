@@ -55,10 +55,12 @@ jobs:
                   "$KEY" "${DOMAIN:-$PROJ.firebaseapp.com}" "$PROJ" "$BUCKET" "$SENDER" "$APPID" > _site/kontrol/firebase-config.js
                 echo "::notice::رُبط الكنترول تلقائياً بمشروع Firebase: $PROJ (من نسخة الويب لتطبيق الحضور)"
               else
-                echo "::warning::لم تُكتشف إعدادات Firebase كاملة (key=${KEY:+ok} appId=${APPID:+ok} project=$PROJ). أضف الأسرار أو عدّل kontrol/firebase-config.js"
+                echo "::error::لم تُكتشف إعدادات Firebase كاملة (key=${KEY:+ok} appId=${APPID:+ok} project=$PROJ). أُوقف النشر وبقيت النسخة السابقة تعمل."
+                exit 1
               fi
             else
-              echo "::warning::تعذر تنزيل نسخة الويب لتطبيق الحضور. أضف الأسرار أو عدّل kontrol/firebase-config.js"
+              echo "::error::تعذر تنزيل نسخة الويب لتطبيق الحضور. أُوقف النشر وبقيت النسخة السابقة تعمل (لا يُنشر الكنترول دون قاعدة بيانات)."
+              exit 1
             fi
           else
             echo "إعدادات Firebase من kontrol/firebase-config.js"
@@ -67,7 +69,7 @@ jobs:
           sed -i "s/kontrol-v1/kontrol-${{ github.run_number }}/" _site/kontrol/sw.js
           # كسر الذاكرة المؤقتة للمتصفح: كل نشر يحمّل الملفات الجديدة فوراً
           V=${{ github.run_number }}
-          sed -i -E "s#(src|href)=\"(app\.js|app\.css|fb\.js|firebase-config\.js)\"#\1=\"\2?v=$V\"#g" _site/kontrol/index.html
+          sed -i -E "s#(src|href)=\"(app\.js|permits\.js|app\.css|fb\.js|firebase-config\.js)\"#\1=\"\2?v=$V\"#g" _site/kontrol/index.html
 
       - uses: actions/configure-pages@v5
         with:

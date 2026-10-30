@@ -6,6 +6,9 @@ import { readFileSync } from 'node:fs';
 
 let env;
 const D = '@almaaqal.edu.iq';
+const K = '@k.almaaqal.app', G = '@gmail.com';
+const kacc = (n, uid) => env.authenticatedContext(uid || 'u-' + n, { email: n + K }).firestore();
+const goo = (n) => env.authenticatedContext('g-' + n, { email: n + G, email_verified: true, firebase: { sign_in_provider: 'google.com' } }).firestore();
 const as = (name) => env.authenticatedContext(name, { email: `${name}@pw.almaaqal.app` }).firestore();
 
 before(async () => {
@@ -28,6 +31,14 @@ before(async () => {
     await setDoc(doc(db, 'k_appeals', 'a_done'), { ...base, st: 'done', outcome: 'upheld', decidedBy: 'chair1' + D });
     await setDoc(doc(db, 'k_appeals', 'a_legacy'), { student: 's1', course: 'ai|1|AI100', status: 'جديد', at: 1 });
     await setDoc(doc(db, 'k_audit', 'x1'), { by: 'mem1' + D, ts: 1 });
+    // حسابات الكنترول المخوّلة (مربوطة بمعرّف الحساب) وتصاريح Google
+    for (const [n, role, rank] of [['g1', 'chair', 'g1'], ['g2', 'chair', 'g2'], ['m1', 'member', 'm1'], ['d1', 'member', 'd1']])
+      await setDoc(doc(db, 'k_roles', n + K), { role, rank, cat: 'head', uid: 'u-' + n });
+    await setDoc(doc(db, 'k_roles', 'sup1' + G), { role: 'invigilator', rank: 'sup', cat: 'sup' });
+    await setDoc(doc(db, 'k_roles', 'old1' + G), { role: 'auditor', rank: 'prof', cat: 'prof', until: 1000 });
+    await setDoc(doc(db, 'k_roles', 'off1' + G), { role: 'auditor', rank: 'prof', cat: 'prof', off: true });
+    await setDoc(doc(db, 'k_requests', 'req1' + G), { email: 'req1' + G, name: 'x', cat: 'prof', at: 1, status: 'pending' });
+    await setDoc(doc(db, 'students', '1001'), { name: 's', deptId: 'ai', stage: 1 });
   });
 });
 after(async () => { await env.cleanup(); });
@@ -88,7 +99,54 @@ test('هيكل الجامعة والصلاحيات للإدارة العليا �
   await assertSucceeds(setDoc(doc(as('admin'), 'colleges', 'eng'), { name: 'كلية الهندسة' }));
   await assertFails(setDoc(doc(as('chair1'), 'colleges', 'eng2'), { name: 'x' }));
   await assertFails(setDoc(doc(as('mem1'), 'departments', 'x'), { name: 'x', collegeId: 'eng' }));
-  await assertSucceeds(setDoc(doc(as('chair1'), 'k_roles', 'none1' + D), { role: 'viewer' }));
+  await assertSucceeds(setDoc(doc(as('chair1'), 'k_roles', 'none1' + D), { role: 'viewer', by: 'chair1' + D }));
+  await assertFails(setDoc(doc(as('chair1'), 'k_roles', 'view1' + D), { role: 'viewer', by: 'admin' + D }));
   await assertFails(setDoc(doc(as('mem1'), 'k_roles', 'none1' + D), { role: 'chair' }));
   await assertFails(setDoc(doc(as('mem1'), 'k_meta', 'locks'), { cyber_3: null }, { merge: true }));
+});
+
+test('حسابات الكنترول المخوّلة: مربوطة بمعرّف حسابها', async () => {
+  await assertSucceeds(getDoc(doc(kacc('g1'), 'k_meta', 'locks')));
+  await assertSucceeds(getDoc(doc(kacc('g1'), 'students', '1001')));
+  await assertSucceeds(getDoc(doc(kacc('m1'), 'courses', 'ai|1|AI100')));
+  await assertFails(getDoc(doc(kacc('g1', 'intruder'), 'k_meta', 'locks')));
+  await assertFails(getDoc(doc(kacc('zz'), 'k_meta', 'locks')));
+  await assertFails(getDoc(doc(kacc('zz'), 'students', '1001')));
+});
+
+test('رئيس المشرفين يمنح تصاريح المشرفين فقط، ورئيس الأساتذة للأساتذة فقط', async () => {
+  const sup = (by) => ({ role: 'invigilator', rank: 'sup', cat: 'sup', by: by + K, at: 1 });
+  const prof = (by) => ({ role: 'auditor', rank: 'prof', cat: 'prof', by: by + K, at: 1 });
+  await assertSucceeds(setDoc(doc(kacc('m1'), 'k_roles', 'new1' + G), sup('m1')));
+  await assertFails(setDoc(doc(kacc('m1'), 'k_roles', 'new2' + G), prof('m1')));
+  await assertFails(setDoc(doc(kacc('m1'), 'k_roles', 'new3' + G), { ...sup('m1'), role: 'chair' }));
+  await assertFails(setDoc(doc(kacc('m1'), 'k_roles', 'd1' + K), sup('m1')));
+  await assertSucceeds(setDoc(doc(kacc('d1'), 'k_roles', 'new4' + G), prof('d1')));
+  await assertFails(deleteDoc(doc(kacc('d1'), 'k_roles', 'sup1' + G)));
+  await assertSucceeds(deleteDoc(doc(kacc('m1'), 'k_roles', 'new1' + G)));
+  await assertFails(setDoc(doc(as('mem1'), 'k_roles', 'new5' + G), sup('mem1')));
+});
+
+test('معاون رئيس النظام لا يعدّل تصريح رئيس النظام، ولا أحد يعدّل تصريحه هو', async () => {
+  await assertFails(updateDoc(doc(kacc('g2'), 'k_roles', 'g1' + K), { role: 'viewer', by: 'g2' + K }));
+  await assertFails(deleteDoc(doc(kacc('g2'), 'k_roles', 'g1' + K)));
+  await assertFails(updateDoc(doc(kacc('g2'), 'k_roles', 'g2' + K), { role: 'chair', rank: 'g1', by: 'g2' + K }));
+  await assertSucceeds(updateDoc(doc(kacc('g1'), 'k_roles', 'g2' + K), { until: 0, by: 'g1' + K }));
+  await assertSucceeds(setDoc(doc(kacc('g2'), 'k_roles', 'm1' + K), { role: 'member', rank: 'm1', cat: 'head', uid: 'u-m1', by: 'g2' + K }));
+});
+
+test('حساب Google: طلب انضمام باسمه فقط، ولا يدخل قبل القبول، والتصريح المنتهي أو الموقوف لا يعمل', async () => {
+  const r = (n, x = {}) => ({ email: n + G, name: n, cat: 'sup', at: 1, status: 'pending', ...x });
+  await assertSucceeds(setDoc(doc(goo('new9'), 'k_requests', 'new9' + G), r('new9')));
+  await assertFails(setDoc(doc(goo('new8'), 'k_requests', 'other' + G), r('other')));
+  await assertFails(setDoc(doc(goo('new7'), 'k_requests', 'new7' + G), r('new7', { status: 'approved' })));
+  await assertFails(setDoc(doc(goo('new6'), 'k_requests', 'new6' + G), r('new6', { cat: 'chair' })));
+  await assertFails(getDoc(doc(goo('new9'), 'k_meta', 'locks')));
+  await assertFails(getDoc(doc(goo('new9'), 'students', '1001')));
+  await assertSucceeds(getDoc(doc(goo('sup1'), 'k_slots', 'none')));
+  await assertFails(getDoc(doc(goo('old1'), 'k_meta', 'locks')));
+  await assertFails(getDoc(doc(goo('off1'), 'k_meta', 'locks')));
+  await assertFails(updateDoc(doc(kacc('m1'), 'k_requests', 'req1' + G), { status: 'approved', decidedBy: 'm1' + K, decidedAt: 2 }));
+  await assertSucceeds(updateDoc(doc(kacc('d1'), 'k_requests', 'req1' + G), { status: 'approved', decidedBy: 'd1' + K, decidedAt: 2 }));
+  await assertSucceeds(getDoc(doc(as('admin'), 'k_requests', 'new9' + G)));
 });

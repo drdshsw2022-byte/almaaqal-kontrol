@@ -1,7 +1,7 @@
 // عامل الخدمة: يتيح تثبيت الكنترول كتطبيق وفتحه دون اتصال.
 // الشبكة أولاً لملفات التطبيق (فتظهر التحديثات فوراً)، والنسخة المخزنة عند انقطاع الاتصال.
 const CACHE = 'kontrol-v1';
-const SHELL = ['./', './index.html', './app.css', './app.js', './fb.js', './firebase-config.js', './manifest.webmanifest', './icon.svg', './crest.svg'];
+const SHELL = ['./', './index.html', './app.css', './app.js', './permits.js', './fb.js', './firebase-config.js', './manifest.webmanifest', './icon.svg', './crest.svg'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

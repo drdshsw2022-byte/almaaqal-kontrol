@@ -23,7 +23,8 @@ async function start() {
     db = fsM.getFirestore(app);
   }
   const auth = authM.getAuth(app);
-  return { app, db, auth, ...authM, ...fsM, projectId: cfg.projectId };
+  // initializeApp/deleteApp وcfg: لإنشاء الحسابات المخوّلة بتطبيق ثانوي دون إنهاء جلسة رئيس النظام
+  return { app, db, auth, ...authM, ...fsM, projectId: cfg.projectId, cfg, initializeApp: appM.initializeApp, deleteApp: appM.deleteApp };
 }
 
 start()

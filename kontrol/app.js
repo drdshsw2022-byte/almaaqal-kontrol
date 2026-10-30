@@ -287,7 +287,7 @@ async function computeVC(){if(vcBusy)return;vcBusy=true;let changed=false;
   vcBusy=false;if(changed)sched();}
 
 /* ============ مزامنة Firebase ============ */
-const RAW={colleges:new Map(),departments:new Map(),courses:new Map(),students:new Map(),staff:new Map(),staffx:new Map(),kmarks:new Map(),sgrades:new Map(),kroles:new Map()};
+const RAW={colleges:new Map(),departments:new Map(),courses:new Map(),students:new Map(),staff:new Map(),staffx:new Map(),kmarks:new Map(),sgrades:new Map(),kroles:new Map(),kreq:new Map()};
 const SHIFT_AR={morning:'صباحي',evening:'مسائي'};
 const PMAP=[['attendance','att'],['assignment','hw'],['project','proj'],['lab','lab'],['quiz','quiz'],['midterm','mid']];
 let rbT=0;function rebuild(){if(rbT)return;rbT=setTimeout(()=>{rbT=0;doRebuild();sched()},40)}
@@ -314,7 +314,7 @@ function fbSubscribe(){
   fbSub('k_audit',intoS('audit'),r=>FB.query(r,FB.orderBy('ts','desc'),FB.limit(500)));
   fbSub('k_appeals',intoS('appeals'));if(can('grade'))fbSub('k_marks',intoRaw(RAW.kmarks));
   if(can('ctrl'))fbSub('k_codes',intoS('codes'));
-  if(can('chair'))fbSub('k_roles',intoRaw(RAW.kroles));
+  if(can('chair')||KGRANT){fbSub('k_roles',intoRaw(RAW.kroles));kreqSubscribe()}
 }
 let GW={key:'',uns:[]};
 function watchGrades(){ // السعي: سجلات التدريسيين في تطبيق الحضور لمواد الفصل الحالي
@@ -337,23 +337,39 @@ function authErr(e){const c=(e&&e.code)||'';
   return(e&&e.message)||'تعذر الدخول.'}
 async function fbLogin(user,pass){const u=String(user||'').trim().toLowerCase();if(!u||!pass)throw new Error('أدخل اسم المستخدم وكلمة المرور.');
   if(/^\d{6,}$/.test(u))throw new Error('حسابات الطلبة لا تدخل نظام الكنترول.');
-  const authEmail=(u.includes('@')?u.split('@')[0]:u)+'@pw.almaaqal.app';
-  const pw='Mq#'+(await sha256(authEmail+'::'+pass)).slice(0,40);
-  try{await FB.signInWithEmailAndPassword(FB.auth,authEmail,pw)}catch(e){throw new Error(authErr(e))}}
+  const local=u.includes('@')?u.split('@')[0]:u;
+  // حسابات الكنترول المخوّلة (<اسم>@k.almaaqal.app) ثم حسابات تطبيق الحضور (<اسم>@pw.almaaqal.app)
+  const doms=local.includes('.')?[KDOM,'@pw.almaaqal.app']:['@pw.almaaqal.app',KDOM];let last=null;
+  for(const d of doms){try{await FB.signInWithEmailAndPassword(FB.auth,local+d,await kpw(local+d,pass));return}catch(e){last=e;if(!/invalid-credential|wrong-password|user-not-found|invalid-login/.test(e.code||''))break}}
+  throw new Error(authErr(last))}
 async function afterLogin(u){
-  if(String(u.email||'').endsWith('@st.almaaqal.app'))throw new Error('حسابات الطلبة لا تدخل نظام الكنترول.');
-  const email=await resolveStaffEmail(u.email);
-  let prof=null;try{const sd=await FB.getDoc(FB.doc(FB.db,'staff',email));prof=sd.exists()?sd.data():null}catch(x){}
-  let role='';
-  if(SUPER_ADMINS.includes(email)||(prof&&['admin','president'].includes(prof.role)))role='chair';
-  else{if(!prof)throw new Error('هذا الحساب غير مسجل في الكادر.');try{const r=await FB.getDoc(FB.doc(FB.db,'k_roles',email));role=r.exists()?r.data().role:''}catch(x){}}
-  if(!KROLES[role])throw new Error('لا تملك صلاحية في نظام الكنترول بعد. اطلب من رئيس اللجنة إضافتك من صفحة «صلاحيات الكنترول».');
-  ME=email;KROLE=role;IS_ADMIN=role==='chair';IS_TOP=SUPER_ADMINS.includes(email)||!!(prof&&['admin','president'].includes(prof.role));RO=role==='viewer';MEPROF={name:(prof&&prof.name)||email,email,role};
-  MODE='fb';fbSubscribe();showLogin(false);render();
+  const ae=String(u.email||'').toLowerCase();
+  if(ae.endsWith('@st.almaaqal.app'))throw new Error('حسابات الطلبة لا تدخل نظام الكنترول.');
+  const isK=ae.endsWith(KDOM);const google=(u.providerData||[]).some(p=>p.providerId==='google.com');
+  const email=isK?ae:await resolveStaffEmail(ae);
+  let prof=null;if(!isK){try{const sd=await FB.getDoc(FB.doc(FB.db,'staff',email));prof=sd.exists()?sd.data():null}catch(x){}}
+  let kr=null;try{const r=await FB.getDoc(FB.doc(FB.db,'k_roles',email));kr=r.exists()?r.data():null}catch(x){}
+  let role='';const top=SUPER_ADMINS.includes(email)||!!(prof&&['admin','president'].includes(prof.role));
+  if(top)role='chair';
+  else if(kr){
+    if(kr.off)throw new Error('تصريح دخولك موقوف. راجع من منحك التصريح.');
+    if(kr.until&&kr.until<Date.now())throw new Error('انتهت مدة تصريح دخولك ('+new Date(kr.until).toLocaleDateString('ar-IQ-u-nu-latn')+'). اطلب تجديده.');
+    if(isK&&kr.uid!==u.uid)throw new Error('هذا الحساب غير مربوط بتصريحه. راجع رئيس النظام.');
+    role=kr.role||'';
+  }
+  if(!KROLES[role]){
+    if(isK)throw new Error('هذا الحساب غير مفعّل في الكنترول. راجع رئيس النظام.');
+    if(google||prof)return joinFlow(u,email,prof);
+    throw new Error('هذا الحساب غير مسجل في الكادر.');
+  }
+  KRANK=(!top&&kr&&kr.rank)||'';KGRANT=KRANK in KRANK_CAT?KRANK_CAT[KRANK]:'';
+  ME=email;KROLE=role;IS_ADMIN=role==='chair';IS_TOP=top;RO=role==='viewer';
+  MEPROF={name:(prof&&prof.name)||(kr&&kr.name)||u.displayName||email,email,role,isK};
+  joinStop();MODE='fb';fbSubscribe();showLogin(false);render();
 }
-function showLogin(on,msg){const L=$('#login');L.hidden=!on;if(on){$('#lg_err').textContent=msg||'';$('#lg_btn').disabled=false;$('#lg_btn').textContent='دخول';$('#lg_google').hidden=MODE!=='auth';setTimeout(()=>{const x=$('#lg_user');if(x)x.focus()},50)}}
+function showLogin(on,msg){const L=$('#login');L.hidden=!on;if(on){$('#loginform').hidden=false;const J=$('#joinbox');if(J)J.hidden=true;$('#lg_retry').hidden=true;['#lg_user','#lg_pass','#lg_btn'].forEach(x=>$(x).closest('label,button').hidden=false);$('#lg_err').textContent=msg||'';$('#lg_btn').disabled=false;$('#lg_btn').textContent='دخول';$('#lg_google').hidden=MODE!=='auth';setTimeout(()=>{const x=$('#lg_user');if(x)x.focus()},50)}}
 function fbBoot(){FB=window.FBX;MODE='auth';renderNav();
-  FB.onAuthStateChanged(FB.auth,async u=>{if(!u){if(MODE==='fb'){fbUnsubscribe()}MODE='auth';ME='local';MEPROF=null;renderNav();$('#main').innerHTML='';showLogin(true);return}
+  FB.onAuthStateChanged(FB.auth,async u=>{if(!u){joinStop();if(MODE==='fb'){fbUnsubscribe()}MODE='auth';ME='local';MEPROF=null;renderNav();$('#main').innerHTML='';showLogin(true);return}
     try{await afterLogin(u)}catch(e){try{await FB.signOut(FB.auth)}catch(x){}MODE='auth';showLogin(true,errMsg(e))}});
   $('#loginform').addEventListener('submit',async ev=>{ev.preventDefault();const b=$('#lg_btn');
     const wait=loginWait();if(wait>0){showLogin(true,`محاولات خاطئة متكررة. أعد المحاولة بعد ${Math.ceil(wait/1000)} ثانية.`);return}
@@ -393,7 +409,7 @@ const VIEWS=[
   ['التخطيط',[['dash','لوحة القيادة'],['depts','الكليات والأقسام'],['students','الطلبة والأهلية'],['courses','المواد الدراسية'],['halls','القاعات'],['staff','الكادر وتعارض المصالح'],['exams','الجدول الامتحاني']]],
   ['يوم الامتحان',[['seating','توزيع المقاعد'],['duties','اللجان والمراقبون'],['envelopes','أظرف الأسئلة'],['attendance','الحضور والغياب'],['incidents','محاضر الغش']]],
   ['الكنترول',[['coding','التشفير والأرقام السرية'],['grading','رصد الدرجات'],['grace','الرأفة الآلية'],['master','الماستر شيت والنتائج'],['stats','التحليل الإحصائي'],['appeals','الاعتراضات']]],
-  ['الحوكمة',[['audit','سجل التدقيق'],['integrity','فحص سلامة البيانات'],['demo','البيانات التجريبية'],['verify','التحقق من الصدور'],['roles','صلاحيات الكنترول'],['settings','الإعدادات والبيانات']]],
+  ['الحوكمة',[['audit','سجل التدقيق'],['integrity','فحص سلامة البيانات'],['demo','البيانات التجريبية'],['verify','التحقق من الصدور'],['roles','تصاريح الدخول'],['settings','الإعدادات والبيانات']]],
 ];
 const VALID=new Set(VIEWS.flatMap(g=>g[1].map(x=>x[0])));
 const ROLE_VIEWS={
@@ -401,7 +417,7 @@ const ROLE_VIEWS={
   invigilator:['dash','exams','halls','seating','duties','envelopes','attendance','incidents','verify'],
   auditor:['dash','students','courses','exams','grading','master','stats','appeals','integrity','verify'],
 };
-function viewOk(k){if(k==='roles')return MODE==='fb'&&can('chair');if(MODE!=='fb')return true;const l=ROLE_VIEWS[KROLE];return !l||l.includes(k)}
+function viewOk(k){if(k==='roles')return MODE==='fb'&&(can('chair')||!!KGRANT);if(MODE!=='fb')return true;const l=ROLE_VIEWS[KROLE];return !l||l.includes(k)}
 let rq=false,deferred=false;
 function sched(){TICK++;if(rq)return;rq=true;requestAnimationFrame(()=>{rq=false;render()})}
 function editing(){const a=document.activeElement;return a&&$('#main').contains(a)&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)&&a.type!=='checkbox'&&a.type!=='button'}
@@ -413,19 +429,19 @@ function counts(){
   const mis=arr('grades').reduce((a,g)=>a+Object.values(g.rows||{}).filter(r=>finalOf(r).mismatch).length,0);
   const inc=arr('incidents').filter(x=>x.status!=='صدر القرار').length;
   const ap=apList().filter(apOpen).length;
-  return {grading:mis,incidents:inc,appeals:ap};
+  return {grading:mis,incidents:inc,appeals:ap,roles:MODE==='fb'?kreqPending().length:0};
 }
 function renderNav(){
   const c=counts();
-  $('#nav').innerHTML=MODE==='auth'?'':VIEWS.map(([g,items])=>[g,items.filter(([k])=>viewOk(k))]).filter(([,items])=>items.length).map(([g,items])=>`<div class="grp">${g}</div>`+items.map(([k,l])=>`<a href="#${k}" class="${UI.view===k?'on':''}" data-nav="${k}">${l}${c[k]?`<span class="badge ${k==='appeals'?'am':''}">${c[k]}</span>`:''}</a>`).join('')).join('');
+  $('#nav').innerHTML=(MODE==='auth'||MODE==='down')?'':VIEWS.map(([g,items])=>[g,items.filter(([k])=>viewOk(k))]).filter(([,items])=>items.length).map(([g,items])=>`<div class="grp">${g}</div>`+items.map(([k,l])=>`<a href="#${k}" class="${UI.view===k?'on':''}" data-nav="${k}">${l}${c[k]?`<span class="badge ${k==='appeals'?'am':''}">${c[k]}</span>`:''}</a>`).join('')).join('');
   
-  const me=$('#me');if(me){me.hidden=!(MODE==='fb'&&MEPROF);if(MEPROF)me.innerHTML=`<b>${esc(MEPROF.name)}</b><span class="mut">${esc(KROLES[KROLE]||'')}</span><button class="btn sm" data-act="logout">تسجيل الخروج</button>`}
-  $('#mode').innerHTML=MODE==='fb'?(navigator.onLine?`<span class="dot on"></span>متصل بقاعدة Firebase${RO?' · اطلاع فقط':''}`:`<span class="dot loc"></span>دون اتصال — التعديلات تُحفظ وتُزامَن لاحقاً`):MODE==='auth'?`<span class="dot"></span>بانتظار تسجيل الدخول`:MODE==='cloud'?`<span class="dot on"></span>متصل — بيانات مشتركة${RO?' · اطلاع فقط':''}`:MODE==='local'?`<span class="dot loc"></span>وضع محلي على هذا الجهاز`:`<span class="dot"></span>جارٍ الاتصال…`;
+  const me=$('#me');if(me){me.hidden=!(MODE==='fb'&&MEPROF);if(MEPROF)me.innerHTML=`<b>${esc(MEPROF.name)}</b><span class="mut">${esc(KRANKS[KRANK]||KROLES[KROLE]||'')}</span>${MEPROF.isK?'<button class="btn sm" data-act="kpass">تغيير كلمة المرور</button>':''}<button class="btn sm" data-act="logout">تسجيل الخروج</button>`}
+  $('#mode').innerHTML=MODE==='fb'?(navigator.onLine?`<span class="dot on"></span>متصل بقاعدة Firebase${RO?' · اطلاع فقط':''}`:`<span class="dot loc"></span>دون اتصال — التعديلات تُحفظ وتُزامَن لاحقاً`):MODE==='auth'?`<span class="dot"></span>بانتظار تسجيل الدخول`:MODE==='down'?`<span class="dot"></span>تعذر الاتصال بقاعدة البيانات`:MODE==='cloud'?`<span class="dot on"></span>متصل — بيانات مشتركة${RO?' · اطلاع فقط':''}`:MODE==='local'?`<span class="dot loc"></span>وضع محلي على هذا الجهاز`:`<span class="dot"></span>جارٍ الاتصال…`;
 }
 function render(){
   if(editing()){deferred=true;return}
   renderNav();
-  if(MODE==='boot'||MODE==='auth')return;
+  if(MODE==='boot'||MODE==='auth'||MODE==='down')return;
   if(!viewOk(UI.view))UI.view='dash';
   const v=VIEW[UI.view]||VIEW.dash;
   let h;try{h=v()}catch(e){console.error(e);h=`<div class="alert bad">تعذر عرض هذه الصفحة: ${esc(e.message)}</div>`}
@@ -570,6 +586,7 @@ VIEW.dash=()=>{
   const soon=apl.filter(a=>apOpen(a)&&!apLate(a,now)&&apDue(a)-now<12*36e5);if(soon.length)alerts.push(['',`${soon.length} اعتراض تنتهي مهلته خلال 12 ساعة.`,'appeals']);
   const wait=apl.filter(a=>a.st==='decision');if(wait.length&&can('chair'))alerts.push(['',`${wait.length} اعتراض بانتظار قرارك.`,'appeals']);
   const crit=integrityScan().filter(x=>x.sev==='bad').reduce((a,x)=>a+x.items.length,0);if(crit)alerts.push(['bad',`${crit} مشكلة حرجة في سلامة البيانات (تكرار أو درجات خارج المدى).`,'integrity']);
+  {const n=kreqPending().length;if(n)alerts.push(['',`${n} طلب انضمام ينتظر الموافقة.`,'roles'])}
   if(demoMeta())alerts.push(['',`النظام يحوي بيانات تجريبية (${(demoMeta().students||[]).length} طالباً). احذفها قبل الامتحانات الفعلية.`,'demo']);
   if(can('chair')&&MODE!=='cloud'){const b=S.meta.get('backup');if(!b||now-b.at>7*864e5)alerts.push(['',b?`آخر نسخة احتياطية قبل ${Math.floor((now-b.at)/864e5)} يوماً.`:'لم تُنزَّل نسخة احتياطية بعد.','settings'])}
   const noCoi=arr('staff').filter(p=>!p.coi).length;if(noCoi)alerts.push(['',`${noCoi} من الكادر بلا إقرار تعارض مصالح.`,'staff']);
@@ -770,16 +787,7 @@ VIEW.settings=()=>{
 <div class="card"><h3>البيانات والنسخ الاحتياطي</h3><p class="mut" style="margin-top:0">${MODE==='cloud'?'البيانات محفوظة في قاعدة مشتركة بين كل من يملك صلاحية على هذه الصفحة، وتتزامن لحظياً بين الحاسوب والهاتف والجهاز اللوحي.':'تعمل الآن في الوضع المحلي: البيانات محفوظة في هذا المتصفح فقط. للعمل المشترك أضف إعدادات Firebase في firebase-config.js.'}</p><div class="row"><button class="btn" data-act="backup">تنزيل نسخة احتياطية (JSON)</button><label class="btn"${RO?' style="opacity:.45"':''}>استعادة من نسخة<input type="file" id="restore" accept=".json,application/json" hidden${roBtn()}></label><button class="btn" data-act="sample"${roBtn()}>تحميل بيانات تجريبية</button>${UI.cdel==='ALL'?`<button class="btn bad" data-act="wipe"${roBtn()}>تأكيد مسح كل البيانات</button>`:`<button class="btn bad" data-act="askdel" data-k="ALL"${roBtn()}>مسح كل البيانات</button>`}</div></div>`);
 };
 
-VIEW.roles=()=>{
-  if(MODE!=='fb')return ph('صلاحيات الكنترول','')+empty('تعمل عند الربط بقاعدة Firebase','');
-  const staff=arr('staff').sort((a,b)=>String(a.name).localeCompare(String(b.name),'ar'));
-  const auto=p=>SUPER_ADMINS.includes(p.id)||['admin','president'].includes(p.role);
-  const n=k=>staff.filter(p=>!auto(p)&&(RAW.kroles.get(p.id)||{}).role===k).length;
-  return ph('صلاحيات الكنترول','الدخول بحساب تطبيق الحضور نفسه، والدور هنا يحدد ما يراه كل عضو. مدير النظام والإدارة العليا رؤساء للكنترول تلقائياً. تحمي قواعد Firestore هذه الحدود على الخادم، لا في الواجهة فقط.')+
-  `<div class="grid g4" style="margin-bottom:12px">${Object.entries(KROLES).map(([k,l])=>`<div class="card kpi"><b>${n(k)+(k==='chair'?staff.filter(auto).length:0)}</b><span>${l}</span></div>`).join('')}</div>`+
-  `<div class="note" style="margin-bottom:12px"><b>رئيس اللجنة:</b> كل شيء، ومنه فك التشفير والمصادقة ونشر النتائج والصلاحيات. <b>عضو كنترول:</b> كل العمل عدا ذلك. <b>مدقق درجات:</b> الإدخال الثاني والدور الثاني فقط. <b>مراقب:</b> الحضور والأظرف ومحاضر الغش يوم الامتحان. <b>اطلاع:</b> قراءة فقط.</div>`+
-  `<div class="tw"><table><thead><tr><th>العضو</th><th>صفته في نظام الحضور</th><th>دوره في الكنترول</th></tr></thead><tbody>${staff.map(p=>`<tr><td>${esc(p.name)}<div class="mut mono" style="font-size:12px">${esc(p.id)}</div></td><td>${esc(ROLE_AR[p.role]||p.role||'—')}</td><td>${auto(p)?'<span class="pill acc">رئيس اللجنة (تلقائي)</span>':`<select data-krole="${esc(p.id)}">${opt('','بلا صلاحية',(RAW.kroles.get(p.id)||{}).role||'')}${Object.entries(KROLES).map(([k,l])=>opt(k,l,(RAW.kroles.get(p.id)||{}).role||'')).join('')}</select>`}</td></tr>`).join('')}</tbody></table></div>`;
-};
+// صفحة «تصاريح الدخول» وطلبات الانضمام في permits.js
 
 /* ============ الإجراءات ============ */
 const ACT={};
@@ -1364,6 +1372,7 @@ document.addEventListener('submit',e=>{const f=e.target.closest('form[data-form]
   if(f.dataset.form==='verify'){UI.vq=f.elements.vq.value.trim().toUpperCase();const hit=[...VC.entries()].find(([,v])=>v.code===UI.vq);UI.vres=hit?{found:true,s:S.students.get(hit[0]),k:hit[1].k}:{found:false};render();return}
   if(f.dataset.form==='xlsx'){const b=f.querySelector('button[type=submit]');b.disabled=true;b.textContent='جارٍ الحفظ…';Promise.resolve().then(commitImport).catch(err=>{b.disabled=false;b.textContent='مزامنة وحفظ';toast(errMsg(err),'bad')});return}
   if(f.dataset.form==='ret'){const eid=f.dataset.id;const cnt=num(f.elements.count.value);Promise.resolve().then(async()=>{await patch('envelopes',eid,{ret:{at:Date.now(),by:ME,count:cnt}});await log('ظرف امتحاني',`أُعيد ${cnt} دفتراً — ${label.exams(S.exams.get(eid))}`);closeModal()}).catch(err=>toast(errMsg(err),'bad'));return}
+  if(KFORMS[f.dataset.form]){const b=f.querySelector('button[type=submit]');if(b)b.disabled=true;Promise.resolve().then(()=>KFORMS[f.dataset.form](f)).catch(err=>{const el=f.querySelector('.ferr')||$('#ferr');if(el)el.textContent=errMsg(err);else toast(errMsg(err),'bad')}).finally(()=>{if(b)b.disabled=false});return}
   Promise.resolve().then(()=>submitForm(f)).catch(err=>{const el=$('#ferr');if(el)el.textContent=errMsg(err);else toast(errMsg(err),'bad')});
 });
 document.addEventListener('change',e=>{
@@ -1374,6 +1383,7 @@ document.addEventListener('change',e=>{
   if(t.dataset.draft&&t.type==='checkbox'){setDraft(t);render();return}
   if(t.dataset.hall){const sd=S.slots.get(UI.slot);if(sd&&!RO){patch('slots',UI.slot,{halls:hallsChecked()}).catch(()=>{})}else render();return}
   if(t.dataset.com){patch('meta','committee',{[t.dataset.com]:t.value||null}).then(()=>log('تشكيل اللجنة',t.closest('label').firstChild.textContent+': '+label.staff(S.staff.get(t.value)))).catch(err=>toast(errMsg(err),'bad'));return}
+  if(t.dataset.kuntil!==undefined){kSetUntil(t.dataset.kuntil,t.value).catch(err=>toast(errMsg(err),'bad'));return}
   if(t.dataset.krole!==undefined){const em=t.dataset.krole,r=t.value;const ref=FB.doc(FB.db,'k_roles',em);
     settle(r?FB.setDoc(ref,{role:r,by:ME,at:Date.now()}):FB.deleteDoc(ref)).then(()=>log('صلاحيات الكنترول',`${label.staff(S.staff.get(em))} ← ${KROLES[r]||'بلا صلاحية'}`)).then(()=>toast('حُفظت الصلاحية')).catch(err=>toast(errMsg(err),'bad'));return}
   if(t.dataset.rubric){patch('envelopes',t.dataset.rubric,{rubric:t.checked}).catch(err=>toast(errMsg(err),'bad'));return}
@@ -1419,10 +1429,13 @@ async function boot(){
   }else{
     await fbReady();
     if(window.FBX){fbBoot();return}
+    // النسخة المنشورة لا تعمل أبداً دون قاعدة البيانات ودون تسجيل دخول
+    if(location.protocol==='https:'&&!/^(localhost|127\.|\[::1\])/.test(location.hostname)){MODE='down';renderNav();$('#main').innerHTML='';showDown(window.FBX_ERROR);return}
     if(window.FBX_ERROR)toast('تعذر الاتصال بـ Firebase، يعمل النظام محلياً: '+window.FBX_ERROR,'bad');
     MODE='local';
     if(!loadLocal()){await loadSample()}
   }
   render();
 }
+kpInstall();
 boot();
