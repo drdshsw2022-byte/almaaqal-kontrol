@@ -243,6 +243,8 @@
           <span class="status-text">جارٍ فحص الخدمات…</span>
         </a>
 
+        <!-- التوقيت والطقس والزوار متجاورة -->
+        <div class="flex flex-wrap items-center justify-center gap-2">
         <!-- ENHANCED CYBER CHRONOMETER HUD (الساعة الرقمية المطورة) -->
         <div class="flex items-center gap-2 px-3 py-1.5 rounded-2xl border border-amber-500/50 shadow-md transition-all" style="background: var(--hud-bg);">
           
@@ -274,6 +276,23 @@
             <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-600/15 text-amber-800 dark:text-amber-300 font-mono font-extrabold">GMT+3</span>
           </div>
 
+        </div>
+
+        <!-- الطقس الآن وعداد الزوار (بجانب التوقيت) -->
+        <div class="flex items-center gap-2 text-xs font-bold">
+          <span id="wxChip" class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border border-amber-500/50 shadow-md text-amber-900 dark:text-amber-300" style="background: var(--hud-bg);" title="الطقس الآن في البصرة">
+            <span id="wxIcon" class="text-base" style="line-height:1" aria-hidden="true">⛅</span>
+            <b id="wxTemp" class="font-mono text-sm" dir="ltr">--°</b>
+            <span id="wxDesc" class="hidden sm:inline text-gray-700 dark:text-gray-300">الطقس</span>
+          </span>
+          <span id="visChip" class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border border-amber-500/50 shadow-md text-gray-800 dark:text-gray-200" style="background: var(--hud-bg);" title="عدد زوار البوابة">
+            <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            <span class="hidden sm:inline">الزوار</span>
+            <b id="visTotal" class="font-mono text-emerald-700 dark:text-emerald-400" dir="ltr">—</b>
+            <span class="text-gray-500 dark:text-gray-400">· اليوم</span>
+            <b id="visToday" class="font-mono text-emerald-700 dark:text-emerald-400" dir="ltr">—</b>
+          </span>
+        </div>
         </div>
 
         <div class="flex items-center gap-2">
@@ -457,21 +476,6 @@
               <span class="flex items-center gap-1.5 bg-black/40 px-3 py-1.5 rounded-lg border border-amber-500/30">
                 <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                 Cyber Security Engineering
-              </span>
-              <!-- الطقس الآن في البصرة -->
-              <span id="wxChip" class="flex items-center gap-1.5 bg-black/40 px-3 py-1.5 rounded-lg border border-amber-500/30" title="الطقس الآن في البصرة">
-                <span id="wxIcon" aria-hidden="true">⛅</span>
-                <span class="font-sans">البصرة</span>
-                <b id="wxTemp" class="text-amber-300" dir="ltr">--°</b>
-                <span id="wxDesc" class="font-sans text-gray-300">جارٍ جلب الطقس…</span>
-              </span>
-              <!-- عداد الزوار -->
-              <span id="visChip" class="flex items-center gap-1.5 bg-black/40 px-3 py-1.5 rounded-lg border border-amber-500/30" title="عدد زوار البوابة">
-                <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                <span class="font-sans">الزوار</span>
-                <b id="visTotal" class="text-emerald-300" dir="ltr">—</b>
-                <span class="font-sans text-gray-400">· اليوم</span>
-                <b id="visToday" class="text-emerald-300" dir="ltr">—</b>
               </span>
               <a href="https://drdshsw2022-byte.github.io/almaaqal-kontrol/kontrol/" target="_blank" rel="noopener" class="btn-gold flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-sans text-xs">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
