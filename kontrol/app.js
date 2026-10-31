@@ -50,7 +50,7 @@ const SHARED_RO=new Set(['depts','courses','students']);
 const SHARED_MSG='هذه البيانات تُدار من نظام الحضور (لوحة الإدارة) وتظهر هنا تلقائياً.';
 const KROLES={chair:'رئيس اللجنة',member:'عضو كنترول',auditor:'مدقق درجات',invigilator:'مراقب',viewer:'اطلاع'};
 const ROLE_AR={admin:'مدير النظام',president:'الإدارة العليا',dean:'عميد كلية',head:'رئيس قسم',doctor:'تدريسي'};
-const SUPER_ADMINS=['drdsh.sw2022@gmail.com'];
+const SUPER_ADMINS=['drdsh.sw2022@gmail.com','it.basra@gmail.com'];
 let IS_TOP=true; // مدير النظام والإدارة العليا: يكتبون هيكل الجامعة (colleges/departments)
 /* هيكل جامعة المعقل الدولية: الكليات والأقسام كما تنشرها مواقع الجامعة وكلياتها.
    kw: كلمات تطابق قسماً موجوداً مسبقاً في قاعدة الحضور فيُحتفظ برمزه واسمه. */

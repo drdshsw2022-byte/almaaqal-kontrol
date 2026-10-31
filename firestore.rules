@@ -28,7 +28,7 @@ service cloud.firestore {
 
     // المدير العام (عدّل القائمة لتطابق superAdminEmails في config.dart)
     function isSuperAdmin() {
-      return signedIn() && authEmail() in ['drdsh.sw2022@gmail.com'];
+      return signedIn() && authEmail() in ['drdsh.sw2022@gmail.com', 'it.basra@gmail.com'];
     }
 
     function isMember() {

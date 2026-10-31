@@ -24,7 +24,7 @@ const PROJECT_ID = 'almaqal-uni';
 const CERTS_URL = 'https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com';
 // يجب أن تطابق access.js
 // المدراء (السلطة المطلقة). لإضافة مدير احتياطي أضف بريده هنا وفي access.js
-const ADMINS = ['drdsh.sw2022@gmail.com'];
+const ADMINS = ['drdsh.sw2022@gmail.com', 'it.basra@gmail.com'];
 const DOMAINS = ['almaaqal.edu.iq'];
 const STAFF_DOMAIN = 'pw.almaaqal.app';
 const BLOCKED = [];

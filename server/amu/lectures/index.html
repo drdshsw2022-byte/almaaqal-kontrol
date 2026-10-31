@@ -420,7 +420,7 @@ async function loadFile(){
 }
 /* ---------- university account (same Firebase as the attendance app) ---------- */
 const STAGES = {1:'المرحلة الأولى',2:'المرحلة الثانية',3:'المرحلة الثالثة',4:'المرحلة الرابعة',5:'المرحلة الخامسة'};
-const SUPER_ADMINS = ['drdsh.sw2022@gmail.com'];
+const SUPER_ADMINS = ['drdsh.sw2022@gmail.com', 'it.basra@gmail.com'];
 const U = { ready:false, busy:false, user:null, kind:null, me:null, email:'', settings:{ currentTerm:1, warnPercent:10, failPercent:15 },
   deptName:'', courses:[], lessons:{}, summary:{}, staffCourse:null, staffData:{}, err:'' };
 async function sha256(s){ const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2,'0')).join(''); }

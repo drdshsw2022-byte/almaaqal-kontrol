@@ -5,13 +5,15 @@
 //    وهي حسابات تطبيق الحضور نفسها (<اسم المستخدم>@pw.almaaqal.app)
 // لا تُقبل حسابات Gmail للأساتذة؛ الأستاذ يدخل باسم المستخدم فقط.
 window.AMU_ACCESS = {
-  admins: ['drdsh.sw2022@gmail.com'],
+  admins: ['drdsh.sw2022@gmail.com', 'it.basra@gmail.com'], // المدير الرئيسي والمدير الاحتياطي
   domains: ['almaaqal.edu.iq'],
   staffDomain: 'pw.almaaqal.app',
   // حسابات ممنوعة من الدخول حتى لو طابقت ما سبق (أضف البريد أو اسم المستخدم@pw.almaaqal.app)
   blocked: [],
   // بريد إدارة نظام الكنترول: إليه تُرسل طلبات التنزيل
-  adminEmail: 'drdsh.sw2022@gmail.com'
+  adminEmail: 'drdsh.sw2022@gmail.com',
+  // الدعم الفني: تُرسل الرسائل إلى البريدين معاً، مع رقم الهاتف للاتصال وواتساب
+  support: { emails: ['it.basra@gmail.com', 'drdsh.sw2022@gmail.com'], phone: '+9647730477667' }
 };
 window.AMU_ACCESS.norm = (e) => String(e || '').trim().toLowerCase();
 window.AMU_ACCESS.isAdmin = function (email) { const e = this.norm(email); return !!e && this.admins.some((x) => this.norm(x) === e); };
