@@ -49,6 +49,10 @@ jobs:
           if [ "$code" = "401" ]; then echo "✅ حماية تنزيل التطبيق (401)"; else echo "::error title=تنزيل التطبيق::apk.php أعاد $code بدل 401"; fail=1; fi
           code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 25 https://it-basra.com/amu/apk.php?meta=1 || echo 000)
           if [ "$code" = "200" ]; then echo "✅ ملف التطبيق موجود"; else echo "::error title=ملف التطبيق::apk.php?meta=1 أعاد $code (هل ملف private/almaqal-12.apk موجود؟)"; fail=1; fi
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 25 -X POST -d token= https://it-basra.com/amu/library/book.php || echo 000)
+          if [ "$code" = "401" ]; then echo "✅ حماية قراءة الكتب (401)"; else echo "::error title=قراءة الكتب::book.php أعاد $code بدل 401"; fail=1; fi
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 25 https://it-basra.com/amu/library/files/ || echo 000)
+          if [ "$code" = "200" ]; then echo "::error title=تسرّب::مجلد ملفات الكتب يُفتح مباشرة"; fail=1; else echo "✅ مجلد ملفات الكتب مغلق ($code)"; fi
           for f in private/almaqal-12.apk private/apk-secret.php almaqal-12.apk; do
             code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 25 "https://it-basra.com/amu/$f" || echo 000)
             if [ "$code" = "200" ]; then echo "::error title=تسرّب::$f يُنزَّل مباشرة"; fail=1; else echo "✅ $f غير متاح ($code)"; fi
