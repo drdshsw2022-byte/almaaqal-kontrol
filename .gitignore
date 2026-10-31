@@ -7,3 +7,5 @@ portal/private/*
 portal/library/files/*
 !portal/library/files/.htaccess
 portal/library/covers/*.jpg
+portal/colleges.json
+portal/private/requests-data.php

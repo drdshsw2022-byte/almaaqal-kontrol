@@ -217,6 +217,29 @@
     .sup-alt:hover { border-color: #F59E0B; color: #B45309; }
     .sup-alt svg { width: 16px; height: 16px; }
     #supWa svg { color: #16A34A; }
+    .dept-btn { margin-inline-start: 4px; padding: 1px 9px; border-radius: 99px; border: 1px solid rgba(251,191,36,.6); background: rgba(0,0,0,.25); color: #FDE68A; font: 800 11px 'Cairo', sans-serif; cursor: pointer; }
+    .dept-btn:hover { background: rgba(245,158,11,.3); }
+    .dept-dlg { position: fixed; inset: 0; z-index: 70; display: none; align-items: center; justify-content: center; padding: 16px; background: rgba(2,4,10,.6); backdrop-filter: blur(4px); }
+    .dept-dlg.open { display: flex; }
+    .dept-card { width: min(520px, 100%); max-height: 86vh; overflow: auto; padding: 18px; border-radius: 20px; background: var(--glass-surface); border: 1.5px solid var(--glass-border); box-shadow: 0 24px 50px -12px rgba(0,0,0,.45); color: var(--text-primary); text-align: right; }
+    .dept-card h3 { margin: 0 0 4px; font-weight: 900; font-size: 18px; }
+    .dept-card p { margin: 0 0 12px; font-size: 13px; color: var(--text-secondary); font-weight: 600; }
+    .dept-col { margin-top: 10px; }
+    .dept-col b { display: block; font-size: 13px; font-weight: 900; color: #B45309; margin-bottom: 6px; }
+    .dark .dept-col b { color: #FBBF24; }
+    .dept-col div { display: flex; flex-wrap: wrap; gap: 6px; }
+    .dept-col button { padding: 6px 12px; border-radius: 10px; border: 1.5px solid var(--glass-border); background: transparent; color: var(--text-primary); font: 700 13px 'Cairo', sans-serif; cursor: pointer; }
+    .dept-col button.on, .dept-col button:hover { background: linear-gradient(135deg, #F59E0B, #B45309); color: #fff; border-color: transparent; }
+    .sup-form { display: flex; flex-direction: column; gap: 8px; }
+    .sup-form textarea, .sup-form input { width: 100%; padding: 9px 11px; border-radius: 12px; border: 1.5px solid var(--glass-border); background: var(--glass-surface); color: var(--text-primary); font: 600 13.5px 'Cairo', sans-serif; outline: none; resize: vertical; }
+    .sup-form textarea:focus, .sup-form input:focus { border-color: #F59E0B; }
+    .sup-ok { margin: 0; font-size: 12.5px; font-weight: 800; color: #15803D; text-align: center; }
+    .sup-ok.bad { color: #B91C1C; }
+    .sup-mine { background: none; border: 0; color: #B45309; font: 800 12.5px 'Cairo', sans-serif; cursor: pointer; text-decoration: underline; padding: 2px; }
+    .dark .sup-mine { color: #FBBF24; }
+    .sup-list { max-height: 220px; overflow: auto; display: flex; flex-direction: column; gap: 6px; }
+    .sup-list div { border: 1px solid var(--glass-border); border-radius: 10px; padding: 7px 9px; font-size: 12px; color: var(--text-secondary); line-height: 1.7; }
+    .sup-list b { color: var(--text-primary); }
     .sup-ph { margin: 0; text-align: center; font: 800 12px 'JetBrains Mono', monospace; color: var(--text-secondary); }
     .sup-panel p { margin: 0; font-size: 12.5px; font-weight: 600; line-height: 1.8; color: var(--text-secondary); }
     .sup-panel a { text-decoration: none; }
@@ -466,7 +489,8 @@
           <div class="flex-1 text-center md:text-right space-y-2">
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 text-xs font-bold">
               <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-              <span>كلية الهندسة · قسم هندسة الأمن السيبراني · المرحلة الثالثة</span>
+              <span id="deptLabel">كلية الهندسة · قسم هندسة الأمن السيبراني</span>
+              <button type="button" id="deptBtn" class="dept-btn" aria-haspopup="dialog">تغيير القسم ▾</button>
             </div>
 
             <h1 class="text-3xl sm:text-4xl lg:text-5xl font-display font-extrabold text-white tracking-tight leading-tight">
@@ -487,7 +511,7 @@
               </span>
               <span class="flex items-center gap-1.5 bg-black/40 px-3 py-1.5 rounded-lg border border-amber-500/30">
                 <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                Cyber Security Engineering
+                <span id="deptName2" style="font-family:Cairo,sans-serif;letter-spacing:0">هندسة الأمن السيبراني</span>
               </span>
               <a href="https://drdshsw2022-byte.github.io/almaaqal-kontrol/kontrol/" target="_blank" rel="noopener" class="btn-gold flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-sans text-xs">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
@@ -947,7 +971,7 @@
             </div>
             <div>
               <p class="font-display font-extrabold text-gray-900 dark:text-white text-sm">جامعة المعقل الدولية · كلية الهندسة</p>
-              <p class="text-xs text-amber-800 dark:text-amber-400 font-mono font-bold">قسم هندسة الأمن السيبراني · Al-Maaqal International University</p>
+              <p class="text-xs text-amber-800 dark:text-amber-400 font-mono font-bold"><span id="footDept">قسم هندسة الأمن السيبراني</span> · Al-Maaqal International University</p>
             </div>
           </div>
 
@@ -978,17 +1002,82 @@
 
 
   <!-- ===== الدعم الفني (زر عائم بشعار الموقع) ===== -->
+  <!-- ===== اختيار الكلية والقسم ===== -->
+  <div class="dept-dlg" id="deptDlg" role="dialog" aria-modal="true" aria-labelledby="deptTitle">
+    <div class="dept-card">
+      <h3 id="deptTitle">اختر كليتك وقسمك</h3>
+      <p>تظهر لك إعلانات قسمك ومواعيده فقط، ويُحفظ اختيارك على هذا الجهاز.</p>
+      <div id="deptList">جارٍ التحميل…</div>
+    </div>
+  </div>
+  <script>
+  (function () {
+    const KEY = 'amu_dept';
+    const DEF = { id: '', name: 'هندسة الأمن السيبراني', cid: '', cname: 'كلية الهندسة', def: 1 };
+    let cur = null; try { cur = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
+    let LIST = null;
+    const strip = (s) => String(s || '').replace(/^قسم\s+/, '');
+    function paint() {
+      const d = cur || DEF;
+      document.getElementById('deptLabel').textContent = (d.cname ? d.cname + ' · ' : '') + 'قسم ' + strip(d.name);
+      document.getElementById('deptName2').textContent = strip(d.name);
+      document.getElementById('footDept').textContent = 'قسم ' + strip(d.name);
+    }
+    window.AMU_DEPT = { get: () => cur || DEF };
+    paint();
+    async function load() {
+      if (LIST) return LIST;
+      const r = await fetch(/(^|\.)it-basra\.com$/.test(location.hostname) ? 'colleges.json' : 'https://it-basra.com/amu/colleges.json', { cache: 'no-cache' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      LIST = (await r.json()).colleges || [];
+      return LIST;
+    }
+    const esc = (s) => String(s || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    async function open() {
+      const dlg = document.getElementById('deptDlg'), box = document.getElementById('deptList');
+      dlg.classList.add('open');
+      try {
+        const L = await load(); const me = cur || DEF;
+        box.innerHTML = L.map((c) => `<div class="dept-col"><b>${esc(c.name)}</b><div>${(c.depts || []).map((d) => `<button type="button" data-id="${esc(d.id)}" data-c="${esc(c.id)}" class="${d.id === me.id || (!me.id && strip(d.name) === strip(me.name)) ? 'on' : ''}">${esc(strip(d.name))}</button>`).join('') || '<span>—</span>'}</div></div>`).join('') || 'لم تُنشر قائمة الكليات بعد.';
+      } catch (e) { box.textContent = 'تعذّر تحميل قائمة الكليات. حاول لاحقاً.'; }
+    }
+    document.getElementById('deptBtn').addEventListener('click', open);
+    document.getElementById('deptDlg').addEventListener('click', (e) => {
+      if (e.target.id === 'deptDlg') { e.currentTarget.classList.remove('open'); return; }
+      const b = e.target.closest('button[data-id]'); if (!b || !LIST) return;
+      const c = LIST.find((x) => x.id === b.dataset.c), d = c && c.depts.find((x) => x.id === b.dataset.id);
+      if (!d) return;
+      cur = { id: d.id, name: d.name, cid: c.id, cname: c.name };
+      try { localStorage.setItem(KEY, JSON.stringify(cur)); } catch (x) {}
+      paint(); document.getElementById('deptDlg').classList.remove('open');
+      window.dispatchEvent(new Event('amu-dept'));
+    });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') document.getElementById('deptDlg').classList.remove('open'); });
+  })();
+  </script>
+
   <button type="button" class="sup-fab" id="supFab" aria-expanded="false" aria-controls="supPanel" aria-label="الدعم الفني">
     <span class="sup-orb"><img src="icons/icon-192.png" alt=""></span>
     <span class="lbl">الدعم الفني</span>
   </button>
   <div class="sup-panel" id="supPanel" role="dialog" aria-label="الدعم الفني">
     <h4><img src="icons/icon-192.png" alt="">الدعم الفني</h4>
-    <p>فريق هندسة الحاسوب ونظم المعلومات. راسلنا بأي مشكلة في البوابة أو التطبيق أو الكتب الإلكترونية أو منصة الاختبارات، وسنرد عليك في أقرب وقت.</p>
-    <a id="supMail" class="btn-gold flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm" href="#">
-      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-      <span>راسل الدعم الفني</span>
-    </a>
+    <p>اكتب المشكلة في البوابة أو التطبيق أو الكتب الإلكترونية أو منصة الاختبارات، فتصل إلى فريق الدعم برقم تتابع به حالتها.</p>
+    <form id="supForm" class="sup-form" novalidate>
+      <textarea id="supMsg" rows="3" maxlength="2000" placeholder="صف المشكلة باختصار…" required></textarea>
+      <div id="supGuest" class="sup-row">
+        <input id="supName" maxlength="80" placeholder="اسمك" autocomplete="name">
+        <input id="supContact" maxlength="120" placeholder="هاتفك أو بريدك" dir="auto" autocomplete="tel">
+      </div>
+      <input type="text" name="website" id="supHp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;width:1px;height:1px" aria-hidden="true">
+      <button id="supSend" type="submit" class="btn-gold flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm" style="width:100%;border:0;cursor:pointer;font-weight:800">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+        <span>إرسال إلى الدعم الفني</span>
+      </button>
+      <p id="supOk" class="sup-ok" role="status" hidden></p>
+    </form>
+    <button id="supMine" type="button" class="sup-mine" hidden>طلباتي وردود الدعم</button>
+    <div id="supList" class="sup-list" hidden></div>
     <div class="sup-row">
       <a id="supCall" class="sup-alt" href="tel:+9647730477667">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.95.68l1.5 4.49a1 1 0 01-.5 1.21l-2.26 1.13a11.04 11.04 0 005.52 5.52l1.13-2.26a1 1 0 011.21-.5l4.49 1.5a1 1 0 01.68.95V19a2 2 0 01-2 2h-1C9.72 21 3 14.28 3 6V5z"/></svg>
@@ -1015,13 +1104,42 @@
     fab.addEventListener('click', (e) => { e.stopPropagation(); toggle(!panel.classList.contains('open')); });
     document.addEventListener('click', (e) => { if (!panel.contains(e.target) && e.target !== fab) toggle(false); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') toggle(false); });
-    document.getElementById('supMail').addEventListener('click', (e) => {
+    // طلب الدعم يُحفظ على السيرفر (requests.php) ويتابعه المدير من لوحة مدير النظام
+    const REQ_API = /(^|\.)it-basra\.com$/.test(location.hostname) ? 'requests.php' : 'https://it-basra.com/amu/requests.php';
+    const $s = (id) => document.getElementById(id);
+    const stNow = () => window.AMU_AUTH && window.AMU_AUTH.state;
+    function supSync() { const st = stNow(); const inn = !!(st && st.status === 'in'); $s('supGuest').hidden = inn; $s('supMine').hidden = !inn; }
+    if (window.AMU_AUTH) window.AMU_AUTH.onChange(supSync); else supSync();
+    function supSay(t, bad) { const e = $s('supOk'); e.hidden = false; e.textContent = t; e.classList.toggle('bad', !!bad); }
+    $s('supForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const st = window.AMU_AUTH && window.AMU_AUTH.state;
-      const who = st && st.user ? (st.staff ? st.username + ' (أستاذ)' : st.user.email) : 'زائر';
-      const body = ['السلام عليكم،', '', 'المشكلة: ', '', '—', 'الحساب: ' + who, 'الصفحة: ' + location.href, 'الجهاز: ' + navigator.userAgent].join('\n');
-      location.href = 'mailto:' + to + '?subject=' + encodeURIComponent('طلب دعم فني — بوابة جامعة المعقل') + '&body=' + encodeURIComponent(body);
-      toggle(false);
+      const st = stNow(), msg = $s('supMsg').value.trim();
+      if (msg.length < 5) return supSay('اكتب وصفاً للمشكلة.', 1);
+      const p = { action: 'create', type: 'support', msg, page: location.href, website: $s('supHp').value };
+      if (st && st.status === 'in') p.token = await st.user.getIdToken();
+      else {
+        p.name = $s('supName').value.trim(); p.contact = $s('supContact').value.trim();
+        if (!p.name || p.contact.length < 6) return supSay('اكتب اسمك ورقم هاتفك أو بريدك حتى نتواصل معك.', 1);
+      }
+      const b = $s('supSend'); b.disabled = true;
+      try {
+        const r = await fetch(REQ_API, { method: 'POST', body: new URLSearchParams(p) });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.error || 'تعذّر الإرسال. جرّب الاتصال أو واتساب.');
+        $s('supMsg').value = ''; supSay('✓ وصل طلبك برقم ' + j.id + (p.token ? '. تابع الرد من «طلباتي».' : '. سنتواصل معك قريباً.'));
+      } catch (err) { supSay(err.message, 1); }
+      finally { b.disabled = false; }
+    });
+    const ST_AR = { new: 'جديد', working: 'قيد المعالجة', closed: 'أُغلق' };
+    $s('supMine').addEventListener('click', async () => {
+      const box = $s('supList'); box.hidden = !box.hidden; if (box.hidden) return;
+      box.innerHTML = '<div>جارٍ التحميل…</div>';
+      try {
+        const r = await fetch(REQ_API, { method: 'POST', body: new URLSearchParams({ action: 'mine', token: await stNow().user.getIdToken() }) });
+        const j = await r.json();
+        const e2 = (x) => String(x || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        box.innerHTML = (j.items || []).map((x) => `<div><b>${e2(x.id)}</b> · ${ST_AR[x.status] || ''}<br>${e2(x.book ? 'تنزيل: ' + x.book.t : x.msg).slice(0, 120)}${x.reply ? '<br><b>الرد:</b> ' + e2(x.reply) : ''}</div>`).join('') || '<div>لا طلبات بعد.</div>';
+      } catch (err) { box.innerHTML = '<div>تعذّر التحميل.</div>'; }
     });
   })();
   </script>
@@ -1637,7 +1755,7 @@
     const HEADERS = {
       kind: ['النوع', 'نوع'], title: ['العنوان او الماده', 'العنوان', 'الماده'], body: ['التفاصيل', 'الوصف'],
       date: ['التاريخ'], time: ['الوقت', 'الساعه'], place: ['المكان', 'القاعه'], cat: ['التصنيف', 'الاهميه'],
-      pin: ['تثبيت', 'مثبت'], link: ['رابط', 'الرابط']
+      pin: ['تثبيت', 'مثبت'], link: ['رابط', 'الرابط'], dept: ['القسم', 'الكليه', 'الجهه', 'لمن']
     };
     const POSITIONS = { kind: 0, title: 1, body: 2, date: 3, time: 4, place: 5, cat: 6, pin: 7, link: 8 };
 
@@ -1650,7 +1768,9 @@
         const i = head.findIndex((h) => HEADERS[k].map(norm).includes(h));
         col[k] = i >= 0 ? i : POSITIONS[k];
       });
-      const get = (r, k) => String(r[col[k]] == null ? '' : r[col[k]]).trim();
+      // عمود «القسم» اختياري: إن لم يوجد يظهر كل شيء للجميع
+      col.dept = head.findIndex((h) => HEADERS.dept.map(norm).includes(h));
+      const get = (r, k) => (col[k] < 0 ? '' : String(r[col[k]] == null ? '' : r[col[k]]).trim());
       const exams = [], announcements = [];
       rows.slice(1).forEach((r) => {
         const kind = norm(get(r, 'kind'));
@@ -1659,13 +1779,13 @@
         const date = isoOf(parseSheetDate(get(r, 'date')));
         if (/^(امتحان|اختبار|تسليم|موعد|واجب|مشروع|exam|deadline)/.test(kind)) {
           if (!date) return;
-          exams.push({ subject: title, type: get(r, 'cat'), date, time: parseSheetTime(get(r, 'time')), place: get(r, 'place'), note: get(r, 'body') });
+          exams.push({ subject: title, type: get(r, 'cat'), date, time: parseSheetTime(get(r, 'time')), place: get(r, 'place'), note: get(r, 'body'), dept: get(r, 'dept') });
         } else if (/^(اعلان|تبليغ|تنبيه|خبر|announcement|news)/.test(kind)) {
           const cat = norm(get(r, 'cat'));
           const level = /هام|مهم|عاجل|important|urgent/.test(cat) ? 'important' : /تذكير|reminder/.test(cat) ? 'reminder' : 'info';
           const pin = /^(نعم|ايوه|اي|yes|y|true|1|✓|✔|x)$/.test(norm(get(r, 'pin')));
           const link = get(r, 'link');
-          announcements.push({ title, body: get(r, 'body'), date, level, pinned: pin, link: link || undefined, linkText: link ? (link.startsWith('#') ? 'اذهب إلى القسم' : 'التفاصيل') : undefined });
+          announcements.push({ title, body: get(r, 'body'), date, level, pinned: pin, link: link || undefined, linkText: link ? (link.startsWith('#') ? 'اذهب إلى القسم' : 'التفاصيل') : undefined, dept: get(r, 'dept') });
         }
         // أي نوع آخر (مثل «مثال») يُتجاهل
       });
@@ -1676,7 +1796,16 @@
     function nowLabel() {
       return new Date().toLocaleTimeString('ar-IQ-u-nu-latn', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Baghdad' });
     }
-    function showData(data) { renderExams(data.exams); renderNews(data.announcements); }
+    // كل إعلان أو موعد يظهر لقسمه فقط إن حُدّد له قسم أو كلية، وإلا يظهر للجميع
+    let LAST_DATA = null;
+    function forMyDept(x) {
+      const d = String((x && x.dept) || '').trim(); if (!d) return true;
+      const me = window.AMU_DEPT && window.AMU_DEPT.get(); if (!me) return true;
+      const n = (v) => norm(String(v || '')).replace(/^(قسم|كليه)\s+/, '');
+      return d.split(/[،,|]/).map(n).some((t) => t === 'الكل' || t === 'الجميع' || t === n(me.name) || t === n(me.id) || t === n(me.cname) || t === n(me.cid) || (t.length > 3 && (n(me.name).includes(t) || n(me.cname).includes(t))));
+    }
+    function showData(data) { LAST_DATA = data; renderExams((data.exams || []).filter(forMyDept)); renderNews((data.announcements || []).filter(forMyDept)); }
+    window.addEventListener('amu-dept', () => { if (LAST_DATA) showData(LAST_DATA); });
 
     async function fetchWithTimeout(url, ms) {
       const ctrl = new AbortController();

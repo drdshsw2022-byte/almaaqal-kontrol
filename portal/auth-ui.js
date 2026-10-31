@@ -86,6 +86,7 @@
     box.innerHTML = `${X}
       <h3>حسابي</h3>
       <div class="au-who">${av}<div><b>${esc(name)}</b><small><bdi dir="ltr">${esc(st.staff ? st.username : (u.email || ''))}</bdi></small><br><span class="au-badge">${role}</span></div></div>
+      ${st.admin ? `<a class="au-btn soft" style="display:block;text-decoration:none;text-align:center" href="${/(^|\.)it-basra\.com$/.test(location.hostname) ? '/amu/admin/' : 'https://it-basra.com/amu/admin/'}">لوحة مدير النظام</a>` : ''}
       ${st.staff ? '<button type="button" class="au-btn soft" data-au="pw">تغيير كلمة المرور</button>' : ''}
       <button type="button" class="au-btn" data-au="out">تسجيل الخروج</button>
       <div class="au-err"></div>`;

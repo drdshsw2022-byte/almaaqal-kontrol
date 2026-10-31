@@ -1,4 +1,4 @@
-// نسخة احتياطية كاملة من Firestore: كل مجموعة (ومجموعاتها الفرعية) في ملف JSON.
+// نسخة احتياطية كاملة من Firestore: كل مجموعة في ملف JSON.
 // يُشغَّل من سير العمل backup.yml بحساب الخدمة FIREBASE_SERVICE_ACCOUNT.
 import { initializeApp, cert } from 'firebase-admin/app';
 import { getFirestore, Timestamp, GeoPoint, DocumentReference } from 'firebase-admin/firestore';
@@ -24,10 +24,8 @@ const summary = {};
 async function dumpCollection(col, prefix) {
   const snap = await col.get();
   const docs = {};
-  for (const d of snap.docs) {
-    docs[d.id] = plain(d.data());
-    for (const sub of await d.ref.listCollections()) await dumpCollection(sub, `${prefix}${col.id}__${d.id}__`);
-  }
+  // قاعدة البيانات مسطّحة (دون مجموعات فرعية)، فلا نستعلم عن المجموعات الفرعية لكل مستند حتى لا تتضاعف القراءات
+  for (const d of snap.docs) docs[d.id] = plain(d.data());
   const name = prefix + col.id;
   fs.writeFileSync(path.join(out, name + '.json'), JSON.stringify(docs));
   summary[name] = snap.size;

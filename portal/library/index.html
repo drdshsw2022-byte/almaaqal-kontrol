@@ -419,11 +419,7 @@
   <div class="dlg" id="dlg" role="dialog" aria-modal="true" aria-labelledby="dTitle">
     <div class="dlg-card">
       <h3 id="dTitle">طلب تنزيل كتاب</h3>
-      <p>سيُفتح تطبيق البريد برسالة جاهزة إلى إدارة نظام الكنترول، فيها اسم الكتاب وبيانات حسابك. اضغط «إرسال» في تطبيق البريد لإتمام الطلب.</p>
-      <div class="to">
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-        <span>إلى: <span class="mono" id="dTo"></span></span>
-      </div>
+      <p>يُرسل الطلب إلى مدير النظام مع اسم الكتاب وبيانات حسابك، ويحصل على رقم تتابع به حالته من «طلباتي» في البوابة.</p>
       <label for="dWhy">سبب الطلب (اختياري)</label>
       <textarea id="dWhy" placeholder="مثال: أحتاجه للمذاكرة دون اتصال قبل الامتحان"></textarea>
       <div class="dlg-row">
@@ -740,35 +736,22 @@
     });
 
     // ---------- طلب التنزيل ----------
-    $('dTo').textContent = ADMIN_EMAIL;
     function closeDlg() { $('dlg').classList.remove('open'); }
     $('rReq').addEventListener('click', () => { $('dWhy').value = ''; $('dlg').classList.add('open'); setTimeout(() => $('dWhy').focus(), 50); });
     $('dCancel').addEventListener('click', closeDlg);
     $('dlg').addEventListener('click', (e) => { if (e.target.id === 'dlg') closeDlg(); });
-    $('dSend').addEventListener('click', () => {
+    $('dSend').addEventListener('click', async () => {
       if (!current || !user) return;
-      const when = new Date().toLocaleString('ar-IQ', { timeZone: 'Asia/Baghdad' });
-      const subject = `طلب تنزيل من الكتب الإلكترونية: ${current.t}`;
-      const body = [
-        'السلام عليكم،',
-        '',
-        'أطلب الموافقة على تنزيل الكتاب التالي من الكتب الإلكترونية لجامعة المعقل الدولية:',
-        '',
-        `الكتاب: ${current.t}`,
-        `التصنيف: ${CAT_NAME[current.c] || '—'}`,
-        `رابط الملف (للإدارة): https://drive.google.com/file/d/${current.id}/view`,
-        '',
-        `الاسم: ${user.displayName || '—'}`,
-        `الحساب: ${window.AMU_AUTH.state.staff ? window.AMU_AUTH.state.username + ' (أستاذ)' : (user.email || '—')}`,
-        `وقت الطلب: ${when}`,
-        '',
-        `سبب الطلب: ${$('dWhy').value.trim() || '—'}`,
-        '',
-        'للموافقة: شارك الملف مع صاحب الطلب أو أرسل له رابط التنزيل.'
-      ].join('\n');
-      location.href = `mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      closeDlg();
-      toast('فُتح تطبيق البريد — اضغط «إرسال» لإتمام الطلب');
+      const btn = $('dSend'); btn.disabled = true;
+      try {
+        const token = await user.getIdToken();
+        const r = await fetch(LIB_BASE.replace(/library\/$/, '') + (LIB_BASE ? '' : '../') + 'requests.php', { method: 'POST', body: new URLSearchParams({ token, action: 'create', type: 'download', book: current.id, msg: $('dWhy').value.trim(), page: location.href }) });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.error || 'تعذّر إرسال الطلب.');
+        closeDlg();
+        toast('أُرسل طلبك برقم ' + j.id + '، تابعه من «طلباتي» في البوابة');
+      } catch (e) { toast(e.message); }
+      finally { btn.disabled = false; }
     });
 
     // ---------- الحالات ----------

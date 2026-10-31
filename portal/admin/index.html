@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>لوحة مدير النظام · جامعة المعقل الدولية</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0C1224">
+  <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
+  <link rel="icon" type="image/svg+xml" href="../icons/icon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <script>
+    (function () {
+      var t = null; try { t = localStorage.getItem('amu_theme'); } catch (e) {}
+      if (t === 'dark' || (!t && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.remove('light'); document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+  <style>
+    :root {
+      --page-bg: radial-gradient(circle at 50% 12%, #FFFDF7 0%, #FEF8E7 40%, #FCEFC7 80%, #F9E4A6 100%);
+      --text: #0A0F1D; --text2: #374151; --muted: #6B7280;
+      --card: rgba(255,255,255,.9); --border: rgba(217,119,6,.35); --shadow: 0 14px 32px -12px rgba(180,83,9,.22);
+      --chip: rgba(245,158,11,.14); --chip-text: #92400E; --input: #fff; --accent: #D97706; --accent2: #B45309;
+      --ok: #15803D; --warn: #B45309; --bad: #B91C1C; --sky: #0369A1; --line: rgba(0,0,0,.08);
+    }
+    .dark {
+      --page-bg: radial-gradient(circle at 50% 15%, #0D1428 0%, #060A17 55%, #02040A 100%);
+      --text: #F8FAFC; --text2: #CBD5E1; --muted: #94A3B8;
+      --card: rgba(13,20,36,.9); --border: rgba(245,158,11,.25); --shadow: 0 18px 40px -12px rgba(0,0,0,.6);
+      --chip: rgba(245,158,11,.16); --chip-text: #FCD34D; --input: #0B1222; --accent: #F59E0B; --accent2: #FBBF24;
+      --ok: #4ADE80; --warn: #FBBF24; --bad: #F87171; --sky: #38BDF8; --line: rgba(255,255,255,.08);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: var(--page-bg); background-attachment: fixed; color: var(--text); font-family: 'Cairo', sans-serif; overflow-x: hidden; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px 60px; }
+    a { color: inherit; }
+    button, input, select, textarea { font-family: inherit; font-size: 14px; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    header { position: sticky; top: 0; z-index: 20; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); background: var(--card); border-bottom: 1px solid var(--border); }
+    .hbar { max-width: 1180px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-inline-end: auto; }
+    .brand img { width: 38px; height: 38px; border-radius: 50%; }
+    .brand b { display: block; font-weight: 900; font-size: 15px; }
+    .brand small { color: var(--muted); font-weight: 700; font-size: 11.5px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 38px; padding: 7px 14px; border-radius: 11px; border: 1.5px solid var(--border); background: var(--card); color: var(--text); font-weight: 800; cursor: pointer; text-decoration: none; white-space: nowrap; }
+    .btn:hover { border-color: var(--accent); }
+    .btn.gold { background: linear-gradient(135deg, #F59E0B, #B45309); color: #fff; border-color: transparent; }
+    .btn.sm { min-height: 32px; padding: 4px 10px; font-size: 12.5px; border-radius: 9px; }
+    .btn.danger { color: var(--bad); }
+    .btn:disabled { opacity: .55; cursor: default; }
+    .tabs { display: flex; gap: 6px; overflow-x: auto; padding: 14px 0 4px; scrollbar-width: none; }
+    .tab { flex-shrink: 0; padding: 8px 16px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--card); font-weight: 900; cursor: pointer; color: var(--text2); }
+    .tab.on { background: linear-gradient(135deg, #F59E0B, #B45309); color: #fff; border-color: transparent; }
+    .tab i { font-style: normal; margin-inline-start: 6px; padding: 0 7px; border-radius: 99px; background: var(--bad); color: #fff; font-size: 11px; }
+    .card { background: var(--card); border: 1.5px solid var(--border); border-radius: 18px; box-shadow: var(--shadow); padding: 16px; margin-top: 14px; }
+    h2 { margin: 0 0 4px; font-size: 18px; font-weight: 900; }
+    .sub { color: var(--muted); font-size: 13px; font-weight: 700; margin: 0 0 10px; line-height: 1.8; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .grow { flex: 1; min-width: 180px; }
+    input, select, textarea { width: 100%; padding: 9px 12px; border-radius: 11px; border: 1.5px solid var(--border); background: var(--input); color: var(--text); outline: none; }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+    textarea { min-height: 70px; resize: vertical; }
+    label.f { display: block; font-size: 12.5px; font-weight: 800; color: var(--text2); margin: 8px 0 4px; }
+    .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0 12px; }
+    .pill { display: inline-block; padding: 2px 9px; border-radius: 99px; font-size: 11.5px; font-weight: 900; background: var(--chip); color: var(--chip-text); white-space: nowrap; }
+    .pill.new { background: rgba(185,28,28,.14); color: var(--bad); }
+    .pill.working { background: rgba(3,105,161,.14); color: var(--sky); }
+    .pill.closed { background: rgba(21,128,61,.14); color: var(--ok); }
+    .pill.no { background: rgba(185,28,28,.12); color: var(--bad); }
+    .list { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+    .item { border: 1.5px solid var(--line); border-radius: 14px; padding: 12px; background: var(--input); }
+    .item .top { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .item .top b { font-weight: 900; }
+    .item .meta { color: var(--muted); font-size: 12px; font-weight: 700; margin-top: 4px; }
+    .item .msg { margin: 8px 0 0; white-space: pre-wrap; line-height: 1.8; font-size: 14px; }
+    .item .act { margin-top: 10px; display: none; }
+    .item.open .act { display: block; }
+    .log { margin-top: 8px; font-size: 12px; color: var(--muted); border-inline-start: 3px solid var(--border); padding-inline-start: 8px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    th, td { padding: 8px 6px; border-bottom: 1px solid var(--line); text-align: right; vertical-align: middle; }
+    th { font-size: 12px; color: var(--muted); font-weight: 900; }
+    td .t { font-weight: 800; }
+    .tbl { overflow-x: auto; margin-top: 10px; }
+    .cv { width: 34px; height: 46px; object-fit: cover; border-radius: 4px; background: var(--chip); display: block; }
+    .prog { height: 8px; border-radius: 99px; background: var(--chip); overflow: hidden; margin-top: 8px; }
+    .prog > div { height: 100%; width: 0; background: linear-gradient(90deg, #F59E0B, #B45309); transition: width .2s; }
+    .gate { text-align: center; padding: 50px 16px; }
+    .gate h1 { font-size: 22px; font-weight: 900; margin: 10px 0; }
+    .stat { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 10px; }
+    .stat div { border: 1.5px solid var(--line); border-radius: 14px; padding: 10px 12px; background: var(--input); }
+    .stat b { display: block; font-size: 22px; font-weight: 900; font-family: 'JetBrains Mono', monospace; }
+    .stat span { color: var(--muted); font-size: 12px; font-weight: 800; }
+    .links a { display: flex; justify-content: space-between; gap: 10px; padding: 12px; border: 1.5px solid var(--line); border-radius: 14px; text-decoration: none; background: var(--input); font-weight: 800; }
+    .links a small { color: var(--muted); font-weight: 700; }
+    .links { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; margin-top: 10px; }
+    #toast { position: fixed; bottom: 22px; inset-inline: 16px; margin: auto; max-width: 440px; z-index: 90; padding: 12px 16px; border-radius: 14px; background: #0B1222; color: #fff; font-weight: 800; text-align: center; opacity: 0; transform: translateY(12px); transition: .25s; pointer-events: none; }
+    #toast.show { opacity: 1; transform: none; }
+    #toast.bad { background: #7F1D1D; }
+    .hide { display: none !important; }
+    .dlg { position: fixed; inset: 0; z-index: 80; display: none; align-items: center; justify-content: center; padding: 16px; background: rgba(2,4,10,.6); }
+    .dlg.open { display: flex; }
+    .dlg .card { width: min(560px, 100%); max-height: 90vh; overflow: auto; margin: 0; }
+    @media (max-width: 640px) { .hide-sm { display: none; } th.hide-sm, td.hide-sm { display: none; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="hbar">
+      <a class="brand" href="../index.html"><img src="../icons/icon-192.png" alt=""><span><b>لوحة مدير النظام</b><small>جامعة المعقل الدولية</small></span></a>
+      <span class="pill" id="who">—</span>
+      <a class="btn sm" href="../index.html">البوابة</a>
+      <button class="btn sm" id="outBtn" type="button">خروج</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="gate" id="gate">
+      <img src="../icons/icon-192.png" alt="" width="80" height="80" style="border-radius:50%">
+      <h1 id="gateTitle">جارٍ التحقق…</h1>
+      <p class="sub" id="gateText"></p>
+      <button class="btn gold hide" id="gateBtn" type="button">الدخول بحساب Google للمدير</button>
+    </div>
+
+    <div id="app" class="hide">
+      <nav class="tabs" role="tablist">
+        <button class="tab on" data-tab="req" type="button">الطلبات<i id="reqBadge" class="hide">0</i></button>
+        <button class="tab" data-tab="books" type="button">الكتب الإلكترونية</button>
+        <button class="tab" data-tab="staff" type="button">حسابات الأساتذة</button>
+        <button class="tab" data-tab="colleges" type="button">الكليات والأقسام</button>
+        <button class="tab" data-tab="sys" type="button">النظام</button>
+      </nav>
+
+      <!-- ===== الطلبات ===== -->
+      <section data-pane="req">
+        <div class="card">
+          <h2>طلبات الدعم الفني وتنزيل الكتب</h2>
+          <p class="sub">كل طلب يُرسل من البوابة أو الكتب الإلكترونية يظهر هنا برقمه. غيّر حالته واكتب رداً يراه صاحب الطلب في «طلباتي».</p>
+          <div class="row">
+            <select id="rqStatus" style="width:auto"><option value="open">المفتوحة (جديد + قيد المعالجة)</option><option value="new">جديد</option><option value="working">قيد المعالجة</option><option value="closed">أُغلق</option><option value="">الكل</option></select>
+            <select id="rqType" style="width:auto"><option value="">كل الأنواع</option><option value="support">دعم فني</option><option value="download">طلب تنزيل</option></select>
+            <input id="rqQ" class="grow" placeholder="بحث بالرقم أو الاسم أو النص">
+            <button class="btn sm" id="rqReload" type="button">↻ تحديث</button>
+          </div>
+          <div class="stat" id="rqStats"></div>
+          <div class="list" id="rqList"></div>
+        </div>
+      </section>
+
+      <!-- ===== الكتب ===== -->
+      <section data-pane="books" class="hide">
+        <div class="card">
+          <h2>إضافة كتاب</h2>
+          <p class="sub">اختر ملف PDF من جهازك، فيُرفع إلى السيرفر ويُضاف إلى الفهرس مع غلاف من صفحته الأولى تلقائياً. يظهر للقرّاء فوراً.</p>
+          <div class="grid2">
+            <div><label class="f" for="bkFile">الملف (PDF أو PPTX أو DOCX)</label><input type="file" id="bkFile" accept=".pdf,.pptx,.docx,application/pdf"></div>
+            <div><label class="f" for="bkTitle">العنوان</label><input id="bkTitle" placeholder="يُملأ من اسم الملف ويمكن تعديله"></div>
+            <div><label class="f" for="bkCat">التصنيف</label><select id="bkCat"></select></div>
+            <div><label class="f" for="bkLang">اللغة</label><select id="bkLang"><option value="ar">عربي</option><option value="en">إنجليزي</option></select></div>
+          </div>
+          <div class="row" style="margin-top:12px"><button class="btn gold" id="bkAdd" type="button">رفع وإضافة إلى الفهرس</button><span class="sub" id="bkMsg" style="margin:0"></span></div>
+          <div class="prog hide" id="bkProg"><div></div></div>
+        </div>
+        <div class="card">
+          <h2>الفهرس</h2>
+          <p class="sub" id="bkInfo">—</p>
+          <div class="row"><input id="bkQ" class="grow" placeholder="بحث في العناوين"><select id="bkFilter" style="width:auto"><option value="">كل الكتب</option><option value="nofile">غير موجودة على السيرفر</option><option value="nocv">دون غلاف</option></select><button class="btn sm" id="catEdit" type="button">التصنيفات</button></div>
+          <div class="tbl"><table><thead><tr><th></th><th>العنوان</th><th class="hide-sm">التصنيف</th><th class="hide-sm">الحجم</th><th>الحالة</th><th></th></tr></thead><tbody id="bkRows"></tbody></table></div>
+        </div>
+      </section>
+
+      <!-- ===== الأساتذة ===== -->
+      <section data-pane="staff" class="hide">
+        <div class="card">
+          <h2>حسابات الأساتذة والكادر</h2>
+          <p class="sub">هذه القائمة نفسها التي يستخدمها تطبيق الحضور ونظام الكنترول والبوابة والمحاضرات. أي تعديل هنا يسري على الأنظمة كلها. <b>حذف الحساب</b> يمنعه من الدخول إلى كل الأنظمة. يدخل الأستاذ أول مرة باسم المستخدم وكلمة المرور الأولية، ثم يُطلب منه تغييرها.</p>
+          <div class="row"><input id="stQ" class="grow" placeholder="بحث بالاسم أو البريد أو اسم المستخدم"><select id="stRole" style="width:auto"><option value="">كل الأدوار</option></select><button class="btn gold sm" id="stNew" type="button">+ أستاذ جديد</button><button class="btn sm" id="stReload" type="button">↻ تحديث</button></div>
+          <div class="tbl"><table><thead><tr><th>الاسم</th><th>اسم المستخدم</th><th class="hide-sm">الدور</th><th class="hide-sm">القسم</th><th>الحساب</th><th></th></tr></thead><tbody id="stRows"></tbody></table></div>
+        </div>
+      </section>
+
+      <!-- ===== الكليات ===== -->
+      <section data-pane="colleges" class="hide">
+        <div class="card">
+          <h2>الكليات والأقسام في البوابة</h2>
+          <p class="sub">يختار الزائر كليته وقسمه في البوابة، فتظهر له إعلانات قسمه فقط. القائمة تُؤخذ من هيكل الجامعة في قاعدة البيانات (تطبيق الحضور)، ثم تُنشر هنا ملفاً عاماً <span class="mono">colleges.json</span> حتى لا تُستهلك قراءات قاعدة البيانات لكل زائر.</p>
+          <div class="row"><button class="btn gold" id="colPublish" type="button">نشر القائمة الحالية إلى البوابة</button><span class="sub" id="colMsg" style="margin:0"></span></div>
+          <div class="list" id="colList"></div>
+          <p class="sub" style="margin-top:14px">لإظهار إعلان لقسم معيّن: أضف في جدول الإعلانات عموداً باسم <b>القسم</b>، واكتب فيه اسم القسم أو الكلية (أو اتركه فارغاً ليظهر للجميع).</p>
+        </div>
+      </section>
+
+      <!-- ===== النظام ===== -->
+      <section data-pane="sys" class="hide">
+        <div class="card">
+          <h2>النظام</h2>
+          <div class="links">
+            <a href="https://github.com/drdshsw2022-byte/almaaqal-kontrol/actions/workflows/backup.yml" target="_blank" rel="noopener"><span>النسخ الاحتياطية اليومية<br><small>مشفّرة، آخر 30 يوماً · تُفك بملف المفتاح الخاص</small></span>↗</a>
+            <a href="https://github.com/drdshsw2022-byte/almaaqal-kontrol/actions/workflows/uptime.yml" target="_blank" rel="noopener"><span>مراقبة الأنظمة<br><small>فحص كل 15 دقيقة مع تنبيه بالبريد</small></span>↗</a>
+            <a href="https://console.firebase.google.com/project/almaqal-uni/usage" target="_blank" rel="noopener"><span>استهلاك Firebase<br><small>الحد اليومي المجاني 50 ألف قراءة</small></span>↗</a>
+            <a href="../../amu-staging/" target="_blank" rel="noopener"><span>النسخة التجريبية<br><small>تُجرَّب فيها التعديلات قبل نشرها للطلبة</small></span>↗</a>
+            <a href="https://github.com/drdshsw2022-byte/almaaqal/releases" target="_blank" rel="noopener"><span>إصدارات تطبيق أندرويد<br><small>ارفع الجديد إلى amu/private/almaqal-12.apk</small></span>↗</a>
+            <a href="../privacy.html" target="_blank" rel="noopener"><span>سياسة الخصوصية<br><small>المسودة المعروضة في البوابة</small></span>↗</a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- نافذة تعديل -->
+  <div class="dlg" id="dlg" role="dialog" aria-modal="true"><div class="card" id="dlgBody"></div></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://drdshsw2022-byte.github.io/almaaqal-kontrol/kontrol/firebase-config.js"></script>
+  <script src="../access.js"></script>
+  <script src="../auth.js"></script>
+  <script src="../auth-ui.js"></script>
+  <script>
+  (function () {
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const fmtDate = (t) => new Date(t * 1000).toLocaleString('ar-IQ-u-nu-latn', { timeZone: 'Asia/Baghdad', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    const BASE = /(^|\.)it-basra\.com$/.test(location.hostname) ? '../' : 'https://it-basra.com/amu/';
+    function toast(t, bad) { const e = $('toast'); e.textContent = t; e.className = bad ? 'show bad' : 'show'; clearTimeout(toast.t); toast.t = setTimeout(() => (e.className = ''), 3200); }
+    let user = null;
+    async function api(file, params, files) {
+      const fd = new FormData();
+      fd.append('token', await user.getIdToken());
+      Object.entries(params).forEach(([k, v]) => fd.append(k, v));
+      if (files) Object.entries(files).forEach(([k, v]) => fd.append(k, v, 'blob'));
+      const r = await fetch(BASE + file, { method: 'POST', body: fd });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || ('خطأ ' + r.status));
+      return j;
+    }
+
+    // ---------- التبويبات ----------
+    const loaded = {};
+    function showTab(t) {
+      document.querySelectorAll('.tab').forEach((b) => b.classList.toggle('on', b.dataset.tab === t));
+      document.querySelectorAll('[data-pane]').forEach((p) => p.classList.toggle('hide', p.dataset.pane !== t));
+      try { localStorage.setItem('amu_admin_tab', t); } catch (e) {}
+      if (!loaded[t]) { loaded[t] = 1; ({ req: loadReq, books: loadBooks, staff: loadStaff, colleges: loadColleges }[t] || (() => {}))(); }
+    }
+    document.querySelector('.tabs').addEventListener('click', (e) => { const b = e.target.closest('.tab'); if (b) showTab(b.dataset.tab); });
+
+    // ================= الطلبات =================
+    const ST = { new: 'جديد', working: 'قيد المعالجة', closed: 'أُغلق' };
+    let REQ = [];
+    async function loadReq() {
+      $('rqList').innerHTML = '<p class="sub">جارٍ التحميل…</p>';
+      try { REQ = (await api('requests.php', { action: 'list' })).items || []; renderReq(); }
+      catch (e) { $('rqList').innerHTML = `<p class="sub" style="color:var(--bad)">${esc(e.message)}</p>`; }
+    }
+    function renderReq() {
+      const s = $('rqStatus').value, ty = $('rqType').value, q = $('rqQ').value.trim().toLowerCase();
+      const cnt = { new: 0, working: 0, closed: 0 }; REQ.forEach((r) => cnt[r.status]++);
+      $('rqStats').innerHTML = `<div><b>${cnt.new}</b><span>جديد</span></div><div><b>${cnt.working}</b><span>قيد المعالجة</span></div><div><b>${cnt.closed}</b><span>أُغلق</span></div><div><b>${REQ.length}</b><span>كل الطلبات</span></div>`;
+      $('reqBadge').textContent = cnt.new; $('reqBadge').classList.toggle('hide', !cnt.new);
+      const list = REQ.filter((r) => (s === 'open' ? r.status !== 'closed' : !s || r.status === s) && (!ty || r.type === ty) &&
+        (!q || [r.id, r.name, r.user, r.contact, r.msg, r.book && r.book.t].join(' ').toLowerCase().includes(q)));
+      $('rqList').innerHTML = list.length ? list.map((r) => `
+        <div class="item" data-id="${esc(r.id)}">
+          <div class="top"><span class="pill ${r.status}">${ST[r.status]}</span><b class="mono">${esc(r.id)}</b>
+            <span class="pill">${r.type === 'download' ? 'طلب تنزيل' : 'دعم فني'}</span><b>${esc(r.name || r.user || 'زائر')}</b>
+            <span class="meta" style="margin:0">${fmtDate(r.at)}</span><button class="btn sm" data-open style="margin-inline-start:auto">متابعة</button></div>
+          <div class="meta">${r.user ? 'الحساب: <span class="mono">' + esc(r.user) + '</span> · ' : ''}${r.contact ? 'للتواصل: <span class="mono" dir="ltr">' + esc(r.contact) + '</span> · ' : ''}${r.page ? 'الصفحة: ' + esc(r.page.replace(/^https?:\/\//, '').slice(0, 60)) : ''}</div>
+          ${r.book ? `<div class="msg"><b>الكتاب:</b> ${esc(r.book.t)}</div>` : ''}
+          ${r.msg ? `<p class="msg">${esc(r.msg)}</p>` : ''}
+          ${r.reply ? `<div class="log"><b>آخر رد:</b> ${esc(r.reply)}</div>` : ''}
+          <div class="act">
+            <label class="f">الرد على صاحب الطلب (يراه في «طلباتي»)</label><textarea data-reply placeholder="${r.type === 'download' ? 'مثال: تمت الموافقة، أُرسل الملف إلى بريدك الجامعي' : 'مثال: تم حل المشكلة، أعد تحميل الصفحة'}"></textarea>
+            <div class="row" style="margin-top:8px">
+              <button class="btn sm" data-st="working">قيد المعالجة</button><button class="btn sm gold" data-st="closed">إغلاق الطلب</button><button class="btn sm" data-st="new">إعادته جديداً</button>
+              ${r.contact && /^[+\d\s]{8,}$/.test(r.contact) ? `<a class="btn sm" target="_blank" rel="noopener" href="https://wa.me/${esc(r.contact.replace(/\D/g, '').replace(/^0/, '964'))}">واتساب</a>` : ''}
+              ${r.contact && /@/.test(r.contact) ? `<a class="btn sm" href="mailto:${esc(r.contact)}?subject=${encodeURIComponent('بخصوص طلبك ' + r.id)}">بريد</a>` : ''}
+            </div>
+            ${(r.log || []).map((l) => `<div class="log">${fmtDate(l.at)} · ${esc(l.by)}: ${ST[l.from] || '—'} ← ${ST[l.to]}${l.reply ? ' · ' + esc(l.reply) : ''}</div>`).join('')}
+          </div>
+        </div>`).join('') : '<p class="sub">لا توجد طلبات بهذا التصنيف.</p>';
+    }
+    ['rqStatus', 'rqType'].forEach((id) => $(id).addEventListener('change', renderReq));
+    $('rqQ').addEventListener('input', renderReq);
+    $('rqReload').addEventListener('click', loadReq);
+    $('rqList').addEventListener('click', async (e) => {
+      const it = e.target.closest('.item'); if (!it) return;
+      if (e.target.closest('[data-open]')) { it.classList.toggle('open'); return; }
+      const b = e.target.closest('[data-st]'); if (!b) return;
+      b.disabled = true;
+      try {
+        await api('requests.php', { action: 'update', id: it.dataset.id, status: b.dataset.st, reply: it.querySelector('[data-reply]').value });
+        toast('حُفظت حالة الطلب'); await loadReq();
+      } catch (err) { toast(err.message, 1); b.disabled = false; }
+    });
+
+    // ================= الكتب =================
+    let CAT = { cats: [], books: [] };
+    const catName = (id) => (CAT.cats.find((c) => c.id === id) || {}).name || id;
+    async function loadBooks() {
+      $('bkRows').innerHTML = '<tr><td colspan="6" class="sub">جارٍ التحميل…</td></tr>';
+      try {
+        CAT = await api('admin-api.php', { action: 'books' });
+        $('bkCat').innerHTML = CAT.cats.map((c) => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+        renderBooks();
+      } catch (e) { $('bkRows').innerHTML = `<tr><td colspan="6" style="color:var(--bad)">${esc(e.message)}</td></tr>`; }
+    }
+    function renderBooks() {
+      const q = $('bkQ').value.trim().toLowerCase(), f = $('bkFilter').value;
+      const onSrv = CAT.books.filter((b) => b.h).length, mb = CAT.books.reduce((a, b) => a + (b.bytes || 0), 0) / 1048576;
+      $('bkInfo').textContent = `${CAT.books.length} كتاباً · ${onSrv} على السيرفر (${mb.toFixed(0)} MB) · المساحة المتبقية ${(CAT.free_mb / 1024).toFixed(1)} GB`;
+      const list = CAT.books.filter((b) => (!q || b.t.toLowerCase().includes(q)) && (f !== 'nofile' || !b.h) && (f !== 'nocv' || !b.cv));
+      $('bkRows').innerHTML = list.map((b) => `<tr data-id="${esc(b.id)}">
+        <td>${b.cv ? `<img class="cv" loading="lazy" src="${BASE}library/covers/${encodeURIComponent(b.id)}.jpg?v=${Date.now() % 1e5}" alt="">` : '<span class="cv"></span>'}</td>
+        <td><span class="t" dir="auto">${esc(b.t)}</span><div class="meta" style="font-size:11px;color:var(--muted)">${b.x} · ${b.l === 'en' ? 'إنجليزي' : 'عربي'}</div></td>
+        <td class="hide-sm">${esc(catName(b.c))}</td><td class="hide-sm mono">${b.bytes ? (b.bytes / 1048576).toFixed(1) + ' MB' : '—'}</td>
+        <td>${b.h ? '<span class="pill closed">على السيرفر</span>' : '<span class="pill no">لا ملف</span>'}${b.cv ? '' : ' <span class="pill">دون غلاف</span>'}</td>
+        <td><button class="btn sm" data-edit>تعديل</button></td></tr>`).join('') || '<tr><td colspan="6" class="sub">لا نتائج</td></tr>';
+    }
+    $('bkQ').addEventListener('input', renderBooks); $('bkFilter').addEventListener('change', renderBooks);
+    $('bkFile').addEventListener('change', () => {
+      const f = $('bkFile').files[0]; if (!f) return;
+      if (!$('bkTitle').value.trim()) $('bkTitle').value = f.name.replace(/\.(pdf|pptx|docx)$/i, '').replace(/[_]+/g, ' ').replace(/^\d+\.\s*/, '').trim();
+      if (/[؀-ۿ]/.test(f.name)) $('bkLang').value = 'ar'; else $('bkLang').value = 'en';
+    });
+
+    // رفع ملف على أجزاء (2 MB) حتى لا يتجاوز حدود الاستضافة
+    async function uploadBook(id, file, onp) {
+      const CH = 2 * 1048576, n = Math.max(1, Math.ceil(file.size / CH));
+      for (let i = 0; i < n; i++) {
+        let tries = 0;
+        for (;;) {
+          try { await api('admin-api.php', { action: 'book_chunk', id, i, n }, { data: file.slice(i * CH, (i + 1) * CH) }); break; }
+          catch (e) { if (++tries >= 3 || /ليس|أكبر|غير صالحة|أضف/.test(e.message)) throw e; await new Promise((r) => setTimeout(r, 1500 * tries)); }
+        }
+        onp((i + 1) / n);
+      }
+    }
+    // الغلاف: الصفحة الأولى من PDF عبر pdf.js
+    let pdfjsP = null;
+    function pdfjs() {
+      if (pdfjsP) return pdfjsP;
+      const P = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+      pdfjsP = new Promise((res, rej) => { const s = document.createElement('script'); s.src = P + 'pdf.min.js'; s.onload = () => { pdfjsLib.GlobalWorkerOptions.workerSrc = P + 'pdf.worker.min.js'; res(pdfjsLib); }; s.onerror = () => { pdfjsP = null; rej(new Error('تعذّر تحميل pdf.js')); }; document.head.appendChild(s); });
+      return pdfjsP;
+    }
+    async function coverFrom(file) {
+      const lib = await pdfjs();
+      const doc = await lib.getDocument({ data: await file.arrayBuffer() }).promise;
+      const page = await doc.getPage(1); const vp1 = page.getViewport({ scale: 1 });
+      const vp = page.getViewport({ scale: 400 / vp1.width });
+      const c = document.createElement('canvas'); c.width = Math.round(vp.width); c.height = Math.round(vp.height);
+      const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+      await page.render({ canvasContext: ctx, viewport: vp }).promise; doc.destroy();
+      return await new Promise((r) => c.toBlob(r, 'image/jpeg', 0.82));
+    }
+    async function uploadCover(id, file) {
+      const blob = file.type === 'image/jpeg' ? file : await coverFrom(file);
+      await api('admin-api.php', { action: 'book_cover', id }, { data: blob });
+    }
+    $('bkAdd').addEventListener('click', async () => {
+      const f = $('bkFile').files[0], t = $('bkTitle').value.trim();
+      if (!f) return toast('اختر ملف الكتاب أولاً', 1);
+      if (t.length < 2) return toast('اكتب عنوان الكتاب', 1);
+      const ext = (f.name.match(/\.(pdf|pptx|docx)$/i) || [])[1];
+      if (!ext) return toast('الملف يجب أن يكون PDF أو PPTX أو DOCX', 1);
+      const btn = $('bkAdd'); btn.disabled = true; $('bkProg').classList.remove('hide'); const bar = $('bkProg').firstElementChild;
+      let id = null;
+      try {
+        $('bkMsg').textContent = 'إضافة إلى الفهرس…';
+        id = (await api('admin-api.php', { action: 'book_save', t, c: $('bkCat').value, l: $('bkLang').value, x: ext.toUpperCase() })).id;
+        await uploadBook(id, f, (p) => { bar.style.width = (p * 100).toFixed(0) + '%'; $('bkMsg').textContent = `رفع الملف ${(p * 100).toFixed(0)}% من ${(f.size / 1048576).toFixed(1)} MB`; });
+        if (ext.toLowerCase() === 'pdf') { $('bkMsg').textContent = 'تجهيز الغلاف…'; try { await uploadCover(id, f); } catch (e) { toast('أُضيف الكتاب، لكن تعذّر تجهيز الغلاف: ' + e.message, 1); } }
+        toast('أُضيف الكتاب وصار متاحاً للقراءة'); $('bkMsg').textContent = '✓ أُضيف «' + t + '»';
+        $('bkFile').value = ''; $('bkTitle').value = '';
+        await loadBooks();
+      } catch (e) {
+        toast(e.message, 1); $('bkMsg').textContent = 'تعذّر: ' + e.message;
+        if (id) { try { await api('admin-api.php', { action: 'book_delete', id }); } catch (x) {} }
+      } finally { btn.disabled = false; setTimeout(() => $('bkProg').classList.add('hide'), 1500); bar.style.width = '0'; }
+    });
+
+    function dlg(html) { $('dlgBody').innerHTML = html; $('dlg').classList.add('open'); }
+    function closeDlg() { $('dlg').classList.remove('open'); }
+    $('dlg').addEventListener('click', (e) => { if (e.target.id === 'dlg' || e.target.closest('[data-close]')) closeDlg(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDlg(); });
+
+    $('bkRows').addEventListener('click', (e) => {
+      const tr = e.target.closest('tr[data-id]'); if (!tr || !e.target.closest('[data-edit]')) return;
+      const b = CAT.books.find((x) => x.id === tr.dataset.id); if (!b) return;
+      dlg(`<h2>تعديل كتاب</h2><p class="sub mono" style="font-size:11px">${esc(b.id)}</p>
+        <label class="f">العنوان</label><input id="eT" value="${esc(b.t)}">
+        <div class="grid2"><div><label class="f">التصنيف</label><select id="eC">${CAT.cats.map((c) => `<option value="${esc(c.id)}"${c.id === b.c ? ' selected' : ''}>${esc(c.name)}</option>`).join('')}</select></div>
+        <div><label class="f">اللغة</label><select id="eL"><option value="ar"${b.l === 'ar' ? ' selected' : ''}>عربي</option><option value="en"${b.l === 'en' ? ' selected' : ''}>إنجليزي</option></select></div></div>
+        <label class="f">${b.h ? 'استبدال الملف' : 'رفع الملف'} (${b.x})</label><input type="file" id="eF">
+        <label class="f">غلاف (صورة JPEG أو PDF تُؤخذ صفحته الأولى)</label><input type="file" id="eV" accept="image/jpeg,.pdf">
+        <div class="prog hide" id="eP"><div></div></div>
+        <div class="row" style="margin-top:14px"><button class="btn gold" id="eSave">حفظ</button><button class="btn" data-close>إلغاء</button><button class="btn danger" id="eDel" style="margin-inline-start:auto">حذف الكتاب</button></div>`);
+      $('eSave').onclick = async () => {
+        $('eSave').disabled = true;
+        try {
+          await api('admin-api.php', { action: 'book_save', id: b.id, t: $('eT').value.trim(), c: $('eC').value, l: $('eL').value });
+          const f = $('eF').files[0], v = $('eV').files[0];
+          if (f) { $('eP').classList.remove('hide'); await uploadBook(b.id, f, (p) => ($('eP').firstElementChild.style.width = p * 100 + '%')); if (!v && /\.pdf$/i.test(f.name)) await uploadCover(b.id, f); }
+          if (v) await uploadCover(b.id, v);
+          toast('حُفظ'); closeDlg(); loadBooks();
+        } catch (err) { toast(err.message, 1); $('eSave').disabled = false; }
+      };
+      $('eDel').onclick = async () => {
+        if (!confirmTwice($('eDel'))) return;
+        try { await api('admin-api.php', { action: 'book_delete', id: b.id }); toast('حُذف الكتاب من الفهرس (الملف محفوظ في private/removed-books)'); closeDlg(); loadBooks(); }
+        catch (err) { toast(err.message, 1); }
+      };
+    });
+    // تأكيد بالضغط مرتين بدل نوافذ المتصفح
+    function confirmTwice(btn) {
+      if (btn.dataset.sure === '1') return true;
+      btn.dataset.sure = '1'; const t = btn.textContent; btn.textContent = 'اضغط مرة أخرى للتأكيد';
+      setTimeout(() => { btn.dataset.sure = ''; btn.textContent = t; }, 4000); return false;
+    }
+    $('catEdit').addEventListener('click', () => {
+      dlg(`<h2>تصنيفات الكتب</h2><p class="sub">سطر لكل تصنيف بالشكل: <span class="mono">المعرّف = الاسم</span> (المعرّف حروف إنجليزية صغيرة). لا يُحذف تصنيف فيه كتب.</p>
+        <textarea id="cT" style="min-height:200px" dir="rtl">${esc(CAT.cats.map((c) => c.id + ' = ' + c.name).join('\n'))}</textarea>
+        <div class="row" style="margin-top:12px"><button class="btn gold" id="cS">حفظ</button><button class="btn" data-close>إلغاء</button></div>`);
+      $('cS').onclick = async () => {
+        const cats = $('cT').value.split('\n').map((l) => l.split('=')).filter((p) => p.length >= 2).map(([a, ...b]) => ({ id: a.trim(), name: b.join('=').trim() }));
+        try { await api('admin-api.php', { action: 'cat_save', cats: JSON.stringify(cats) }); toast('حُفظت التصنيفات'); closeDlg(); loadBooks(); } catch (e) { toast(e.message, 1); }
+      };
+    });
+
+    // ================= الأساتذة (Firestore مباشرة بصلاحية المدير) =================
+    const ROLES = { doctor: 'تدريسي', head: 'رئيس قسم', dean: 'عميد', president: 'رئيس الجامعة', admin: 'مدير نظام' };
+    let FS = null, STAFF = [], COLS = [], DEPTS = [], ALIASES = {};
+    async function fs() {
+      if (FS) return FS;
+      const b = 'https://www.gstatic.com/firebasejs/10.12.2';
+      const [appM, fsM] = await Promise.all([import(b + '/firebase-app.js'), import(b + '/firebase-firestore.js')]);
+      FS = { ...fsM, db: fsM.getFirestore(appM.getApp('amu-portal')) };
+      return FS;
+    }
+    async function loadStruct() {
+      const f = await fs();
+      const [c, d] = await Promise.all([f.getDocs(f.collection(f.db, 'colleges')), f.getDocs(f.collection(f.db, 'departments'))]);
+      COLS = c.docs.map((x) => ({ id: x.id, ...x.data() })).sort((a, b) => String(a.name).localeCompare(b.name, 'ar'));
+      DEPTS = d.docs.map((x) => ({ id: x.id, ...x.data() })).sort((a, b) => String(a.name).localeCompare(b.name, 'ar'));
+    }
+    const deptName = (id) => (DEPTS.find((d) => d.id === id) || {}).name || id || '—';
+    const colName = (id) => (COLS.find((d) => d.id === id) || {}).name || id || '—';
+    async function loadStaff() {
+      $('stRows').innerHTML = '<tr><td colspan="6" class="sub">جارٍ التحميل…</td></tr>';
+      $('stRole').innerHTML = '<option value="">كل الأدوار</option>' + Object.entries(ROLES).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+      try {
+        const f = await fs();
+        await loadStruct();
+        const [s, u] = await Promise.all([f.getDocs(f.collection(f.db, 'staff')), f.getDocs(f.collection(f.db, 'usernames'))]);
+        STAFF = s.docs.map((x) => ({ id: x.id, ...x.data() })).sort((a, b) => String(a.name).localeCompare(b.name, 'ar'));
+        ALIASES = {}; u.docs.forEach((x) => { ALIASES[x.id] = x.data().email; });
+        renderStaff();
+      } catch (e) { $('stRows').innerHTML = `<tr><td colspan="6" style="color:var(--bad)">${esc(e.code === 'permission-denied' ? 'لا صلاحية لقراءة الكادر بهذا الحساب.' : e.message)}</td></tr>`; }
+    }
+    function renderStaff() {
+      const q = $('stQ').value.trim().toLowerCase(), r = $('stRole').value;
+      const list = STAFF.filter((s) => (!r || s.role === r) && (!q || [s.name, s.id, s.alias].join(' ').toLowerCase().includes(q)));
+      $('stRows').innerHTML = list.map((s) => `<tr data-id="${esc(s.id)}">
+        <td><span class="t">${esc(s.name || '—')}</span><div class="mono" style="font-size:11px;color:var(--muted)">${esc(s.id)}</div></td>
+        <td class="mono">${esc(s.alias || s.id.split('@')[0])}</td>
+        <td class="hide-sm">${esc(ROLES[s.role] || s.role)}</td>
+        <td class="hide-sm">${esc(s.role === 'dean' ? colName(s.collegeId) : deptName(s.deptId))}</td>
+        <td>${s.activated ? '<span class="pill closed">مفعّل</span>' : '<span class="pill working">لم يدخل بعد</span>'}</td>
+        <td><button class="btn sm" data-edit>تعديل</button></td></tr>`).join('') || '<tr><td colspan="6" class="sub">لا نتائج</td></tr>';
+    }
+    $('stQ').addEventListener('input', renderStaff); $('stRole').addEventListener('change', renderStaff); $('stReload').addEventListener('click', loadStaff);
+    function genPw() { const A = 'abcdefghjkmnpqrstuvwxyz', N = '23456789'; const r = (s) => s[crypto.getRandomValues(new Uint32Array(1))[0] % s.length]; return 'Mq' + Array.from({ length: 4 }, () => r(A)).join('') + Array.from({ length: 4 }, () => r(N)).join(''); }
+    function staffForm(s) {
+      const isNew = !s; s = s || { role: 'doctor', courseIds: [] };
+      const nextAlias = (() => { const used = new Set(Object.keys(ALIASES)); for (let i = 1; i < 999; i++) { const a = 'doc' + String(i).padStart(2, '0'); if (!used.has(a)) return a; } return ''; })();
+      dlg(`<h2>${isNew ? 'أستاذ جديد' : 'تعديل حساب'}</h2>
+        ${isNew ? '' : `<p class="sub mono" style="font-size:12px">${esc(s.id)}</p>`}
+        <div class="grid2">
+          <div><label class="f">الاسم الكامل</label><input id="fN" value="${esc(s.name || '')}" placeholder="د. …"></div>
+          ${isNew ? `<div><label class="f">البريد الجامعي (معرّف الحساب)</label><input id="fE" dir="ltr" placeholder="name@almaaqal.edu.iq"></div>` : ''}
+          <div><label class="f">اسم المستخدم للدخول</label><input id="fA" dir="ltr" value="${esc(s.alias || (isNew ? nextAlias : ''))}" placeholder="doc08"></div>
+          <div><label class="f">الدور</label><select id="fR">${Object.entries(ROLES).map(([k, v]) => `<option value="${k}"${k === s.role ? ' selected' : ''}>${v}</option>`).join('')}</select></div>
+          <div><label class="f">الكلية</label><select id="fC"><option value="">—</option>${COLS.map((c) => `<option value="${esc(c.id)}"${c.id === s.collegeId ? ' selected' : ''}>${esc(c.name)}</option>`).join('')}</select></div>
+          <div><label class="f">القسم</label><select id="fD"><option value="">—</option>${DEPTS.map((d) => `<option value="${esc(d.id)}" data-c="${esc(d.collegeId || '')}"${d.id === s.deptId ? ' selected' : ''}>${esc(d.name)}</option>`).join('')}</select></div>
+          ${isNew || !s.activated ? `<div><label class="f">كلمة المرور الأولية</label><div class="row"><input id="fP" dir="ltr" class="grow mono" value="${esc(isNew ? genPw() : (s.initPw || ''))}"><button class="btn sm" type="button" id="fPg">توليد</button></div></div>` : ''}
+        </div>
+        ${!isNew && s.activated ? '<p class="sub" style="margin-top:10px">الحساب مفعّل: الأستاذ اختار كلمة مروره بنفسه، ويغيّرها من «حسابي» في البوابة أو التطبيق. إن نسيها راجع مدير النظام لإعادة إنشاء الحساب.</p>' : '<p class="sub" style="margin-top:10px">سلّم الأستاذ اسم المستخدم وكلمة المرور الأولية. عند أول دخول من تطبيق الحضور يُفعَّل حسابه ويُطلب منه اختيار كلمة مرور جديدة.</p>'}
+        <p class="sub">المواد المسندة (${(s.courseIds || []).length}) تُدار من تطبيق الحضور ← الكادر.</p>
+        <div class="row" style="margin-top:12px"><button class="btn gold" id="fS">حفظ</button><button class="btn" data-close>إلغاء</button>${isNew ? '' : '<button class="btn danger" id="fX" style="margin-inline-start:auto">حذف الحساب</button>'}</div>`);
+      if ($('fPg')) $('fPg').onclick = () => { $('fP').value = genPw(); };
+      $('fD').onchange = () => { const c = $('fD').selectedOptions[0].dataset.c; if (c) $('fC').value = c; };
+      $('fS').onclick = async () => {
+        const f = await fs();
+        const email = isNew ? $('fE').value.trim().toLowerCase() : s.id;
+        const name = $('fN').value.trim(), alias = $('fA').value.trim().toLowerCase();
+        if (name.length < 3) return toast('اكتب الاسم الكامل', 1);
+        if (!/^[a-z0-9._-]+@almaaqal\.edu\.iq$/.test(email)) return toast('البريد يجب أن يكون جامعياً @almaaqal.edu.iq', 1);
+        if (alias && !/^[a-z][a-z0-9._-]{2,30}$/.test(alias)) return toast('اسم المستخدم حروف إنجليزية وأرقام فقط', 1);
+        if (alias && ALIASES[alias] && ALIASES[alias] !== email) return toast('اسم المستخدم مستعمل لحساب آخر', 1);
+        if (isNew && STAFF.some((x) => x.id === email)) return toast('هذا البريد مسجّل مسبقاً', 1);
+        const pw = $('fP') ? $('fP').value.trim() : null;
+        if ($('fP') && !/^.{6,40}$/.test(pw)) return toast('كلمة المرور الأولية 6 خانات على الأقل', 1);
+        const data = { id: email, email, name, role: $('fR').value, collegeId: $('fC').value || null, deptId: $('fD').value || null, alias: alias || null };
+        if (isNew) Object.assign(data, { courseIds: [], activated: false, initPw: pw });
+        else if (pw != null) data.initPw = pw;
+        $('fS').disabled = true;
+        try {
+          const b = f.writeBatch(f.db);
+          b.set(f.doc(f.db, 'staff', email), data, { merge: true });
+          if (alias) b.set(f.doc(f.db, 'usernames', alias), { email });
+          if (!isNew && s.alias && s.alias !== alias && ALIASES[s.alias] === email) b.delete(f.doc(f.db, 'usernames', s.alias));
+          await b.commit();
+          toast(isNew ? 'أُضيف الحساب. سلّم الأستاذ اسم المستخدم وكلمة المرور.' : 'حُفظ'); closeDlg(); loadStaff();
+        } catch (e) { toast(e.code === 'permission-denied' ? 'رفضت قاعدة البيانات التعديل (صلاحيات).' : e.message, 1); $('fS').disabled = false; }
+      };
+      if ($('fX')) $('fX').onclick = async () => {
+        if (!confirmTwice($('fX'))) return;
+        const f = await fs();
+        try {
+          const b = f.writeBatch(f.db);
+          b.delete(f.doc(f.db, 'staff', s.id));
+          Object.entries(ALIASES).forEach(([a, e]) => { if (e === s.id) b.delete(f.doc(f.db, 'usernames', a)); });
+          await b.commit(); toast('حُذف الحساب: لم يعد يستطيع الدخول إلى الأنظمة'); closeDlg(); loadStaff();
+        } catch (e) { toast(e.message, 1); }
+      };
+    }
+    $('stNew').addEventListener('click', () => staffForm(null));
+    $('stRows').addEventListener('click', (e) => { const tr = e.target.closest('tr[data-id]'); if (tr && e.target.closest('[data-edit]')) staffForm(STAFF.find((x) => x.id === tr.dataset.id)); });
+
+    // ================= الكليات =================
+    async function loadColleges() {
+      $('colList').innerHTML = '<p class="sub">جارٍ التحميل…</p>';
+      try {
+        await loadStruct();
+        let pub = null; try { pub = await (await fetch(BASE + 'colleges.json?x=' + Date.now(), { cache: 'no-store' })).json(); } catch (e) {}
+        $('colMsg').textContent = pub && pub.updated ? 'آخر نشر: ' + new Date(pub.updated).toLocaleString('ar-IQ-u-nu-latn', { timeZone: 'Asia/Baghdad' }) : 'لم تُنشر القائمة بعد';
+        $('colList').innerHTML = COLS.map((c) => `<div class="item"><div class="top"><b>${esc(c.name)}</b><span class="pill">${DEPTS.filter((d) => d.collegeId === c.id).length} قسم</span></div>
+          <div class="meta">${DEPTS.filter((d) => d.collegeId === c.id).map((d) => esc(d.name)).join(' · ') || '—'}</div></div>`).join('');
+      } catch (e) { $('colList').innerHTML = `<p class="sub" style="color:var(--bad)">${esc(e.message)}</p>`; }
+    }
+    $('colPublish').addEventListener('click', async () => {
+      try {
+        if (!COLS.length) await loadStruct();
+        const data = { colleges: COLS.map((c) => ({ id: c.id, name: c.name, depts: DEPTS.filter((d) => d.collegeId === c.id).map((d) => ({ id: d.id, name: d.name })) })) };
+        const r = await api('admin-api.php', { action: 'colleges_save', data: JSON.stringify(data) });
+        toast(`نُشرت ${r.n} كلية إلى البوابة`); loadColleges();
+      } catch (e) { toast(e.message, 1); }
+    });
+
+    // ================= الدخول =================
+    $('gateBtn').addEventListener('click', () => (window.AMU_UI && window.AMU_UI.inApp) ? (location.href = window.AMU_UI.openInBrowser) : window.AMU_AUTH.signIn());
+    $('outBtn').addEventListener('click', () => window.AMU_AUTH.signOut());
+    window.AMU_AUTH.onChange((st) => {
+      if (st.status === 'loading') return;
+      user = st.user;
+      const ok = st.status === 'in' && st.admin;
+      $('app').classList.toggle('hide', !ok); $('gate').classList.toggle('hide', ok);
+      $('who').textContent = st.user ? (st.user.email || st.username) : 'غير مسجّل';
+      $('outBtn').classList.toggle('hide', !st.user);
+      if (!ok) {
+        $('gateTitle').textContent = st.user ? 'هذه الصفحة لمدير النظام فقط' : 'لوحة مدير النظام';
+        $('gateText').textContent = st.user ? 'الحساب الحالي ليس من حسابات المدير. سجّل الخروج وادخل بحساب Google للمدير.' : 'سجّل الدخول بحساب Google للمدير.';
+        $('gateBtn').classList.toggle('hide', !!st.user);
+        Object.keys(loaded).forEach((k) => delete loaded[k]);
+        return;
+      }
+      let t = 'req'; try { t = localStorage.getItem('amu_admin_tab') || 'req'; } catch (e) {}
+      if (!loaded.req) { loaded.req = 1; loadReq(); }
+      showTab(t);
+    });
+  })();
+  </script>
+  <script>(function(d){var s=d.createElement('script');s.src='https://it-basra.com/amu/amu-nav.js?v='+new Date().toISOString().slice(0,10);s.defer=true;s.dataset.pos='bottom-left';d.body.appendChild(s)})(document)</script>
+</body>
+</html>
