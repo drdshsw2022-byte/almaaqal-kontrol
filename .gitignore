@@ -2,3 +2,5 @@
 portal/library/books-data.php
 portal/library/books.js
 portal/library/firebase-certs.json
+portal/private/*
+!portal/private/.htaccess

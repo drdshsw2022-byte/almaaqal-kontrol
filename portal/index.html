@@ -639,7 +639,7 @@
           </div>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <a href="https://it-basra.com/amu/almaqal-12.apk" class="glass-box p-5 rounded-2xl flex items-center gap-4">
+          <a href="https://it-basra.com/amu/apk.php" data-apk class="glass-box p-5 rounded-2xl flex items-center gap-4">
             <div class="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-800 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
               <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 2h10a2 2 0 012 2v16a2 2 0 01-2 2H7a2 2 0 01-2-2V4a2 2 0 012-2zm4 16h2M12 8v6m0 0l-3-3m3 3l3-3"/></svg>
             </div>
@@ -952,7 +952,7 @@
             <a href="https://drdshsw2022-byte.github.io/almaaqal-kontrol/kontrol/" target="_blank" rel="noopener" class="hover:text-amber-600 transition">اللجنة الامتحانية</a>
             <a href="library/" class="hover:text-amber-600 transition">الكتب الإلكترونية</a>
             <a href="https://drdshsw2022-byte.github.io/almaaqal/" target="_blank" rel="noopener" class="hover:text-amber-600 transition">بوابة الويب</a>
-            <a href="https://it-basra.com/amu/almaqal-12.apk" class="text-emerald-700 dark:text-emerald-400 hover:underline">تحميل APK المباشر</a>
+            <a href="https://it-basra.com/amu/apk.php" data-apk class="text-emerald-700 dark:text-emerald-400 hover:underline">تحميل APK المباشر</a>
           </div>
 
         </div>
@@ -1425,10 +1425,11 @@
       const el = document.getElementById('apkMeta');
       if (!el || location.hostname !== 'it-basra.com') return;
       try {
-        const r = await fetch('https://it-basra.com/amu/almaqal-12.apk', { method: 'HEAD', cache: 'no-store' });
+        const r = await fetch('apk.php?meta=1', { cache: 'no-store' });
         if (!r.ok) return;
-        const size = Number(r.headers.get('content-length'));
-        const mod = r.headers.get('last-modified');
+        const m = await r.json();
+        const size = Number(m.size);
+        const mod = m.mtime ? m.mtime * 1000 : 0;
         const parts = ['أندرويد'];
         if (size) parts.push((size / 1048576).toFixed(0) + ' MB');
         if (mod) parts.push('حُدّث ' + new Date(mod).toLocaleDateString('ar-IQ-u-nu-latn', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Baghdad' }));
@@ -1715,19 +1716,45 @@
     const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     let pending = null; // الرابط الذي طلبه الزائر قبل الدخول
     // روابط الأقسام المحمية: كل شيء عدا الواجهة والإعلانات
-    const GATED = /(^|\/)library\/|amu\/lectures|almaaqal-kontrol\/kontrol|cyb\.ces|almaqal-12\.apk|github\.io\/almaaqal\/?$|github\.com\/drdshsw2022-byte\/almaaqal\/releases|#(dl|ex|kc|lib)$/;
+    const GATED = /(^|\/)library\/|amu\/lectures|almaaqal-kontrol\/kontrol|cyb\.ces|almaqal-12\.apk|apk\.php|github\.io\/almaaqal\/?$|github\.com\/drdshsw2022-byte\/almaaqal\/releases|#(dl|ex|kc|lib)$/;
+
+    // تنزيل التطبيق: يطلب رابطاً مؤقتاً من السيرفر برمز الدخول ثم ينزّل الملف
+    const APK_API = /(^|\.)it-basra\.com$/.test(location.hostname) ? 'apk.php' : 'https://it-basra.com/amu/apk.php';
+    let apkBusy = false;
+    async function downloadApk(a) {
+      if (apkBusy) return; apkBusy = true;
+      const label = a && a.querySelector('#apkMeta'); const before = label && label.textContent;
+      if (label) label.textContent = 'جارٍ تجهيز التنزيل…';
+      try {
+        const token = await AMU_AUTH.state.user.getIdToken();
+        const r = await fetch(APK_API, { method: 'POST', body: new URLSearchParams({ token }) });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok || !j.url) throw new Error(j.error || 'تعذّر تجهيز التنزيل.');
+        location.href = j.url;
+      } catch (err) { alertMsg(err.message); }
+      finally { apkBusy = false; if (label) setTimeout(() => { label.textContent = before; }, 1500); }
+    }
+    function alertMsg(t) {
+      const d = document.createElement('div');
+      d.setAttribute('role', 'alert');
+      d.style.cssText = 'position:fixed;inset-inline:16px;bottom:24px;z-index:60;max-width:420px;margin:auto;padding:12px 16px;border-radius:14px;background:#7f1d1d;color:#fff;font-weight:700;font-size:14px;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.3)';
+      d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), 5000);
+    }
 
     document.addEventListener('click', (e) => {
       if (e.target.closest('[data-amu-login]')) { e.preventDefault(); AMU_UI.open(); return; }
-      if (root.classList.contains('amu-in')) return;
       const a = e.target.closest('a[href]');
+      if (root.classList.contains('amu-in')) {
+        if (a && a.hasAttribute('data-apk')) { e.preventDefault(); downloadApk(a); }
+        return;
+      }
       if (!a || !GATED.test(a.getAttribute('href'))) return;
       e.preventDefault();
-      pending = { href: a.href, blank: a.target === '_blank' };
+      pending = { href: a.href, blank: a.target === '_blank', apk: a.hasAttribute('data-apk') ? a : null };
       AMU_UI.open();
     }, true);
     document.getElementById('amuChip').addEventListener('click', () => AMU_UI.account());
-    function go() { if (!pending) return; const p = pending; pending = null; if (p.blank) window.open(p.href, '_blank', 'noopener'); else location.href = p.href; }
+    function go() { if (!pending) return; const p = pending; pending = null; if (p.apk) { downloadApk(p.apk); return; } if (p.blank) window.open(p.href, '_blank', 'noopener'); else location.href = p.href; }
     // بعد إغلاق نافذة الدخول (أو تغيير كلمة المرور الأولية) يكمل الزائر إلى ما طلبه
     window.addEventListener('amu-ui-close', () => { if (root.classList.contains('amu-in')) go(); else pending = null; });
 

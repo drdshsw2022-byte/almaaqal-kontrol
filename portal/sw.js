@@ -1,5 +1,5 @@
 /* Al-Maaqal Portal Service Worker — يعمل بدون إنترنت بعد أول فتح */
-const VERSION = 'amu-v2.9.0';
+const VERSION = 'amu-v2.10.0';
 const CORE = [
   './',
   './index.html',

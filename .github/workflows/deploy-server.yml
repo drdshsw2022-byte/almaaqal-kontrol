@@ -61,3 +61,5 @@ jobs:
             library/books-data.php
             library/firebase-certs.json
             visits-data.php
+            private/almaqal-12.apk
+            private/apk-secret.php
