@@ -36,6 +36,9 @@
   .au-av{width:40px;height:40px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#F59E0B,#B45309);color:#fff;font-weight:900;object-fit:cover}
   bdi{unicode-bidi:isolate}`;
 
+  // داخل تطبيق أندرويد (WebView): Google يمنع تسجيل الدخول من المتصفحات المضمّنة، فنفتح البوابة في Chrome
+  const IN_APP = /Android/.test(navigator.userAgent) && (/; wv\)/.test(navigator.userAgent) || !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()));
+  const OPEN_IN_BROWSER = 'intent://' + location.host + location.pathname + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(location.href) + ';end';
   let ov, box, mode = 'login';
   function mount() {
     if (ov) return;
@@ -59,7 +62,10 @@
       <p>${denied
         ? `الحساب <bdi dir="ltr">${esc(st.user && st.user.email || '')}</bdi> غير مخوَّل. الطلبة والموظفون بالبريد الجامعي (<bdi dir="ltr">almaaqal.edu.iq</bdi>)، والأساتذة باسم المستخدم وكلمة المرور.`
         : 'الطلبة والموظفون بالبريد الجامعي (<bdi dir="ltr">almaaqal.edu.iq</bdi>). الأساتذة باسم المستخدم وكلمة المرور المسلَّمة لهم. يبقى الدخول محفوظاً على جهازك.'}</p>
-      <button type="button" class="au-g" data-au="google">${G}<span>الدخول بالبريد الجامعي (Google)</span></button>
+      ${IN_APP
+        ? `<div class="au-ok" style="display:block;text-align:right;line-height:1.9">Google لا يسمح بالدخول من داخل تطبيق أندرويد. للدخول بالبريد الجامعي افتح البوابة في المتصفح، والأساتذة يدخلون هنا مباشرة باسم المستخدم.</div>
+           <a class="au-g" href="${OPEN_IN_BROWSER}" style="text-decoration:none">${G}<span>فتح البوابة في Chrome للدخول بـ Google</span></a>`
+        : `<button type="button" class="au-g" data-au="google">${G}<span>الدخول بالبريد الجامعي (Google)</span></button>`}
       <div class="au-or">أو دخول الأساتذة</div>
       <form class="au-f" data-au="staff" autocomplete="on">
         <label for="auUser">اسم المستخدم</label>
@@ -155,5 +161,5 @@
   });
 
   AMU_AUTH.onChange((st) => { if (st.status === 'in' && mode === 'login' && !st.staff && ov && ov.classList.contains('open')) close(); });
-  window.AMU_UI = { open, close, account: () => open('account'), changePassword: (forced) => open(forced ? 'forced' : 'pw'), isOpen: () => !!(ov && ov.classList.contains('open')), mode: () => mode };
+  window.AMU_UI = { open, close, account: () => open('account'), changePassword: (forced) => open(forced ? 'forced' : 'pw'), isOpen: () => !!(ov && ov.classList.contains('open')), mode: () => mode, inApp: IN_APP, openInBrowser: OPEN_IN_BROWSER };
 })();
