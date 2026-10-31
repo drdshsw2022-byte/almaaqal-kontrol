@@ -1,0 +1,57 @@
+name: نسخة احتياطية يومية لقاعدة البيانات
+
+# كل يوم الساعة 2:17 فجراً بتوقيت بغداد: نسخة كاملة من Firestore (الحضور، الدرجات، الطلبة، الكادر، الكنترول…)
+# مشفّرة بالمفتاح العام أدناه (age)، تُحفظ 30 يوماً في Artifacts. لا يفك تشفيرها إلا صاحب المفتاح الخاص
+# (ملف almaaqal-backup-key.txt عند مدير النظام). فك التشفير:
+#   age -d -i almaaqal-backup-key.txt backup-2026-11-01.tar.gz.age | tar xz
+on:
+  schedule:
+    - cron: '17 23 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+env:
+  AGE_RECIPIENT: age1aa007kqyyyez4yakxpcw3ke8n3aayrqa5xtz3ny2jt2m6x5vcecqy89lwu
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    env:
+      SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+      PROJECT: ${{ secrets.FB_PROJECT_ID || 'almaqal-uni' }}
+    steps:
+      - name: التحقق من حساب الخدمة
+        run: |
+          if [ -z "$SA" ]; then echo "::error title=لا نسخة احتياطية::سر FIREBASE_SERVICE_ACCOUNT غير موجود"; exit 1; fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: تصدير قاعدة البيانات
+        run: |
+          printf '%s' "$SA" > "$RUNNER_TEMP/sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
+          mkdir -p "$RUNNER_TEMP/node" && cd "$RUNNER_TEMP/node" && npm init -y >/dev/null && npm i --no-audit --no-fund firebase-admin@12 >/dev/null
+          cp "$GITHUB_WORKSPACE/tools/backup-firestore.mjs" .
+          node backup-firestore.mjs "$RUNNER_TEMP/data"
+          rm -f "$RUNNER_TEMP/sa.json"
+      - name: التشفير
+        run: |
+          sudo apt-get install -y -qq age >/dev/null
+          D=$(TZ=Asia/Baghdad date +%F)
+          mkdir -p out
+          tar -C "$RUNNER_TEMP/data" -czf - . | age -r "$AGE_RECIPIENT" -o "out/backup-$D.tar.gz.age"
+          rm -rf "$RUNNER_TEMP/data"
+          ls -la out
+          echo "D=$D" >> "$GITHUB_ENV"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: backup-${{ env.D }}
+          path: out/*.age
+          retention-days: 30
+          compression-level: 0
