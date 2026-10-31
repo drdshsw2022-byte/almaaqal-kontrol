@@ -1,4 +1,4 @@
-// نوافذ الدخول المشتركة للبوابة والمكتبة: Google، أو اسم المستخدم وكلمة المرور للأساتذة، وتغيير كلمة المرور.
+// نوافذ الدخول المشتركة للبوابة والكتب الإلكترونية: Google، أو اسم المستخدم وكلمة المرور للأساتذة، وتغيير كلمة المرور.
 // يتطلب access.js وauth.js. الواجهة: AMU_UI.open([mode]) · AMU_UI.account() · AMU_UI.changePassword(forced)
 (function () {
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -93,18 +93,18 @@
 
   function renderPw(forced) {
     box.innerHTML = `${forced ? '' : X}
-      <h3>${forced ? 'غيّر كلمة المرور الأولية' : 'تغيير كلمة المرور'}</h3>
-      <p>${forced ? 'هذا أول دخول لك من البوابة. اختر كلمة مرور جديدة خاصة بك.' : ''} كلمة المرور الجديدة تسري على البوابة والمكتبة ونظام الكنترول وتطبيق الحضور.</p>
+      <h3>${forced ? 'يجب تغيير كلمة المرور' : 'تغيير كلمة المرور'}</h3>
+      <p>${forced ? 'كلمة مرورك الحالية أولية أو ضعيفة، ولا يمكن المتابعة قبل تغييرها.' : ''} كلمة المرور الجديدة تسري على البوابة والكتب الإلكترونية ونظام الكنترول وتطبيق الحضور.</p>
       <form class="au-f" data-au="pwform">
         <label for="auCur">كلمة المرور الحالية</label>
         <input id="auCur" type="password" dir="ltr" autocomplete="current-password" required>
-        <label for="auNew">كلمة المرور الجديدة (6 أحرف على الأقل)</label>
-        <input id="auNew" type="password" dir="ltr" autocomplete="new-password" minlength="6" required>
+        <label for="auNew">كلمة المرور الجديدة: 8 خانات على الأقل، فيها حروف وأرقام</label>
+        <input id="auNew" type="password" dir="ltr" autocomplete="new-password" minlength="8" required>
         <label for="auNew2">تأكيد كلمة المرور الجديدة</label>
-        <input id="auNew2" type="password" dir="ltr" autocomplete="new-password" minlength="6" required>
+        <input id="auNew2" type="password" dir="ltr" autocomplete="new-password" minlength="8" required>
         <button type="submit" class="au-btn">حفظ كلمة المرور</button>
       </form>
-      ${forced ? '<button type="button" class="au-btn soft" data-au="later">لاحقاً</button>' : ''}
+      ${forced ? '<button type="button" class="au-btn soft" data-au="out">تسجيل الخروج</button>' : ''}
       <div class="au-err"></div><div class="au-ok"></div>`;
   }
 
@@ -117,10 +117,11 @@
     const f = box.querySelector('input'); if (f && mode !== 'login') setTimeout(() => f.focus(), 60);
   }
 
-  // تذكير بتغيير كلمة المرور عند أول دخول للأستاذ من هذا الجهاز
-  const FLAG = (u) => 'amu_pw_ok_' + u;
-  function pwDone(u) { try { localStorage.setItem(FLAG(u), '1'); } catch (e) {} }
-  function pwKnown(u) { try { return localStorage.getItem(FLAG(u)) === '1'; } catch (e) { return true; } }
+  // تغيير إجباري لكلمة المرور الأولية أو الضعيفة: يُعرف من كلمة المرور نفسها عند الدخول،
+  // ويُحفظ على الجهاز حتى تتغيّر، فلا يمكن تجاوزه بإغلاق الصفحة وفتحها (الدخول محفوظ).
+  const MUST = (u) => 'amu_pw_must_' + u;
+  function setMust(u, v) { try { v ? localStorage.setItem(MUST(u), '1') : localStorage.removeItem(MUST(u)); } catch (e) {} }
+  function mustChange(u) { try { return localStorage.getItem(MUST(u)) === '1'; } catch (e) { return false; } }
 
   document.addEventListener('click', async (e) => {
     const t = e.target.closest('[data-au]'); if (!t || !box || !box.contains(t)) return;
@@ -133,9 +134,8 @@
       if (AMU_AUTH.state.status === 'in') close();
       else if (AMU_AUTH.state.status === 'denied') renderLogin();
     }
-    else if (a === 'out') { await AMU_AUTH.signOut(); close(); }
+    else if (a === 'out') { mode = 'login'; await AMU_AUTH.signOut(); close(); }
     else if (a === 'pw') open('pw');
-    else if (a === 'later') { pwDone(AMU_AUTH.state.username); close(); }
   });
   document.addEventListener('submit', async (e) => {
     const f = e.target; if (!box || !box.contains(f)) return;
@@ -144,22 +144,28 @@
     try {
       if (f.dataset.au === 'staff') {
         const user = f.querySelector('#auUser').value, pass = f.querySelector('#auPass').value;
+        const weak = AMU_AUTH.isWeakPassword(pass, user);
         await AMU_AUTH.signInStaff(user, pass);
         const un = AMU_AUTH.state.username;
-        if (un && !pwKnown(un)) open('forced'); else close();
+        setMust(un, weak);
+        if (un && weak) open('forced'); else close();
       } else if (f.dataset.au === 'pwform') {
         const cur = f.querySelector('#auCur').value, n1 = f.querySelector('#auNew').value, n2 = f.querySelector('#auNew2').value;
         if (n1 !== n2) throw new Error('تأكيد كلمة المرور لا يطابق الجديدة.');
         await AMU_AUTH.changePassword(cur, n1);
-        pwDone(AMU_AUTH.state.username);
+        setMust(AMU_AUTH.state.username, false);
         const ok = box.querySelector('.au-ok'); ok.textContent = 'تم تغيير كلمة المرور.'; ok.style.display = 'block';
-        f.style.display = 'none'; const later = box.querySelector('[data-au=later]'); if (later) later.remove();
+        f.style.display = 'none'; const out = box.querySelector('[data-au=out]'); if (out) out.remove();
         mode = 'pw'; setTimeout(close, 1400);
       }
     } catch (err) { showErr(err.message || String(err)); }
     finally { btn.disabled = false; }
   });
 
-  AMU_AUTH.onChange((st) => { if (st.status === 'in' && mode === 'login' && !st.staff && ov && ov.classList.contains('open')) close(); });
+  AMU_AUTH.onChange((st) => {
+    if (st.status === 'in' && mode === 'login' && !st.staff && ov && ov.classList.contains('open')) close();
+    // أستاذ دخل سابقاً بكلمة مرور ضعيفة ولم يغيّرها: لا يتابع قبل التغيير
+    if (st.status === 'in' && st.staff && mustChange(st.username) && !(ov && ov.classList.contains('open') && mode === 'forced')) open('forced');
+  });
   window.AMU_UI = { open, close, account: () => open('account'), changePassword: (forced) => open(forced ? 'forced' : 'pw'), isOpen: () => !!(ov && ov.classList.contains('open')), mode: () => mode, inApp: IN_APP, openInBrowser: OPEN_IN_BROWSER };
 })();

@@ -1,0 +1,4 @@
+# فهرس الكتب يبقى على السيرفر فقط (GitHub Pages لا يشغّل PHP فيكشفه)
+portal/library/books-data.php
+portal/library/books.js
+portal/library/firebase-certs.json

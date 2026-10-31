@@ -17,7 +17,7 @@
   const SYSTEMS = [
     { id: 'portal',   name: 'البوابة الرئيسية',      sub: 'الإعلانات والمواعيد',        url: 'https://it-basra.com/amu/',                                   match: [/it-basra\.com\/amu\/?(index\.html)?$/, /almaaqal-kontrol\/portal\/?(index\.html)?$/], icon: 'home' },
     { id: 'lectures', name: 'المحاضرات والمناهج',    sub: 'الدروس والملازم والواجبات',  url: 'https://it-basra.com/amu/lectures/',                          match: [/\/amu\/lectures\//], icon: 'book' },
-    { id: 'library',  name: 'المكتبة الإلكترونية',   sub: 'مختصرات الكتب والمراجع',     url: 'https://it-basra.com/amu/library/',                           match: [/\/library\//], icon: 'library' },
+    { id: 'library',  name: 'الكتب الإلكترونية',   sub: 'مختصرات الكتب والمراجع',     url: 'https://it-basra.com/amu/library/',                           match: [/\/library\//], icon: 'library' },
     { id: 'exams',    name: 'منصة الاختبارات',       sub: 'الاختبارات الإلكترونية',     url: 'https://it-basra.com/cyb.ces/index.html',                     match: [/\/cyb\.ces\//], icon: 'exam' },
     { id: 'attend',   name: 'الحضور والغيابات',      sub: 'تطبيق الحضور على الويب',     url: 'https://drdshsw2022-byte.github.io/almaaqal/',                match: [/github\.io\/almaaqal\/(?!kontrol)/, /github\.io\/almaaqal\/?$/], icon: 'attend' },
     { id: 'results',  name: 'السعي والنتائج',        sub: 'الدرجات في تطبيق الحضور',    url: 'https://drdshsw2022-byte.github.io/almaaqal/',                match: [], icon: 'results' },

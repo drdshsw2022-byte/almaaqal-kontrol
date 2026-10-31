@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>المكتبة الإلكترونية · جامعة المعقل الدولية</title>
-  <meta name="description" content="المكتبة الإلكترونية لجامعة المعقل الدولية — مختصرات وكتب للقراءة المباشرة">
+  <title>الكتب الإلكترونية · جامعة المعقل الدولية</title>
+  <meta name="description" content="الكتب الإلكترونية لجامعة المعقل الدولية — مختصرات وكتب للقراءة المباشرة">
   <meta name="theme-color" content="#0C1224">
   <link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
   <link rel="icon" type="image/svg+xml" href="../icons/icon.svg">
@@ -278,7 +278,7 @@
     <div class="wrap">
       <a class="brand" href="../index.html">
         <img src="../icons/icon-192.png" alt="">
-        <span><b>المكتبة الإلكترونية</b><small>جامعة المعقل الدولية · البوابة</small></span>
+        <span><b>الكتب الإلكترونية</b><small>جامعة المعقل الدولية · البوابة</small></span>
       </a>
       <div class="actions">
         <a class="btn-soft" href="../index.html" title="العودة إلى البوابة">
@@ -305,8 +305,8 @@
   <main class="wrap">
     <section class="hero">
       <div>
-        <span class="tag mono" dir="ltr">04. LIBRARY</span>
-        <h1>المكتبة <em>الإلكترونية</em></h1>
+        <span class="tag mono" dir="ltr">04. E-BOOKS</span>
+        <h1>الكتب <em>الإلكترونية</em></h1>
         <p>مختصرات الكتب والمراجع العلمية للقراءة المباشرة داخل البوابة. القراءة لحسابات الجامعة والأساتذة المخوَّلين بعد تسجيل الدخول بحساب Google، والتنزيل بموافقة إدارة النظام.</p>
       </div>
       <div class="stats">
@@ -340,7 +340,7 @@
       </div></div>
     </section>
 
-    <!-- ===== المكتبة ===== -->
+    <!-- ===== الكتب الإلكترونية ===== -->
     <section class="lib" id="lib" aria-label="الكتب">
       <div class="toolbar">
         <div class="search">
@@ -354,14 +354,14 @@
       <div class="empty" id="empty">لا توجد نتائج مطابقة لبحثك.</div>
       <div class="notice">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        <div>الكتب في المكتبة <b>للقراءة فقط</b> داخل البوابة. إن احتجت نسخة للتنزيل، افتح الكتاب واضغط <b>«طلب تنزيل»</b>، فتصل رسالتك إلى بريد إدارة نظام الكنترول، ويُرسل لك رابط التنزيل بعد الموافقة.</div>
+        <div>الكتب الإلكترونية <b>للقراءة فقط</b> داخل البوابة. إن احتجت نسخة للتنزيل، افتح الكتاب واضغط <b>«طلب تنزيل»</b>، فتصل رسالتك إلى بريد إدارة نظام الكنترول، ويُرسل لك رابط التنزيل بعد الموافقة.</div>
       </div>
     </section>
   </main>
 
   <footer>
     <div class="wrap">
-      <span>© 2026 جامعة المعقل الدولية · المكتبة الإلكترونية</span>
+      <span>© 2026 جامعة المعقل الدولية · الكتب الإلكترونية</span>
       <span class="mono" style="color:var(--accent)">READ-ONLY · GOOGLE SIGN-IN</span>
     </div>
   </footer>
@@ -414,7 +414,6 @@
 
   <div id="toast" role="status" aria-live="polite"></div>
 
-  <script src="books.js"></script>
   <!-- إعدادات Firebase نفسها التي يستخدمها نظام الكنترول (تُولَّد عند النشر من أسرار المستودع) -->
   <script src="https://drdshsw2022-byte.github.io/almaaqal-kontrol/kontrol/firebase-config.js"></script>
   <script src="../access.js"></script>
@@ -425,9 +424,9 @@
     const ADMIN_EMAIL = (window.AMU_ACCESS && window.AMU_ACCESS.adminEmail) || 'drdsh.sw2022@gmail.com';
 
     const $ = (id) => document.getElementById(id);
-    const BOOKS = window.LIB_BOOKS || [];
-    const CATS = window.LIB_CATS || [];
-    const CAT_NAME = Object.fromEntries(CATS.map((c) => [c.id, c.name]));
+    // الفهرس لا يُحمَّل إلا بعد الدخول: books.php يتحقق من رمز الدخول ثم يعيد الكتب
+    let BOOKS = [], CATS = [], CAT_NAME = {}, catalogFor = '';
+    const CATALOG_API = /(^|\.)it-basra\.com$/.test(location.hostname) ? 'books.php' : 'https://it-basra.com/amu/library/books.php';
     let user = null, current = null, filter = 'all';
 
     // ---------- سمة الصفحة (مشتركة مع البوابة) ----------
@@ -449,8 +448,27 @@
     }
 
     // ---------- العرض ----------
-    $('statBooks').textContent = BOOKS.length;
-    $('statCats').textContent = CATS.filter((c) => BOOKS.some((b) => b.c === c.id)).length;
+    function setStats() {
+      $('statBooks').textContent = BOOKS.length || '—';
+      $('statCats').textContent = BOOKS.length ? CATS.filter((c) => BOOKS.some((b) => b.c === c.id)).length : '—';
+    }
+    setStats();
+    async function loadCatalog(u) {
+      if (catalogFor === u.uid && BOOKS.length) return true;
+      $('count').textContent = 'جارٍ تحميل الكتب…'; $('grid').innerHTML = ''; $('empty').style.display = 'none';
+      try {
+        const token = await u.getIdToken();
+        const r = await fetch(CATALOG_API, { method: 'POST', cache: 'no-store', body: new URLSearchParams({ token }) });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok || !Array.isArray(d.books)) throw new Error(d.error || 'تعذّر تحميل فهرس الكتب.');
+        BOOKS = d.books; CATS = d.cats || []; CAT_NAME = Object.fromEntries(CATS.map((c) => [c.id, c.name])); catalogFor = u.uid;
+        setStats(); return true;
+      } catch (e) {
+        $('count').textContent = ''; $('empty').style.display = 'block';
+        $('empty').textContent = (e && e.message) || 'تعذّر تحميل فهرس الكتب. تحقق من الاتصال ثم أعد تحميل الصفحة.';
+        return false;
+      }
+    }
 
     const ICONS = {
       cyber: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m5.6-4A12 12 0 0112 3a12 12 0 01-8.6 3A12 12 0 003 9c0 5.6 3.8 10.3 9 11.6 5.2-1.3 9-6 9-11.6 0-1-.1-2-.4-3z"/>',
@@ -585,11 +603,11 @@
     $('dSend').addEventListener('click', () => {
       if (!current || !user) return;
       const when = new Date().toLocaleString('ar-IQ', { timeZone: 'Asia/Baghdad' });
-      const subject = `طلب تنزيل من المكتبة الإلكترونية: ${current.t}`;
+      const subject = `طلب تنزيل من الكتب الإلكترونية: ${current.t}`;
       const body = [
         'السلام عليكم،',
         '',
-        'أطلب الموافقة على تنزيل الكتاب التالي من المكتبة الإلكترونية لجامعة المعقل الدولية:',
+        'أطلب الموافقة على تنزيل الكتاب التالي من الكتب الإلكترونية لجامعة المعقل الدولية:',
         '',
         `الكتاب: ${current.t}`,
         `التصنيف: ${CAT_NAME[current.c] || '—'}`,
@@ -636,23 +654,25 @@
       $('googleBtnText').textContent = denied ? 'الدخول بحساب جامعي آخر' : 'الدخول بالبريد الجامعي (Google)';
     }
 
-    window.AMU_AUTH.onChange((st) => {
+    window.AMU_AUTH.onChange(async (st) => {
       gateError(st.error ? esc(st.error) : '');
       if (st.status === 'loading') { show('loading'); return; }
       if (st.status === 'error') { show('gate'); $('googleBtn').disabled = true; return; }
       $('googleBtn').disabled = false;
       user = st.user;
+      if (st.status !== 'in') { BOOKS = []; CATS = []; CAT_NAME = {}; catalogFor = ''; setStats(); $('grid').innerHTML = ''; }
       if (st.status === 'out') { gateMode(false); show('gate'); return; }
       setChip(st.user);
       if (st.status === 'denied') { gateMode(true); show('gate'); document.body.classList.add('signed'); $('signOutBtn').style.display = 'inline-flex'; return; }
       show('lib');
+      if (!(await loadCatalog(st.user))) return;
       renderChips(); renderGrid();
       const m = location.hash.match(/^#read=([\w-]+)/);
       if (m) { history.replaceState(null, '', location.pathname); openBook(BOOKS.find((b) => b.id === m[1])); }
     });
 
     $('googleBtn').addEventListener('click', async () => {
-      // داخل تطبيق أندرويد: Google يمنع الدخول من المتصفح المضمّن، فنفتح المكتبة في Chrome
+      // داخل تطبيق أندرويد: Google يمنع الدخول من المتصفح المضمّن، فنفتح الصفحة في Chrome
       if (window.AMU_UI && window.AMU_UI.inApp) { location.href = window.AMU_UI.openInBrowser; return; }
       gateError('');
       const btn = $('googleBtn'); btn.disabled = true; const txt = $('googleBtnText').textContent; $('googleBtnText').textContent = 'جارٍ فتح نافذة Google…';

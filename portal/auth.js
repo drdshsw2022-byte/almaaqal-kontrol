@@ -1,4 +1,4 @@
-// تسجيل الدخول المشترك للبوابة والمكتبة (Firebase Auth لمشروع الكنترول وتطبيق الحضور نفسه).
+// تسجيل الدخول المشترك للبوابة والكتب الإلكترونية (Firebase Auth لمشروع الكنترول وتطبيق الحضور نفسه).
 // يتطلب تحميل firebase-config.js وaccess.js قبله.
 // - Google: المدير والبريد الجامعي
 // - اسم المستخدم وكلمة المرور: حسابات الأساتذة في تطبيق الحضور (<اسم>@pw.almaaqal.app)
@@ -99,7 +99,8 @@
     async changePassword(cur, next) {
       if (!fb || !state.user || !state.staff) throw new Error('تغيير كلمة المرور لحسابات الأساتذة فقط.');
       next = String(next || '');
-      if (next.length < 6) throw new Error('كلمة المرور الجديدة يجب ألا تقل عن 6 أحرف.');
+      const why = window.AMU_AUTH.isWeakPassword(next, state.username);
+      if (why) throw new Error('كلمة المرور الجديدة ضعيفة: ' + why);
       if (next === cur) throw new Error('اختر كلمة مرور مختلفة عن الحالية.');
       const authEmail = state.user.email.toLowerCase();
       try {
@@ -110,6 +111,17 @@
         if (/invalid-credential|wrong-password|invalid-login/.test((e && e.code) || '')) throw new Error('كلمة المرور الحالية غير صحيحة.');
         throw new Error(errText(e));
       }
+    },
+    // سبب ضعف كلمة المرور، أو '' إن كانت مقبولة
+    isWeakPassword(p, username) {
+      p = String(p || ''); const u = String(username || '').trim().toLowerCase().split('@')[0];
+      const common = ['123', '1234', '12345', '123456', '1234567', '12345678', '123456789', '1234567890', 'password', 'admin', 'qwerty', 'almaaqal', 'maaqal', '11111111', '00000000', 'abc123', 'password1'];
+      if (p.length < 8) return 'أقل من 8 خانات.';
+      if (common.includes(p.toLowerCase())) return 'شائعة جداً.';
+      if (u && p.toLowerCase().includes(u)) return 'تحتوي اسم المستخدم.';
+      if (!/[A-Za-z\u0600-\u06FF]/.test(p) || !/\d/.test(p)) return 'يجب أن تجمع حروفاً وأرقاماً.';
+      if (/^(.)\1+$/.test(p)) return 'حرف واحد مكرر.';
+      return '';
     },
     async signOut() { if (fb) await fb.signOut(fb.auth); }
   };
