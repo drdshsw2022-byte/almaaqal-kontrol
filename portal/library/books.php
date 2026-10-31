@@ -7,11 +7,15 @@
  */
 require __DIR__ . '/../amu-guard.php';
 header('Content-Type: application/json; charset=utf-8');
-require_user();
+$pay = require_user();
+$admin = is_admin_pay($pay);
 $cat = amu_catalog();
-foreach ($cat['books'] as &$b) {
+$out = [];
+foreach ($cat['books'] as $b) {
   if (is_file(book_file($b))) $b['h'] = 1;
+  elseif (!$admin) continue; // مجلد Drive صار خاصاً: الكتاب غير المنقول لا يراه إلا المدير
   if (is_file(book_cover($b['id']))) $b['cv'] = 1;
+  $out[] = $b;
 }
-unset($b);
+$cat['books'] = $out;
 echo json_encode($cat, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
