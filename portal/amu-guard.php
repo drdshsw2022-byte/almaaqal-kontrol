@@ -14,8 +14,9 @@ $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 if (in_array($origin, $ALLOWED_ORIGINS, true)) {
   header('Access-Control-Allow-Origin: ' . $origin);
   header('Vary: Origin');
-  header('Access-Control-Allow-Methods: POST, OPTIONS');
-  header('Access-Control-Allow-Headers: Content-Type');
+  header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+  header('Access-Control-Allow-Headers: Content-Type, Range');
+  header('Access-Control-Expose-Headers: Accept-Ranges, Content-Range, Content-Length');
 }
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') { http_response_code(204); exit; }
 
@@ -102,3 +103,55 @@ function require_user() {
 function is_admin_pay($pay) {
   return !empty($pay['email_verified']) && in_array(strtolower(trim($pay['email'] ?? '')), ADMINS, true);
 }
+
+// مفتاح سري لتوقيع روابط التنزيل والقراءة المؤقتة (يُنشأ مرة واحدة في private/)
+function amu_secret($name = 'link-secret') {
+  $f = __DIR__ . '/private/' . $name . '.php';
+  $guard = "<?php exit; ?>\n";
+  $raw = @file_get_contents($f);
+  if ($raw !== false && strpos($raw, $guard) === 0 && strlen($raw) > strlen($guard) + 32) return substr($raw, strlen($guard));
+  $s = bin2hex(random_bytes(32));
+  if (!@file_put_contents($f, $guard . $s, LOCK_EX)) fail(500, 'تعذّر تجهيز الرابط المؤقت.');
+  return $s;
+}
+function amu_sign($data) { return substr(hash_hmac('sha256', $data, amu_secret()), 0, 40); }
+
+// يرسل ملفاً مع دعم طلبات المدى (Range) حتى يقرأ القارئ الصفحات دون تنزيل الكتاب كاملاً
+function send_file($path, $type, $name, $attach) {
+  while (ob_get_level()) ob_end_clean();
+  $size = filesize($path); $start = 0; $end = $size - 1;
+  header('Content-Type: ' . $type);
+  header('Accept-Ranges: bytes');
+  header("Content-Disposition: " . ($attach ? 'attachment' : 'inline') . "; filename*=UTF-8''" . rawurlencode($name));
+  header('Cache-Control: private, max-age=3600');
+  header('Last-Modified: ' . gmdate('D, d M Y H:i:s', filemtime($path)) . ' GMT');
+  if (isset($_SERVER['HTTP_RANGE']) && preg_match('/bytes=(\d*)-(\d*)/', $_SERVER['HTTP_RANGE'], $m)) {
+    if ($m[1] === '' && $m[2] !== '') { $start = max(0, $size - (int)$m[2]); }
+    else { $start = (int)$m[1]; if ($m[2] !== '') $end = min((int)$m[2], $size - 1); }
+    if ($start > $end || $start >= $size) { http_response_code(416); header("Content-Range: bytes */$size"); exit; }
+    http_response_code(206);
+    header("Content-Range: bytes $start-$end/$size");
+  }
+  $len = $end - $start + 1;
+  header('Content-Length: ' . $len);
+  if (($_SERVER['REQUEST_METHOD'] ?? '') === 'HEAD') exit;
+  @set_time_limit(0);
+  $fp = fopen($path, 'rb'); fseek($fp, $start);
+  while ($len > 0 && !feof($fp) && !connection_aborted()) { $chunk = fread($fp, min(262144, $len)); echo $chunk; flush(); $len -= strlen($chunk); }
+  fclose($fp); exit;
+}
+
+// ===== الكتب الإلكترونية =====
+const BOOK_EXT = ['PDF' => 'pdf', 'PPTX' => 'pptx', 'DOCX' => 'docx'];
+const BOOK_TYPE = ['pdf' => 'application/pdf', 'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation', 'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+function amu_catalog() {
+  $raw = @file_get_contents(__DIR__ . '/library/books-data.php');
+  $guard = "<?php exit; ?>\n";
+  if ($raw === false || strpos($raw, $guard) !== 0) fail(500, 'فهرس الكتب غير متاح.');
+  $d = json_decode(substr($raw, strlen($guard)), true);
+  if (!is_array($d) || !isset($d['books'])) fail(500, 'فهرس الكتب تالف.');
+  return $d;
+}
+function book_by_id($cat, $id) { foreach ($cat['books'] as $b) if (($b['id'] ?? '') === $id) return $b; return null; }
+function book_file($b) { $ext = BOOK_EXT[strtoupper($b['x'] ?? 'PDF')] ?? 'pdf'; return __DIR__ . '/library/files/' . $b['id'] . '.' . $ext; }
+function book_cover($id) { return __DIR__ . '/library/covers/' . $id . '.jpg'; }

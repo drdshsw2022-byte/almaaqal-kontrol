@@ -235,6 +235,20 @@
     @keyframes rprog { from { background-position: -50% 0; } to { background-position: 150% 0; } }
     .rload { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #CBD5E1; font-weight: 800; font-size: 13px; z-index: 1; }
     .label-sm { display: inline; }
+    /* قارئ PDF من السيرفر */
+    .rpdf { position: absolute; inset: 0; overflow: auto; -webkit-overflow-scrolling: touch; background: #1F2937; padding: 12px 8px 40px; display: none; --pw: min(100%, 900px); user-select: none; -webkit-user-select: none; }
+    .rpdf.on { display: block; }
+    .rpdf .pg { position: relative; width: var(--pw); margin: 0 auto 12px; background: #fff; box-shadow: 0 6px 18px rgba(0,0,0,.35); border-radius: 3px; overflow: hidden; }
+    .rpdf .pg canvas { display: block; width: 100%; height: 100%; }
+    .rpdf .pg::before { content: attr(data-n); position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #CBD5E1; font: 800 22px 'JetBrains Mono', monospace; z-index: 0; }
+    .rpdf .pg canvas { position: relative; z-index: 1; }
+    .rtools { display: none; align-items: center; gap: 6px; }
+    .rtools.on { display: inline-flex; }
+    .rtools .rbtn { padding: 7px 10px; }
+    .rpage { font: 800 12px 'JetBrains Mono', monospace; color: #FDE68A; min-width: 64px; text-align: center; }
+    .roffice { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #E2E8F0; font-weight: 800; text-align: center; padding: 20px; background: #0B1222; z-index: 4; }
+    .roffice.on { display: flex; }
+    @media (max-width: 640px) { .rtools .zoom { display: none; } .rbtn span.lbl { display: none; } }
 
     /* ===== Request dialog ===== */
     .dlg { position: fixed; inset: 0; z-index: 70; display: none; align-items: center; justify-content: center; padding: 16px; background: rgba(2,4,10,.65); backdrop-filter: blur(4px); }
@@ -373,6 +387,11 @@
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
       <div class="ttl"><b id="rTitle">—</b><small id="rSub">قراءة فقط</small></div>
+      <div class="rtools" id="rTools">
+        <button class="rbtn zoom" id="rZoomOut" type="button" aria-label="تصغير">−</button>
+        <span class="rpage" id="rPage" dir="ltr" aria-live="polite">—</span>
+        <button class="rbtn zoom" id="rZoomIn" type="button" aria-label="تكبير">+</button>
+      </div>
       <a class="rbtn" id="rDl" href="#" target="_blank" rel="noopener" style="display:none;text-decoration:none" title="للمدير: تنزيل مباشر">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
         <span>تنزيل</span>
@@ -387,6 +406,8 @@
     </div>
     <div class="rstage" id="rStage" oncontextmenu="return false">
       <iframe id="rFrame" title="قارئ الكتاب" allow="autoplay" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <div class="rpdf" id="rPdf" tabindex="0" aria-label="صفحات الكتاب"></div>
+      <div class="roffice" id="rOffice"><span id="rOfficeMsg"></span><a class="rbtn" id="rOfficeBtn" href="#" style="text-decoration:none">فتح الملف</a></div>
       <div class="rload" id="rLoad"><img id="rCover" alt="" referrerpolicy="no-referrer" hidden><div class="spin"></div><span id="rLoadMsg">جارٍ فتح الكتاب…</span><small id="rLoadHint"></small></div>
       <div class="rbar-prog" id="rProg"></div>
       <div class="wm" id="rWm" aria-hidden="true"></div>
@@ -428,6 +449,10 @@
     let BOOKS = [], CATS = [], CAT_NAME = {}, catalogFor = '';
     const CATALOG_API = /(^|\.)it-basra\.com$/.test(location.hostname) ? 'books.php' : 'https://it-basra.com/amu/library/books.php';
     let user = null, current = null, filter = 'all';
+    // الكتب المنقولة إلى السيرفر تُقرأ من book.php (برابط مؤقت بعد التحقق من الدخول)، والباقي من Drive
+    const LIB_BASE = /(^|\.)it-basra\.com$/.test(location.hostname) ? '' : 'https://it-basra.com/amu/library/';
+    const BOOK_API = LIB_BASE + 'book.php';
+    const coverUrl = (b) => b.cv ? LIB_BASE + 'covers/' + encodeURIComponent(b.id) + '.jpg' : `https://drive.google.com/thumbnail?id=${encodeURIComponent(b.id)}&sz=w400`;
 
     // ---------- سمة الصفحة (مشتركة مع البوابة) ----------
     function applyTheme(dark) {
@@ -499,7 +524,7 @@
       $('grid').innerHTML = list.map((b) => `
         <button type="button" class="book" data-id="${b.id}" aria-label="قراءة ${esc(b.t)}">
           <div class="cover c-${b.c}">
-            <img class="thumb" loading="lazy" alt="" referrerpolicy="no-referrer" src="https://drive.google.com/thumbnail?id=${encodeURIComponent(b.id)}&sz=w400" onload="if(this.naturalWidth>40){this.classList.add('ok');this.parentNode.classList.add('has-thumb')}else{this.remove()}" onerror="this.remove()">
+            <img class="thumb" loading="lazy" alt="" referrerpolicy="no-referrer" src="${coverUrl(b)}" onload="if(this.naturalWidth>40){this.classList.add('ok');this.parentNode.classList.add('has-thumb')}else{this.remove()}" onerror="this.remove()">
             <span class="spine"></span>
             <svg class="ico" fill="none" viewBox="0 0 24 24" stroke="currentColor">${ICONS[b.c] || ICONS.gen}</svg>
             <span class="cat">${esc(CAT_NAME[b.c] || 'عام')}</span>
@@ -533,7 +558,8 @@
       $('rDl').href = `https://drive.google.com/uc?export=download&id=${encodeURIComponent(b.id)}`;
       $('rDrive').href = `https://drive.google.com/file/d/${encodeURIComponent(b.id)}/view`;
       $('rWm').innerHTML = st.admin ? '' : Array.from({ length: 40 }, () => `<span style="padding:24px 30px">${mark}</span>`).join('');
-      startFrame(b, true);
+      $('rDrive').style.display = st.admin && !b.h ? 'inline-flex' : 'none';
+      if (b.h) openServer(b); else { pdfMode(false); startFrame(b, true); }
       $('reader').classList.add('open');
       document.body.style.overflow = 'hidden';
       history.pushState({ reader: b.id }, '', '#read=' + b.id);
@@ -548,7 +574,7 @@
         const ld = $('rLoad');
         const cov = $('rCover');
         cov.hidden = true; cov.onload = () => { cov.hidden = false; }; cov.onerror = () => { cov.hidden = true; };
-        cov.src = `https://drive.google.com/thumbnail?id=${encodeURIComponent(b.id)}&sz=w400`;
+        cov.src = coverUrl(b);
         $('rLoadMsg').textContent = 'جارٍ فتح الكتاب…';
         $('rLoadHint').textContent = b.s >= 20 ? `الكتاب كبير (${b.s} MB)، قد يستغرق فتح أول مرة بضع ثوانٍ.` : '';
         clearTimeout(slowT);
@@ -568,6 +594,7 @@
     function warm(card) {
       if (!user || !card || $('reader').classList.contains('open')) return;
       const b = BOOKS.find((x) => x.id === card.dataset.id); if (!b || b.id === frameId) return;
+      if (b.h) { loadPdfJs().catch(() => {}); return; }
       startFrame(b, false);
     }
     $('grid').addEventListener('pointerover', (e) => {
@@ -578,9 +605,127 @@
     $('grid').addEventListener('touchstart', (e) => warm(e.target.closest('.book')), { passive: true });
     $('grid').addEventListener('focusin', (e) => warm(e.target.closest('.book')));
 
+    // ---------- قارئ PDF من السيرفر (pdf.js) ----------
+    // يطلب الصفحات من السيرفر بالتدريج (Range)، فيفتح الكتاب الكبير دون تنزيله كاملاً
+    const PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+    let pdfjsP = null, pdfDoc = null, pdfTask = null, pdfRun = 0, pdfZoom = 1, renderKey = 0, pageIO = null;
+    const drawn = new Set();
+    function loadPdfJs() {
+      if (pdfjsP) return pdfjsP;
+      pdfjsP = new Promise((res, rej) => {
+        const sc = document.createElement('script');
+        sc.src = PDFJS + 'pdf.min.js'; sc.crossOrigin = 'anonymous';
+        sc.onload = () => { window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + 'pdf.worker.min.js'; res(window.pdfjsLib); };
+        sc.onerror = () => { pdfjsP = null; rej(new Error('تعذّر تحميل القارئ. تحقق من الاتصال.')); };
+        document.head.appendChild(sc);
+      });
+      return pdfjsP;
+    }
+    function pdfMode(on) {
+      $('rPdf').classList.toggle('on', on); $('rTools').classList.toggle('on', on);
+      $('rFrame').style.display = on ? 'none' : ''; document.querySelector('.rshield').style.display = on ? 'none' : '';
+      $('rOffice').classList.remove('on');
+    }
+    function loaderOn(msg, hint) {
+      $('rLoad').classList.remove('gone'); $('rProg').classList.remove('gone');
+      $('rLoadMsg').textContent = msg || 'جارٍ فتح الكتاب…'; $('rLoadHint').textContent = hint || '';
+    }
+    function loaderOff() { $('rLoad').classList.add('gone'); $('rProg').classList.add('gone'); }
+    function closePdf() {
+      pdfRun++;
+      if (pageIO) { pageIO.disconnect(); pageIO = null; }
+      if (pdfTask) { try { pdfTask.destroy(); } catch (e) {} }
+      pdfTask = null; pdfDoc = null; drawn.clear();
+      $('rPdf').innerHTML = '';
+    }
+    async function openServer(b) {
+      closePdf(); const run = pdfRun;
+      pdfMode(true); pdfZoom = 1; $('rPdf').style.setProperty('--pw', 'min(100%, 900px)'); $('rPage').textContent = '—';
+      const cov = $('rCover'); cov.hidden = true; cov.onload = () => { cov.hidden = false; }; cov.onerror = () => { cov.hidden = true; }; cov.src = coverUrl(b);
+      loaderOn('جارٍ فتح الكتاب…', '');
+      try {
+        const token = await user.getIdToken();
+        const [r] = await Promise.all([fetch(BOOK_API, { method: 'POST', cache: 'no-store', body: new URLSearchParams({ token, id: b.id }) }), loadPdfJs()]);
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok || !j.url) throw new Error(j.error || 'تعذّر فتح الكتاب.');
+        if (run !== pdfRun) return;
+        if (j.dl) $('rDl').href = j.dl;
+        if (j.ext !== 'pdf') {
+          loaderOff(); $('rTools').classList.remove('on');
+          $('rOfficeMsg').textContent = `هذا الملف بصيغة ${String(j.ext).toUpperCase()}، ولا يُعرض داخل المتصفح. افتحه ببرنامج Office أو Google Slides/Docs.`;
+          $('rOfficeBtn').href = j.url; $('rOffice').classList.add('on'); return;
+        }
+        pdfTask = window.pdfjsLib.getDocument({ url: j.url, rangeChunkSize: 262144, disableAutoFetch: true, disableStream: true, isEvalSupported: false });
+        pdfTask.onProgress = (p) => { if (p.total && run === pdfRun) $('rLoadHint').textContent = 'تحميل الصفحات الأولى…'; };
+        const doc = await pdfTask.promise;
+        if (run !== pdfRun) { doc.destroy(); return; }
+        pdfDoc = doc;
+        const first = (await doc.getPage(1)).getViewport({ scale: 1 });
+        const box = $('rPdf');
+        box.innerHTML = Array.from({ length: doc.numPages }, (_, i) => `<div class="pg" data-n="${i + 1}" style="aspect-ratio:${first.width}/${first.height}"></div>`).join('');
+        box.scrollTop = 0;
+        pageIO = new IntersectionObserver((ents) => ents.forEach((en) => { if (en.isIntersecting) drawPage(en.target, run); }), { root: box, rootMargin: '900px 0px' });
+        box.querySelectorAll('.pg').forEach((el) => pageIO.observe(el));
+        updatePage(); loaderOff(); box.focus({ preventScroll: true });
+      } catch (e) {
+        if (run !== pdfRun) return;
+        $('rLoadMsg').textContent = (e && e.message && !/^Unexpected|Missing PDF|Invalid PDF/.test(e.message)) ? e.message : 'تعذّر عرض الكتاب.';
+        $('rLoadHint').textContent = 'أغلق الكتاب وأعد فتحه. إن تكررت المشكلة راسل الدعم الفني.';
+        $('rProg').classList.add('gone');
+      }
+    }
+    async function drawPage(el, run) {
+      const key = String(renderKey);
+      if (!pdfDoc || el.dataset.k === key) return;
+      el.dataset.k = key;
+      try {
+        const page = await pdfDoc.getPage(+el.dataset.n);
+        if (run !== pdfRun || el.dataset.k !== key) return;
+        const vp1 = page.getViewport({ scale: 1 });
+        el.style.aspectRatio = vp1.width + '/' + vp1.height;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const vp = page.getViewport({ scale: (el.clientWidth / vp1.width) * dpr });
+        const c = document.createElement('canvas');
+        c.width = Math.floor(vp.width); c.height = Math.floor(vp.height);
+        await page.render({ canvasContext: c.getContext('2d', { alpha: false }), viewport: vp }).promise;
+        if (run !== pdfRun || el.dataset.k !== key) return;
+        el.replaceChildren(c); drawn.add(el); page.cleanup();
+        trimPages();
+      } catch (e) { if (el.dataset.k === key) delete el.dataset.k; }
+    }
+    // يحرر ذاكرة الصفحات البعيدة (مهم في الكتب الكبيرة على الموبايل)
+    function trimPages() {
+      if (drawn.size <= 14) return;
+      const cur = currentPage();
+      [...drawn].sort((a, b) => Math.abs(b.dataset.n - cur) - Math.abs(a.dataset.n - cur)).slice(0, drawn.size - 14)
+        .forEach((el) => { el.replaceChildren(); delete el.dataset.k; drawn.delete(el); });
+    }
+    function currentPage() {
+      const box = $('rPdf'); const r = box.getBoundingClientRect();
+      const el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 3);
+      const pg = el && el.closest && el.closest('.pg');
+      return pg ? +pg.dataset.n : 1;
+    }
+    function updatePage() { if (pdfDoc) $('rPage').textContent = `${currentPage()} / ${pdfDoc.numPages}`; }
+    let pgT = 0;
+    $('rPdf').addEventListener('scroll', () => { clearTimeout(pgT); pgT = setTimeout(updatePage, 80); }, { passive: true });
+    function setZoom(z) {
+      if (!pdfDoc) return;
+      const box = $('rPdf'); const ratio = box.scrollTop / Math.max(1, box.scrollHeight);
+      pdfZoom = Math.min(3, Math.max(0.6, z));
+      box.style.setProperty('--pw', `min(${Math.round(100 * pdfZoom)}%, ${Math.round(900 * pdfZoom)}px)`);
+      renderKey++; drawn.clear();
+      box.scrollTop = ratio * box.scrollHeight;
+      if (pageIO) box.querySelectorAll('.pg').forEach((el) => { pageIO.unobserve(el); pageIO.observe(el); });
+    }
+    $('rZoomIn').addEventListener('click', () => setZoom(pdfZoom + 0.25));
+    $('rZoomOut').addEventListener('click', () => setZoom(pdfZoom - 0.25));
+    $('rOfficeBtn').addEventListener('click', () => toast('جارٍ تنزيل الملف…'));
+
     function closeBook(fromPop) {
       $('reader').classList.remove('open');
       clearTimeout(slowT);
+      closePdf();
       // يبقى العارض محمَّلاً لو أعاد القارئ فتح الكتاب نفسه
       document.body.style.overflow = '';
       current = null;

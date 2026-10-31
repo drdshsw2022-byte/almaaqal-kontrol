@@ -4,3 +4,6 @@ portal/library/books.js
 portal/library/firebase-certs.json
 portal/private/*
 !portal/private/.htaccess
+portal/library/files/*
+!portal/library/files/.htaccess
+portal/library/covers/*.jpg

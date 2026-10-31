@@ -2,14 +2,16 @@
 /* فهرس الكتب الإلكترونية — لا يُعطى إلا لمن سجّل الدخول وكان مخوَّلاً.
  * POST books.php   token=<Firebase ID token>
  *   ← {"cats":[…], "books":[…]}   أو 401/403 مع رسالة
- * التحقق من الدخول في ../amu-guard.php.
- * البيانات في books-data.php بجانبه (يبدأ بـ <?php exit; ?> فلا يُقرأ من المتصفح).
+ * كل كتاب منقول إلى السيرفر يحمل "h":1 (يُقرأ من book.php)، و"cv":1 إن كان غلافه محفوظاً في covers/.
+ * التحقق من الدخول وقراءة الفهرس في ../amu-guard.php.
  */
 require __DIR__ . '/../amu-guard.php';
 header('Content-Type: application/json; charset=utf-8');
 require_user();
-
-$raw = @file_get_contents(__DIR__ . '/books-data.php');
-$guard = "<?php exit; ?>\n";
-if ($raw === false || strpos($raw, $guard) !== 0) fail(500, 'فهرس الكتب غير متاح.');
-echo substr($raw, strlen($guard));
+$cat = amu_catalog();
+foreach ($cat['books'] as &$b) {
+  if (is_file(book_file($b))) $b['h'] = 1;
+  if (is_file(book_cover($b['id']))) $b['cv'] = 1;
+}
+unset($b);
+echo json_encode($cat, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
