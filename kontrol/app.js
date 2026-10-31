@@ -327,7 +327,6 @@ async function fbLoadRef(path,m,force){
     m.clear();snap.forEach(d=>m.set(d.id,d.data()));REF_AT=Date.now();rebuild()}
   catch(err){console.warn(path,err);if(err&&err.code==='permission-denied')toast('لا تملك صلاحية قراءة «'+path+'». راجع قواعد Firestore.','bad')}}
 function fbLoadRefs(force){['colleges','departments','courses','students','staff'].forEach(c=>fbLoadRef(c,RAW[c],force))}
-ACT.fbsync=async()=>{if(MODE!=='fb')return;toast('جارٍ تحديث البيانات من قاعدة Firebase…');fbLoadRefs(true);GW.key='';watchGrades(true);renderNav()};
 function fbSubscribe(){
   REF_GEN++;fbLoadRefs(false);fbSub('k_staffx',intoRaw(RAW.staffx));
   ['halls','exams','slots','envelopes','incidents','meta'].forEach(c=>fbSub(KCOL[c],intoS(c)));
@@ -1154,6 +1153,7 @@ ACT.orphandel=async(d,b)=>{
 
 ACT.close=closeModal;
 ACT.logout=async()=>{try{await FB.signOut(FB.auth)}catch(e){}};
+ACT.fbsync=async()=>{if(MODE!=='fb')return;toast('جارٍ تحديث البيانات من قاعدة Firebase…');fbLoadRefs(true);GW.key='';watchGrades(true);renderNav()};
 ACT.publish=async()=>{
   if(MODE!=='fb'||!IS_ADMIN)throw new Error('نشر النتائج صلاحية رئيس اللجنة.');
   const k=UI.group;if(!isLocked(k))throw new Error('صادق على نتائج المرحلة أولاً.');
