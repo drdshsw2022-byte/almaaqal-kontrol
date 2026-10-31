@@ -1,0 +1,50 @@
+name: مراقبة أنظمة جامعة المعقل
+
+# يفحص كل الأنظمة كل 15 دقيقة. إن توقف أي نظام يفشل الفحص،
+# فيرسل GitHub بريد تنبيه تلقائياً إلى صاحب المستودع (drdsh.sw2022@gmail.com).
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: uptime
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: فحص الأنظمة
+        shell: bash
+        run: |
+          fail=0
+          check () {  # الاسم، الرابط، نص يجب أن يظهر في الصفحة (اختياري)
+            local name="$1" url="$2" must="$3" body code
+            for try in 1 2 3; do
+              code=$(curl -sS -L -o /tmp/body -w '%{http_code}' --max-time 25 -A "Mozilla/5.0 (almaaqal-uptime)" "$url" 2>/dev/null || echo 000)
+              if [ "$code" = "200" ] && { [ -z "$must" ] || grep -q "$must" /tmp/body; }; then
+                echo "✅ $name ($code)"; return 0
+              fi
+              sleep 10
+            done
+            echo "::error title=$name متوقف::$url أعاد $code"
+            fail=1
+          }
+          check "البوابة"              "https://it-basra.com/amu/"                                    "amu-nav.js"
+          check "المحاضرات والمناهج"   "https://it-basra.com/amu/lectures/"                           "LECTURES"
+          check "الكتب الإلكترونية"    "https://it-basra.com/amu/library/"                            "books.php"
+          check "منصة الاختبارات"      "https://it-basra.com/cyb.ces/index.html"                      ""
+          check "تطبيق الحضور (الويب)" "https://drdshsw2022-byte.github.io/almaaqal/"                ""
+          check "نظام الكنترول"        "https://drdshsw2022-byte.github.io/almaaqal-kontrol/kontrol/" ""
+          # خدمة فهرس الكتب: بلا رمز دخول يجب أن ترفض بـ 401 (لا 500 ولا 200)
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 25 -X POST -d token= https://it-basra.com/amu/library/books.php || echo 000)
+          if [ "$code" = "401" ]; then echo "✅ حماية فهرس الكتب (401)"; else echo "::error title=فهرس الكتب::books.php أعاد $code بدل 401"; fail=1; fi
+          # ملف بيانات الكتب يجب ألا يكشف شيئاً
+          size=$(curl -sS --max-time 25 https://it-basra.com/amu/library/books-data.php | wc -c)
+          if [ "$size" -le 5 ]; then echo "✅ بيانات الكتب مخفية"; else echo "::error title=تسرّب::books-data.php يعرض $size بايت"; fail=1; fi
+          exit $fail
