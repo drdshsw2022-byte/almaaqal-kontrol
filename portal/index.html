@@ -983,6 +983,7 @@
             <a href="library/" class="hover:text-amber-600 transition">الكتب الإلكترونية</a>
             <a href="https://drdshsw2022-byte.github.io/almaaqal/" target="_blank" rel="noopener" class="hover:text-amber-600 transition">بوابة الويب</a>
             <a href="https://it-basra.com/amu/apk.php" data-apk class="text-emerald-700 dark:text-emerald-400 hover:underline">تحميل APK المباشر</a>
+            <a href="privacy.html" class="hover:text-amber-600 transition">سياسة الخصوصية</a>
           </div>
 
         </div>
@@ -1442,7 +1443,7 @@
     });
 
     // تسجيل Service Worker للعمل أوفلاين + إشعار التحديث
-    if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    if ('serviceWorker' in navigator && location.protocol !== 'file:' && !/\/amu-staging\//.test(location.pathname)) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js').then((reg) => {
           const updateBar = document.getElementById('updateBar');
@@ -1985,5 +1986,6 @@
 
   <!-- التنقل الموحّد بين أنظمة جامعة المعقل (القائمة في amu/amu-nav.js) -->
   <script>(function(d){var s=d.createElement('script');s.src='https://it-basra.com/amu/amu-nav.js?v='+new Date().toISOString().slice(0,10);s.defer=true;s.dataset.offsetM='84';d.body.appendChild(s)})(document)</script>
+<script src="staging.js" defer></script>
 </body>
 </html>

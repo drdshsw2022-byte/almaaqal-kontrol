@@ -1,0 +1,13 @@
+# النسخة التجريبية: ملفات الواجهة الموجودة هنا تُعرض بدل نسخ البوابة، وكل ما سواها
+# (PHP والكتب والأغلفة وملف التطبيق والكليات) يُخدم من البوابة الحقيقية /amu/ بالبيانات نفسها.
+Options -Indexes
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.*)$ /amu/$1 [L]
+</IfModule>
+<IfModule mod_headers.c>
+  Header set X-Robots-Tag "noindex, nofollow"
+  Header set Cache-Control "no-cache"
+</IfModule>

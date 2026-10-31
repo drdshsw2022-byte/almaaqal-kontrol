@@ -118,3 +118,16 @@
 - `server/amu/lectures/`: نسخة محفوظة من صفحة المحاضرات المنشورة على it-basra.com (بلا بياناتها ولا upload.php)، حتى لا تضيع إن استُبدلت بالخطأ.
 - `.github/workflows/deploy-server.yml`: ينشر `portal/` و`server/amu/lectures/` إلى it-basra.com/amu تلقائياً عبر FTPS بعد كل دفع. يعمل بعد إضافة الأسرار `FTP_SERVER` و`FTP_USERNAME` و`FTP_PASSWORD` (حساب FTP جذره public_html/amu). لا يحذف ملفات لم يرفعها هو.
 - `.github/workflows/uptime.yml`: يفحص البوابة والمحاضرات والكتب الإلكترونية ومنصة الاختبارات وتطبيق الحضور والكنترول، وحماية فهرس الكتب، كل 15 دقيقة. إن فشل الفحص يرسل GitHub بريد تنبيه لصاحب المستودع.
+
+## النسخة التجريبية (it-basra.com/amu-staging/)
+- لمدير النظام فقط (شريط برتقالي «نسخة تجريبية»). البيانات حقيقية: الطلبات والكتب والكادر نفسها.
+- تحتوي ملفات الواجهة فقط (index.html، library/index.html، admin/index.html، privacy.html، access.js، auth.js، auth-ui.js، app.css، staging.js)؛ كل ما سواها يُخدم من `/amu/` عبر `server/amu-staging/.htaccess`.
+- طريقة العمل: ارفع ملف الواجهة المعدّل إلى `amu-staging/` أولاً وجرّبه، ثم إلى `amu/`. لإلغاء تجربة احذف الملف من `amu-staging/` فيعود يعرض نسخة البوابة.
+
+## لوحة مدير النظام (it-basra.com/amu/admin/)
+- الطلبات (دعم فني وتنزيل كتب) بحالاتها، الكتب (رفع وغلاف تلقائي وتعديل وحذف)، حسابات الأساتذة (Firestore staff + usernames)، نشر قائمة الكليات `colleges.json`.
+- طلبات الدعم في `amu/private/requests-data.php`. الكتب المحذوفة تُنقل إلى `amu/private/removed-books/`.
+
+## النسخ الاحتياطي
+- `.github/workflows/backup.yml` يومياً 11:31 بتوقيت بغداد: كل Firestore مشفّرة بـ age، Artifact لمدة 30 يوماً.
+- فك التشفير بالمفتاح الخاص عند المدير: `age -d -i almaaqal-backup-key.txt backup-YYYY-MM-DD.tar.gz.age | tar xz`
