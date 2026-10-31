@@ -1,0 +1,63 @@
+name: نشر البوابة على it-basra.com
+
+# ينشر تلقائياً كل تعديل في portal/ و server/amu/lectures/ إلى سيرفر it-basra.com عبر FTPS،
+# بدل رفع الملفات المضغوطة يدوياً. لا يعمل إلا بعد إضافة ثلاثة أسرار للمستودع:
+#   FTP_SERVER    مثل: ftp.it-basra.com
+#   FTP_USERNAME  حساب FTP مخصص للنشر، جذره public_html/amu
+#   FTP_PASSWORD
+# (Settings ← Secrets and variables ← Actions ← New repository secret)
+# لا يحذف أي ملف لم يرفعه هو (بيانات المحاضرات، ملفات APK، فهرس الكتب books-data.php، عداد الزوار…).
+on:
+  push:
+    branches: [main]
+    paths: ['portal/**', 'server/**', '.github/workflows/deploy-server.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-server
+  cancel-in-progress: false
+
+jobs:
+  ftp:
+    runs-on: ubuntu-latest
+    env:
+      HAS_FTP: ${{ secrets.FTP_SERVER != '' && secrets.FTP_USERNAME != '' && secrets.FTP_PASSWORD != '' }}
+    steps:
+      - name: التحقق من إعداد FTP
+        run: |
+          if [ "$HAS_FTP" != "true" ]; then
+            echo "::notice::النشر التلقائي غير مفعّل بعد: أضف الأسرار FTP_SERVER وFTP_USERNAME وFTP_PASSWORD."
+          fi
+
+      - uses: actions/checkout@v4
+        if: env.HAS_FTP == 'true'
+
+      - name: تجهيز ملفات النشر
+        if: env.HAS_FTP == 'true'
+        run: |
+          mkdir -p _deploy
+          cp -r portal/. _deploy/
+          mkdir -p _deploy/lectures
+          cp server/amu/lectures/index.html server/amu/lectures/sw.js _deploy/lectures/
+          # رقم إصدار الذاكرة المؤقتة يتغير مع كل نشر حتى تحمّل الأجهزة النسخة الجديدة
+          sed -i -E "s/const VERSION = 'amu-v([0-9.]+)';/const VERSION = 'amu-v\1-${{ github.run_number }}';/" _deploy/sw.js
+
+      - name: الرفع إلى public_html/amu
+        if: env.HAS_FTP == 'true'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./_deploy/
+          server-dir: ./
+          exclude: |
+            **/.git*
+            **/.git*/**
+            library/books-data.php
+            library/firebase-certs.json
+            visits-data.php

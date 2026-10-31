@@ -1,0 +1,1383 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#060A17">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="المحاضرات">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png">
+<link rel="apple-touch-icon" href="../icons/icon-192.png">
+<script src="config.js"></script>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}img{max-width:100%}</style>
+</head>
+<body>
+<title>المحاضرات والمناهج · جامعة المعقل</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="محاضرات ومناهج وملازم قسم هندسة الأمن السيبراني · جامعة المعقل الدولية">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Readex+Pro:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: sticky glass header → hero band (section 05 of the portal) → filters → dated strip → course grid / course detail / admin, all in one centred 1180px column */
+:root{
+  --bg:#060A17; --bg-2:#0D1428; --surface:rgba(13,20,36,.88); --surface-solid:#0E1527;
+  --line:rgba(245,158,11,.28); --line-soft:rgba(148,163,184,.14);
+  --fg:#F8FAFC; --fg-2:#94A3B8; --fg-3:#64748B;
+  --gold:#F59E0B; --gold-2:#FDE047; --gold-ink:#1A1204; --gold-soft:rgba(245,158,11,.14);
+  --sky:#38BDF8; --sky-soft:rgba(56,189,248,.14);
+  --emerald:#34D399; --emerald-soft:rgba(52,211,153,.14);
+  --rose:#FB7185; --rose-soft:rgba(251,113,133,.14);
+  --violet:#A78BFA; --violet-soft:rgba(167,139,250,.14);
+  --shadow:0 20px 45px -12px rgba(0,0,0,.65);
+  --page:radial-gradient(circle at 50% 0%, #0D1428 0%, #060A17 55%, #02040A 100%);
+  --f-display:"Readex Pro","Cairo",system-ui,sans-serif;
+  --f-body:"Cairo","Segoe UI",Tahoma,system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){
+  --bg:#FEF8E7; --bg-2:#FFFDF7; --surface:rgba(255,255,255,.9); --surface-solid:#FFFFFF;
+  --line:rgba(217,119,6,.38); --line-soft:rgba(146,64,14,.14);
+  --fg:#0A0F1D; --fg-2:#374151; --fg-3:#6B7280;
+  --gold:#B45309; --gold-2:#92400E; --gold-ink:#FFFFFF; --gold-soft:rgba(217,119,6,.13);
+  --sky:#0369A1; --sky-soft:rgba(3,105,161,.1);
+  --emerald:#047857; --emerald-soft:rgba(4,120,87,.1);
+  --rose:#BE123C; --rose-soft:rgba(190,18,60,.09);
+  --violet:#6D28D9; --violet-soft:rgba(109,40,217,.09);
+  --shadow:0 16px 36px -10px rgba(180,83,9,.22);
+  --page:radial-gradient(circle at 50% 0%, #FFFDF7 0%, #FEF8E7 45%, #FCEFC7 100%);
+  color-scheme:light;
+}}
+:root[data-theme="light"]{
+  --bg:#FEF8E7; --bg-2:#FFFDF7; --surface:rgba(255,255,255,.9); --surface-solid:#FFFFFF;
+  --line:rgba(217,119,6,.38); --line-soft:rgba(146,64,14,.14);
+  --fg:#0A0F1D; --fg-2:#374151; --fg-3:#6B7280;
+  --gold:#B45309; --gold-2:#92400E; --gold-ink:#FFFFFF; --gold-soft:rgba(217,119,6,.13);
+  --sky:#0369A1; --sky-soft:rgba(3,105,161,.1);
+  --emerald:#047857; --emerald-soft:rgba(4,120,87,.1);
+  --rose:#BE123C; --rose-soft:rgba(190,18,60,.09);
+  --violet:#6D28D9; --violet-soft:rgba(109,40,217,.09);
+  --shadow:0 16px 36px -10px rgba(180,83,9,.22);
+  --page:radial-gradient(circle at 50% 0%, #FFFDF7 0%, #FEF8E7 45%, #FCEFC7 100%);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);background-image:var(--page);background-attachment:fixed;color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.7;min-height:100vh}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+a{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:8px}
+h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.3}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.mono{font-family:var(--f-mono);letter-spacing:.06em}
+.muted{color:var(--fg-2)}
+.glass{background:var(--surface);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1.5px solid var(--line);box-shadow:var(--shadow);border-radius:18px}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line-soft)}
+.top .wrap{display:flex;align-items:center;gap:12px;padding-block:10px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;min-width:0}
+.brand svg{flex:none}
+.brand b{font-family:var(--f-display);font-weight:800;font-size:15px;display:block;white-space:nowrap}
+.brand small{display:block;font-size:11px;color:var(--fg-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .sp{flex:1}
+.iconbtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:38px;min-width:38px;padding:0 10px;border-radius:12px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap}
+.iconbtn:hover{border-color:var(--gold)}
+.iconbtn svg{width:18px;height:18px}
+.hide-sm{display:inline}
+@media (max-width:640px){.hide-sm{display:none}.brand small{max-width:44vw}}
+
+/* hero */
+.hero{padding-block:28px 8px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:12px;font-weight:700;color:var(--gold);letter-spacing:.12em}
+.eyebrow i{width:22px;height:2px;background:var(--gold);display:inline-block}
+.hero h1{font-size:clamp(28px,5vw,44px);font-weight:800;margin-top:6px}
+.hero h1 span{color:var(--gold)}
+.hero p{margin:8px 0 0;color:var(--fg-2);max-width:62ch}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid var(--line-soft);background:var(--surface)}
+.pill .dot{width:7px;height:7px;border-radius:50%;background:var(--emerald)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:18px}
+.stat{padding:12px 14px}
+.stat b{font-family:var(--f-mono);font-size:24px;font-weight:700;color:var(--gold-2);display:block;line-height:1.2;font-variant-numeric:tabular-nums}
+:root[data-theme="light"] .stat b{color:var(--gold-2)}
+.stat span{font-size:12px;color:var(--fg-2);font-weight:600}
+@media (max-width:640px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* toolbar */
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:20px}
+.search{flex:1 1 280px;display:flex;align-items:center;gap:8px;padding:0 12px;height:46px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface)}
+.search input{flex:1;min-width:0;border:0;background:transparent;outline:0;font-size:15px}
+.search svg{width:18px;height:18px;color:var(--fg-2);flex:none}
+.select{height:46px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface-solid);padding:0 12px;font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-soft);background:var(--surface);padding:5px 12px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--gold);color:var(--gold-ink);border-color:var(--gold)}
+
+/* sections */
+.sec{margin-top:26px}
+.sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.sec-h h2{font-size:19px;font-weight:800}
+.sec-h small{color:var(--fg-3);font-size:12px}
+
+/* dates strip */
+.dates{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x mandatory}
+.date{flex:0 0 auto;min-width:220px;display:flex;gap:12px;align-items:center;padding:12px 14px;scroll-snap-align:start;text-decoration:none}
+.cal{width:52px;flex:none;text-align:center;border-radius:12px;border:1px solid var(--line);overflow:hidden;background:var(--surface-solid)}
+.cal small{display:block;font-size:10px;font-weight:700;background:var(--gold);color:var(--gold-ink);padding:1px 0}
+.cal b{display:block;font-family:var(--f-mono);font-size:20px;line-height:1.5}
+.date h4{font-size:14px;font-family:var(--f-display)}
+.date p{margin:0;font-size:12px;color:var(--fg-2)}
+.when{font-size:11px;font-weight:800;padding:1px 8px;border-radius:999px;background:var(--gold-soft);color:var(--gold)}
+.when.today{background:var(--rose-soft);color:var(--rose)}
+
+/* course grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:14px}
+.card{display:flex;flex-direction:column;gap:12px;padding:18px;text-decoration:none;transition:transform .28s cubic-bezier(.16,1,.3,1),border-color .28s}
+.card:hover{transform:translateY(-4px);border-color:var(--gold)}
+.card-top{display:flex;gap:12px;align-items:flex-start}
+.badge{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex:none;border:1px solid currentColor;font-family:var(--f-mono);font-weight:700;font-size:14px}
+.h-amber{color:var(--gold);background:var(--gold-soft)}
+.h-sky{color:var(--sky);background:var(--sky-soft)}
+.h-emerald{color:var(--emerald);background:var(--emerald-soft)}
+.h-rose{color:var(--rose);background:var(--rose-soft)}
+.h-violet{color:var(--violet);background:var(--violet-soft)}
+.card h3{font-size:17px;font-weight:800;direction:ltr;text-align:right}
+.card .ar{font-size:13px;color:var(--fg-2);font-weight:600}
+.card .tch{font-size:12px;color:var(--fg-3);margin-top:2px}
+.counts{display:flex;flex-wrap:wrap;gap:6px}
+.cnt{font-size:12px;font-weight:700;padding:2px 9px;border-radius:8px;background:var(--bg-2);border:1px solid var(--line-soft)}
+.cnt b{font-family:var(--f-mono);margin-inline-start:3px}
+.prog{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--fg-2)}
+.bar{flex:1;height:7px;border-radius:99px;background:var(--line-soft);overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-2));border-radius:99px}
+.new{font-size:10px;font-weight:800;background:var(--rose);color:#fff;padding:1px 7px;border-radius:99px;margin-inline-start:6px;vertical-align:middle}
+
+/* item rows */
+.list{display:flex;flex-direction:column;gap:8px}
+.row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 14px;border-radius:14px;border:1px solid var(--line-soft);background:var(--surface)}
+.row.done{border-color:color-mix(in srgb,var(--emerald) 45%,transparent)}
+.num{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-family:var(--f-mono);font-weight:700;font-size:13px;border:1px solid currentColor}
+.k-lecture{color:var(--gold);background:var(--gold-soft)}
+.k-sheet{color:var(--sky);background:var(--sky-soft)}
+.k-video{color:var(--rose);background:var(--rose-soft)}
+.k-reference{color:var(--violet);background:var(--violet-soft)}
+.k-syllabus{color:var(--emerald);background:var(--emerald-soft)}
+.k-exam{color:var(--fg-2);background:var(--line-soft)}
+.row h4{font-size:15px;font-weight:700}
+.row .sub{font-size:12px;color:var(--fg-2);display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
+.row .en{font-family:var(--f-mono);font-size:11px;color:var(--fg-3);direction:ltr}
+.kind{font-size:11px;font-weight:800;padding:0 8px;border-radius:6px}
+.acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface-solid);cursor:pointer;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap}
+.btn:hover{border-color:var(--gold)}
+.btn svg{width:16px;height:16px}
+.btn.primary{background:var(--gold);color:var(--gold-ink);border-color:var(--gold)}
+.btn.ok{color:var(--emerald);border-color:color-mix(in srgb,var(--emerald) 50%,transparent)}
+.btn.danger{color:var(--rose);border-color:color-mix(in srgb,var(--rose) 50%,transparent)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.pending{font-size:12px;color:var(--fg-3);font-weight:600;padding:0 6px}
+@media (max-width:560px){
+  .row{grid-template-columns:auto minmax(0,1fr)}
+  .acts{grid-column:1/-1;justify-content:stretch}
+  .acts .btn{flex:1}
+}
+
+/* course view */
+.back{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:13px;text-decoration:none;color:var(--fg-2);margin-top:18px}
+.back:hover{color:var(--gold)}
+.chead{display:flex;flex-wrap:wrap;gap:16px;align-items:center;padding:20px;margin-top:10px}
+.chead .badge{width:60px;height:60px;font-size:17px;border-radius:16px}
+.chead h1{font-size:clamp(22px,4vw,32px);font-weight:800;direction:ltr;text-align:right}
+.chead .info{flex:1;min-width:0}
+.chead .prog{max-width:360px;margin-top:8px}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-top:18px}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:18px;margin-top:14px;align-items:start}
+@media (max-width:900px){.cols{grid-template-columns:minmax(0,1fr)}}
+.side{display:flex;flex-direction:column;gap:14px}
+.box{padding:16px}
+.box h3{font-size:15px;font-weight:800;margin-bottom:10px}
+.weeks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.weeks li{display:grid;grid-template-columns:auto 1fr;gap:10px;font-size:13px;align-items:start}
+.weeks .w{font-family:var(--f-mono);font-size:11px;font-weight:700;color:var(--gold);background:var(--gold-soft);border-radius:6px;padding:1px 7px;margin-top:2px}
+.empty{padding:22px;text-align:center;border:1.5px dashed var(--line);border-radius:16px;color:var(--fg-2);font-size:14px}
+.empty b{display:block;color:var(--fg);font-family:var(--f-display);margin-bottom:4px}
+
+/* viewer */
+.viewer{position:fixed;inset:0;z-index:50;background:rgba(2,4,10,.78);display:flex;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+.vbox{width:min(1100px,100%);height:100%;max-height:900px;display:flex;flex-direction:column;overflow:hidden;background:var(--surface-solid)}
+.vbar{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line-soft)}
+.vbar h4{flex:1;min-width:0;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vbody{flex:1;position:relative;background:var(--bg)}
+.vbody iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}
+.vnote{position:absolute;inset:auto 0 0 0;padding:8px 12px;font-size:12px;color:var(--fg-2);background:var(--surface-solid);border-top:1px solid var(--line-soft);text-align:center}
+
+.icard{padding:12px 14px;border-radius:14px;box-shadow:none}
+.icard-h{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.icard-h .num{width:34px;height:34px;font-size:12px}
+.icard-h b{font-family:var(--f-display);font-size:14px;min-width:0}
+.iform{display:grid;grid-template-columns:150px 80px 170px repeat(3,minmax(0,1fr));gap:10px}
+.iform .wide{grid-column:1/-1}
+@media (max-width:900px){.iform{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:560px){.iform{grid-template-columns:repeat(2,minmax(0,1fr))}.iform label:nth-child(4),.iform label:nth-child(5),.iform label:nth-child(6){grid-column:1/-1}}
+.savebar{position:sticky;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:5}
+@media (max-width:700px){.savebar{position:static}}
+.cal{width:64px}.cal small{font-size:9.5px;white-space:nowrap}
+@media (max-width:560px){.chead [data-share]{width:100%}}
+/* admin */
+.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.form .full{grid-column:1/-1}
+@media (max-width:640px){.form{grid-template-columns:minmax(0,1fr)}}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700;color:var(--fg-2)}
+.in{height:42px;border-radius:11px;border:1px solid var(--line);background:var(--surface-solid);padding:0 10px;font-size:14px;width:100%;min-width:0}
+textarea.in{height:auto;min-height:110px;padding:8px 10px;line-height:1.7;resize:vertical}
+.tablewrap{overflow-x:auto;border:1px solid var(--line-soft);border-radius:14px}
+table.ed{width:100%;border-collapse:collapse;min-width:900px;font-size:13px}
+table.ed th{font-size:11px;text-align:right;color:var(--fg-2);padding:8px;border-bottom:1px solid var(--line-soft);background:var(--bg-2)}
+table.ed td{padding:6px;border-bottom:1px solid var(--line-soft);vertical-align:middle}
+table.ed .in{height:36px;font-size:13px}
+.bar-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.notice{padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--gold-soft);font-size:13px}
+.notice b{color:var(--gold)}
+.ctabs{display:flex;gap:6px;flex-wrap:wrap}
+
+.btn.gc{color:var(--emerald);border-color:color-mix(in srgb,var(--emerald) 55%,transparent)}
+.btn.gc svg,.gcchip svg{width:15px;height:15px}
+.gcpill{text-decoration:none;color:var(--emerald);border-color:color-mix(in srgb,var(--emerald) 45%,transparent)}.gcpill svg{width:14px;height:14px}
+.gctag{font-size:10px;font-weight:800;color:var(--emerald);border:1px solid color-mix(in srgb,var(--emerald) 50%,transparent);padding:0 6px;border-radius:99px;margin-inline-start:6px;vertical-align:middle;font-family:var(--f-mono)}
+.gcchip{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;color:var(--emerald)}
+table.res td.c{text-align:center}
+/* attendance */
+.ring{flex:none}.ring.good{color:var(--emerald)}.ring.warn{color:var(--gold)}.ring.bad{color:var(--rose)}
+.st{display:inline-block;font-size:11px;font-weight:800;padding:1px 9px;border-radius:999px}
+.st.good{background:var(--emerald-soft);color:var(--emerald)}.st.warn{background:var(--gold-soft);color:var(--gold)}.st.bad{background:var(--rose-soft);color:var(--rose)}
+a.box{color:inherit}
+/* toast & footer */
+.toast{position:fixed;inset-inline:0;bottom:calc(18px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;z-index:60;pointer-events:none}
+.toast div{background:var(--fg);color:var(--bg);font-weight:700;font-size:13px;padding:9px 16px;border-radius:12px;box-shadow:var(--shadow)}
+footer{margin-top:44px;border-top:1px solid var(--line-soft);padding-block:22px calc(22px + env(safe-area-inset-bottom,0px));font-size:13px;color:var(--fg-2)}
+footer .wrap{display:flex;flex-wrap:wrap;gap:12px 22px;justify-content:space-between;align-items:center}
+footer nav{display:flex;flex-wrap:wrap;gap:8px 16px}
+footer a{text-decoration:none;font-weight:700}
+footer a:hover{color:var(--gold)}
+footer nav a{display:inline-block;padding:8px 4px}
+@media (pointer:coarse){.chip{padding:8px 14px}.iconbtn{height:42px;min-width:42px}}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+/* direct uploads from the teacher page */
+.uptag{font-size:10px;font-weight:800;color:var(--sky);border:1px solid color-mix(in srgb,var(--sky) 50%,transparent);padding:0 6px;border-radius:99px;margin-inline-start:6px;vertical-align:middle}
+.ext{font-family:var(--f-mono);font-size:10px;font-weight:700;padding:0 6px;border-radius:6px;background:var(--bg-2);border:1px solid var(--line-soft);direction:ltr;display:inline-block}
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:130px;padding:16px;border:1.5px dashed var(--line);border-radius:14px;background:var(--bg-2);text-align:center;cursor:pointer;font-size:12px;color:var(--fg-2);transition:border-color .2s,background .2s}
+.drop:hover,.drop.over{border-color:var(--gold);background:var(--gold-soft)}
+.drop svg{width:28px;height:28px;color:var(--gold)}
+.drop b{color:var(--fg);font-family:var(--f-display);font-size:14px}
+.drop .fname{font-family:var(--f-mono);font-size:12px;color:var(--gold);direction:ltr;word-break:break-all}
+.upbar{height:8px;border-radius:99px;background:var(--line-soft);overflow:hidden}
+.upbar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-2));transition:width .2s}
+.upitem{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--line-soft);border-radius:12px;background:var(--surface)}
+.upitem .btn{height:30px;padding:0 10px;font-size:12px}
+.vdoc{position:absolute;inset:0;overflow:auto;background:#fff;color:#111827;padding:28px clamp(16px,5vw,56px);font-family:"Cairo","Segoe UI",Tahoma,sans-serif;line-height:1.8;font-size:15px;-webkit-overflow-scrolling:touch}
+.vdoc img{max-width:100%;height:auto}
+.vdoc h1,.vdoc h2,.vdoc h3{margin:.8em 0 .4em;color:#111827}
+.vdoc p{margin:.4em 0}
+.vdoc table{border-collapse:collapse;margin:10px 0}
+.vdoc td,.vdoc th{border:1px solid #cbd5e1;padding:4px 8px;vertical-align:top}
+.vdoc pre{white-space:pre-wrap;word-break:break-word;font-family:inherit;margin:0}
+.vdoc .sheets{display:flex;gap:6px;flex-wrap:wrap;margin:-12px 0 12px;position:sticky;top:-28px;background:#fff;padding:12px 0 8px;z-index:1}
+.vdoc .sheets button{border:1px solid #cbd5e1;background:#f8fafc;color:#111827;border-radius:8px;padding:3px 12px;font:inherit;font-size:13px;cursor:pointer}
+.vdoc .sheets button[aria-pressed="true"]{background:#B45309;border-color:#B45309;color:#fff}
+.vdoc .xl{overflow-x:auto}
+.vdoc .xl table{font-size:13px;direction:ltr}
+.vdoc .xl td{white-space:nowrap;min-width:40px}
+.vload{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;text-align:center;color:var(--fg-2);font-weight:700}
+.vdoc.vpdf{background:#d1d5db;padding:12px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.vdoc.vpdf canvas{max-width:100%;height:auto;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.25);border-radius:2px}
+</style>
+
+<div id="app" dir="rtl" lang="ar">
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="#" aria-label="الرئيسية">
+        <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><rect x="1" y="1" width="38" height="38" rx="11" fill="var(--gold-soft)" stroke="var(--gold)" stroke-width="1.5"/><path d="M20 12.5c-2.2-1.5-5-2-8-2v15c3 0 5.8.5 8 2m0-15c2.2-1.5 5-2 8-2v15c-3 0-5.8.5-8 2m0-15v15" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        <span><b>المحاضرات والمناهج</b><small>جامعة المعقل الدولية · هندسة الأمن السيبراني</small></span>
+      </a>
+      <span class="sp"></span>
+      <button class="iconbtn" id="installBtn" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg><span class="hide-sm">تثبيت</span></button>
+      <a class="iconbtn" id="acctBtn" href="#login" title="حسابي في تطبيق الحضور"><span class="hide-sm">دخول</span></a>
+      <a class="iconbtn" href="#admin" title="لوحة الأستاذ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg><span class="hide-sm">لوحة الأستاذ</span></a>
+      <button class="iconbtn" id="themeBtn" aria-label="تبديل الوضع"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg></button>
+    </div>
+  </header>
+
+  <main class="wrap" id="view"></main>
+
+  <footer>
+    <div class="wrap">
+      <div>جامعة المعقل الدولية · كلية الهندسة · قسم هندسة الأمن السيبراني<br><span class="mono" style="font-size:11px" dir="ltr">05. LECTURES · AL-MAAQAL INTERNATIONAL UNIVERSITY</span></div>
+      <nav aria-label="روابط البوابة">
+        <a href="https://it-basra.com/amu/index.html#news">الإعلانات</a>
+        <a href="https://it-basra.com/amu/index.html#dl">التطبيق</a>
+        <a href="https://it-basra.com/amu/index.html#ex">الاختبارات</a>
+        <a href="https://it-basra.com/amu/index.html#kc">الكنترول</a>
+        <a href="https://it-basra.com/amu/">البوابة الرئيسية</a>
+      </nav>
+    </div>
+  </footer>
+
+  <div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-labelledby="vTitle">
+    <div class="vbox glass">
+      <div class="vbar">
+        <h4 id="vTitle"></h4>
+        <a class="btn" id="vOpen" href="#" target="_blank" rel="noopener">فتح في تبويب</a>
+        <a class="btn" id="vDl" href="#" target="_blank" rel="noopener">تحميل</a>
+        <button class="btn" id="vClose" aria-label="إغلاق">✕</button>
+      </div>
+      <div class="vbody" id="vBody"></div>
+    </div>
+  </div>
+  <div class="toast" id="toast" hidden><div id="toastText"></div></div>
+</div>
+
+<script type="application/json" id="lms-seed">{"version": 1, "updated": "2026-10-27", "department": "قسم هندسة الأمن السيبراني", "college": "كلية الهندسة", "year": "2026 – 2027", "stages": [{"id": "s3", "name": "المرحلة الثالثة"}], "courses": [{"id": "aic", "nameEn": "AI in Cybersecurity", "nameAr": "الذكاء الاصطناعي في الأمن السيبراني", "teacher": "د. عماد", "stage": "s3", "semester": 1, "hue": "amber", "desc": "", "syllabus": [], "dates": [{"date": "2026-10-27", "label": "اختبار", "note": "المحاضرة 2 والشيت 1"}], "items": [{"id": "aic-l1", "kind": "lecture", "no": 1, "title": "المحاضرة الأولى", "titleEn": "Lecture 1", "date": "", "url": "", "note": ""}, {"id": "aic-l2", "kind": "lecture", "no": 2, "title": "المحاضرة الثانية", "titleEn": "Lecture 2", "date": "", "url": "", "note": "مشمولة باختبار 27 تشرين الأول"}, {"id": "aic-s1", "kind": "sheet", "no": 1, "title": "الشيت الأول", "titleEn": "Sheet 1", "date": "", "url": "", "note": "مشمول باختبار 27 تشرين الأول"}]}, {"id": "wls", "nameEn": "Wireless Technology", "nameAr": "التقنيات اللاسلكية", "teacher": "د. علاء", "stage": "s3", "semester": 1, "hue": "sky", "desc": "", "syllabus": [], "dates": [{"date": "2026-10-28", "label": "اختبار", "note": "المحاضرات الثلاثة"}, {"date": "2026-11-03", "label": "تسليم الواجبات", "note": "الواجبات الثلاثة شيت 1-2-3"}], "items": [{"id": "wls-l1", "kind": "lecture", "no": 1, "title": "المحاضرة الأولى", "titleEn": "Lecture 1", "date": "", "url": "", "note": ""}, {"id": "wls-l2", "kind": "lecture", "no": 2, "title": "المحاضرة الثانية", "titleEn": "Lecture 2", "date": "", "url": "", "note": ""}, {"id": "wls-l3", "kind": "lecture", "no": 3, "title": "المحاضرة الثالثة", "titleEn": "Lecture 3", "date": "", "url": "", "note": ""}, {"id": "wls-s1", "kind": "sheet", "no": 1, "title": "الشيت الأول (واجب)", "titleEn": "Sheet 1", "date": "", "url": "", "note": "يُسلَّم 3 تشرين الثاني"}, {"id": "wls-s2", "kind": "sheet", "no": 2, "title": "الشيت الثاني (واجب)", "titleEn": "Sheet 2", "date": "", "url": "", "note": "يُسلَّم 3 تشرين الثاني"}, {"id": "wls-s3", "kind": "sheet", "no": 3, "title": "الشيت الثالث (واجب)", "titleEn": "Sheet 3", "date": "", "url": "", "note": "يُسلَّم 3 تشرين الثاني"}]}, {"id": "mob", "nameEn": "Mobile Computing", "nameAr": "الحوسبة المتنقلة", "teacher": "د. أحمد", "stage": "s3", "semester": 1, "hue": "emerald", "desc": "", "syllabus": [], "dates": [{"date": "2026-11-03", "label": "اختبار", "note": ""}], "items": []}]}</script>
+
+<script>
+(() => {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store = {
+  get(k, d){ try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch(e){ return d; } },
+  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} },
+  del(k){ try { localStorage.removeItem(k); } catch(e){} }
+};
+document.documentElement.lang = 'ar'; document.documentElement.dir = 'rtl';
+
+/* ---------- constants ---------- */
+const KINDS = {
+  lecture:  { label:'محاضرة', plural:'المحاضرات', tag:'L' },
+  sheet:    { label:'شيت / واجب', plural:'الشيتات والواجبات', tag:'S' },
+  video:    { label:'فيديو', plural:'الفيديوهات', tag:'V' },
+  reference:{ label:'ملزمة / مرجع', plural:'الملازم والمراجع', tag:'R' },
+  syllabus: { label:'منهاج', plural:'ملفات المنهاج', tag:'M' },
+  exam:     { label:'أسئلة سابقة', plural:'الأسئلة السابقة', tag:'Q' }
+};
+const HUES = ['amber','sky','emerald','rose','violet'];
+const MONTHS = ['كانون الثاني','شباط','آذار','نيسان','أيار','حزيران','تموز','آب','أيلول','تشرين الأول','تشرين الثاني','كانون الأول'];
+const DAYS = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+const DRAFT_KEY = 'amu-lms-draft', DONE_KEY = 'amu-lms-done', THEME_KEY = 'amu-lms-theme', SEEN_KEY = 'amu-lms-seen';
+
+/* ---------- state ---------- */
+let DATA = null, VD = null, SOURCE = 'file', fb = null;
+const ui = { q:'', stage:'all', kind:'all', ctab:'all', aCourse:null, confirm:null };
+let done = new Set(store.get(DONE_KEY, []));
+
+/* ---------- utils ---------- */
+const today = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+const parseD = s => { if(!s) return null; const [y,m,d] = s.split('-').map(Number); if(!y||!m||!d) return null; return new Date(y, m-1, d); };
+const fmtD = s => { const d = parseD(s); return d ? `${DAYS[d.getDay()]}، ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}` : ''; };
+const relD = s => { const d = parseD(s); if(!d) return ''; const n = Math.round((d - today())/864e5);
+  if(n === 0) return 'اليوم'; if(n === 1) return 'غداً'; if(n === -1) return 'أمس';
+  if(n > 1) return n <= 10 ? `بعد ${n} أيام` : `بعد ${n} يوماً`; return `قبل ${-n} ${-n<=10?'أيام':'يوماً'}`; };
+const isNew = s => { const d = parseD(s); return d && (today() - d) / 864e5 <= 7 && d <= today(); };
+const initials = c => (c.nameEn || c.nameAr || '?').split(/\s+/).filter(w => /^[A-Za-z]/.test(w) && !/^(in|of|and|the|for)$/i.test(w)).map(w => w[0]).join('').slice(0,3).toUpperCase() || (c.nameAr||'?').slice(0,2);
+const uid = p => p + '-' + Math.random().toString(36).slice(2,7);
+function toast(t){ const el = $('#toast'); $('#toastText').textContent = t; el.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => el.hidden = true, 2400); }
+async function copy(text){ try { await navigator.clipboard.writeText(text); toast('تم النسخ'); return true; } catch(e){ toast('تعذّر النسخ، حدِّد النص يدوياً'); return false; } }
+
+/* links: Google Drive, YouTube, PDF */
+function linkInfo(url){
+  if(!url) return null;
+  let m;
+  if((m = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]{10,})/)))
+    return { embed:`https://drive.google.com/file/d/${m[1]}/preview`, open:`https://drive.google.com/file/d/${m[1]}/view`, dl:`https://drive.google.com/uc?export=download&id=${m[1]}` };
+  if((m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/)))
+    return { embed:`https://www.youtube.com/embed/${m[1]}`, open:`https://www.youtube.com/watch?v=${m[1]}`, dl:null };
+  if(/^https:\/\/classroom\.google\.com\//.test(url)) return { embed:null, open:url, dl:null };
+  if(/^uploads\/files\//.test(url)){ const e = upExt(url); return { embed:url, open:['doc','docx','xls','xlsx','ppt','pptx'].includes(e) ? officeUrl(url) : url, dl:url, up:e }; }
+  if(/\.pdf(\?|#|$)/i.test(url)) return { embed:url, open:url, dl:url };
+  if(/docs\.google\.com\/(document|presentation|spreadsheets)\/d\//.test(url)) return { embed:url.replace(/\/(edit|view)[^/]*$/,'/preview'), open:url, dl:null };
+  return { embed:null, open:url, dl:url };
+}
+
+/* ---------- data loading ---------- */
+function seed(){ try { return JSON.parse($('#lms-seed').textContent); } catch(e){ return { courses:[], stages:[] }; } }
+function normalize(d){
+  d = d && typeof d === 'object' ? d : {};
+  d.stages = Array.isArray(d.stages) ? d.stages : [];
+  d.courses = (Array.isArray(d.courses) ? d.courses : []).map(c => ({ id:c.id||uid('c'), nameEn:'', nameAr:'', teacher:'', stage:d.stages[0]?.id||'', semester:1, hue:'amber', desc:'', syllabus:[], dates:[], ...c,
+    items:(Array.isArray(c.items)?c.items:[]).map(i => ({ id:i.id||uid('i'), kind:KINDS[i.kind]?i.kind:'lecture', no:'', title:'', titleEn:'', date:'', url:'', note:'', ...i })),
+    syllabus:Array.isArray(c.syllabus)?c.syllabus:[], dates:Array.isArray(c.dates)?c.dates:[] }));
+  return d;
+}
+async function loadFile(){
+  try { const r = await fetch('data.json?v=' + Date.now(), { cache:'no-store' }); if(!r.ok) throw 0; return await r.json(); }
+  catch(e){ return seed(); }
+}
+/* ---------- university account (same Firebase as the attendance app) ---------- */
+const STAGES = {1:'المرحلة الأولى',2:'المرحلة الثانية',3:'المرحلة الثالثة',4:'المرحلة الرابعة',5:'المرحلة الخامسة'};
+const SUPER_ADMINS = ['drdsh.sw2022@gmail.com'];
+const U = { ready:false, busy:false, user:null, kind:null, me:null, email:'', settings:{ currentTerm:1, warnPercent:10, failPercent:15 },
+  deptName:'', courses:[], lessons:{}, summary:{}, staffCourse:null, staffData:{}, err:'' };
+async function sha256(s){ const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2,'0')).join(''); }
+async function initFirebase(){
+  const cfg = window.AMU_FIREBASE; if(!cfg || !cfg.apiKey){ U.ready = true; return; }
+  try {
+    const base = 'https://www.gstatic.com/firebasejs/10.12.2';
+    const [appM, authM, fsM] = await Promise.all([import(`${base}/firebase-app.js`), import(`${base}/firebase-auth.js`), import(`${base}/firebase-firestore.js`)]);
+    const app = appM.initializeApp(cfg);
+    fb = { ...authM, ...fsM, auth: authM.getAuth(app), db: fsM.getFirestore(app) };
+    fb.onAuthStateChanged(fb.auth, async u => {
+      U.user = u; U.kind = null; U.me = null; U.err = '';
+      if(u){ try { await loadProfile(u); } catch(e){ U.err = e.message || String(e); try { await fb.signOut(fb.auth); } catch(x){} } }
+      U.ready = true; render();
+    });
+  } catch(e){ fb = null; U.ready = true; render(); }
+}
+const fsGet = async (col, id) => { const d = await fb.getDoc(fb.doc(fb.db, col, id)); return d.exists() ? d.data() : null; };
+const fsQuery = async (col, ...w) => (await fb.getDocs(fb.query(fb.collection(fb.db, col), ...w.map(([f,op,v]) => fb.where(f, op, v))))).docs.map(d => ({ id:d.id, ...d.data() }));
+async function resolveStaffEmail(authEmail){
+  const e = authEmail.toLowerCase(); if(!e.endsWith('@pw.almaaqal.app')) return e;
+  const local = e.split('@')[0];
+  try { const a = await fsGet('usernames', local); if(a && a.email) return String(a.email).toLowerCase(); } catch(x){}
+  return local + '@almaaqal.edu.iq';
+}
+async function loadProfile(u){
+  const e = String(u.email || '').toLowerCase();
+  try { const s = await fsGet('settings', 'app'); if(s) U.settings = { currentTerm:+s.currentTerm || 1, warnPercent:+s.warnPercent || 10, failPercent:+s.failPercent || 15 }; } catch(x){}
+  if(e.endsWith('@st.almaaqal.app')){
+    const me = await fsGet('students', e.split('@')[0]);
+    if(!me) throw new Error('الرقم المعرفي غير موجود في قاعدة بيانات الجامعة.');
+    if(me.activated === false) throw new Error('فعّل حسابك أولاً من تطبيق الحضور (أول دخول وتغيير كلمة المرور)، ثم ادخل هنا.');
+    U.kind = 'student'; U.me = me; U.email = e;
+    if(me.deptId){ try { U.deptName = (await fsGet('departments', me.deptId))?.name || ''; } catch(x){} }
+    await loadStudentData();
+  } else {
+    const email = await resolveStaffEmail(e);
+    const me = await fsGet('staff', email);
+    if(!me && !SUPER_ADMINS.includes(email)) throw new Error('هذا الحساب غير مسجّل في الكادر.');
+    if(me && me.activated === false) throw new Error('فعّل حسابك أولاً من تطبيق الحضور، ثم ادخل هنا.');
+    U.kind = 'staff'; U.me = me || { name:email, role:'admin', courseIds:[] }; U.email = email;
+    await loadStaffCourses();
+  }
+}
+async function uniLogin(user, pass){
+  const u = String(user || '').trim().toLowerCase();
+  if(!u || !pass) throw new Error('أدخل اسم المستخدم وكلمة المرور.');
+  const authEmail = /^\d+$/.test(u) ? `${u}@st.almaaqal.app` : `${u.includes('@') ? u.split('@')[0] : u}@pw.almaaqal.app`;
+  const pw = 'Mq#' + (await sha256(authEmail + '::' + pass)).slice(0, 40);
+  try { await fb.signInWithEmailAndPassword(fb.auth, authEmail, pw); }
+  catch(e){ const c = e.code || '';
+    if(/invalid-credential|wrong-password|user-not-found|invalid-login/.test(c)) throw new Error('اسم المستخدم أو كلمة المرور غير صحيحة. إن كان هذا أول دخول لك ففعّل حسابك من تطبيق الحضور أولاً.');
+    if(/too-many-requests/.test(c)) throw new Error('محاولات كثيرة متتالية. انتظر دقيقة ثم أعد المحاولة.');
+    if(/network-request-failed/.test(c)) throw new Error('لا يوجد اتصال بالإنترنت.');
+    throw new Error(e.message || 'تعذّر الدخول.'); }
+}
+const appliesTo = (x, s) => +x.stage === +s.stage && (!x.shift || x.shift === 'all' || x.shift === s.shift) && (!s.deptId || s.deptId === x.deptId);
+const guessKind = t => /شيت|واجب|sheet|homework|assignment/i.test(t) ? 'sheet' : /فيديو|video|youtube/i.test(t) ? 'video' : /ملزمة|مرجع|كتاب|book|reference/i.test(t) ? 'reference' : /منهاج|syllabus/i.test(t) ? 'syllabus' : /أسئلة|سابقة|exam/i.test(t) ? 'exam' : 'lecture';
+const ymd = ms => { if(!ms) return ''; const d = new Date(+ms); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+async function loadStudentData(){
+  const me = U.me, term = U.settings.currentTerm;
+  const all = await fsQuery('courses', ['stage','==', +me.stage]);
+  U.courses = all.filter(c => (!me.deptId || c.deptId === me.deptId) && (!term || +c.term === +term)).sort((a,b) => String(a.nameAr).localeCompare(String(b.nameAr), 'ar'));
+  const [recs, sessLists, lessonLists] = await Promise.all([
+    fsQuery('attendance', ['studentId','==', String(me.id)]),
+    Promise.all(U.courses.map(c => fsQuery('sessions', ['courseId','==', c.id]).catch(() => []))),
+    Promise.all(U.courses.map(c => fsQuery('lessons', ['courseId','==', c.id]).catch(() => [])))
+  ]);
+  const attended = new Set(recs.map(r => r.sessionId));
+  U.summary = {}; U.lessons = {};
+  U.courses.forEach((c, i) => {
+    const ss = sessLists[i].filter(x => appliesTo(x, me) && (!x.active || attended.has(x.id))).sort((a,b) => b.startedAt - a.startedAt);
+    const present = ss.filter(x => attended.has(x.id)).length;
+    U.summary[c.id] = { total:ss.length, present, absent:ss.length - present, abs:ss.length ? (ss.length - present) * 100 / ss.length : 0, sessions:ss, attended };
+    U.lessons[c.id] = lessonLists[i].sort((a,b) => (a.week - b.week) || (a.date - b.date));
+  });
+}
+async function loadStaffCourses(){
+  const ids = Array.isArray(U.me.courseIds) ? U.me.courseIds : [];
+  const top = SUPER_ADMINS.includes(U.email) || ['admin','president'].includes(U.me.role);
+  let list = [];
+  if(ids.length) list = (await Promise.all(ids.map(id => fsGet('courses', id).then(c => c ? { id, ...c } : null).catch(() => null)))).filter(Boolean);
+  else if(top || U.me.deptId) list = U.me.deptId ? await fsQuery('courses', ['deptId','==', U.me.deptId]) : [];
+  U.courses = list.sort((a,b) => (+a.term - +b.term) || String(a.nameAr).localeCompare(String(b.nameAr), 'ar'));
+  if(!U.staffCourse || !U.courses.find(c => c.id === U.staffCourse)) U.staffCourse = U.courses.find(c => +c.term === +U.settings.currentTerm)?.id || U.courses[0]?.id || null;
+}
+async function loadStaffCourse(cid){
+  const c = U.courses.find(x => x.id === cid); if(!c) return;
+  const box = U.staffData[cid] = { loading:true };
+  render();
+  try {
+    const [studs, sess, recs, les, grs, sch] = await Promise.all([
+      fsQuery('students', ['stage','==', +c.stage]),
+      fsQuery('sessions', ['courseId','==', cid]),
+      fsQuery('attendance', ['courseId','==', cid]),
+      fsQuery('lessons', ['courseId','==', cid]),
+      fsQuery('grades', ['courseId','==', cid]).catch(() => []),
+      fsGet('schemes', fsSafe(cid)).catch(() => null)
+    ]);
+    const bySess = new Map(); recs.forEach(r => { if(!bySess.has(r.studentId)) bySess.set(r.studentId, new Set()); bySess.get(r.studentId).add(r.sessionId); });
+    const students = studs.filter(s => s.deptId === c.deptId || (!s.deptId && bySess.has(String(s.id))));
+    const rows = students.map(s => { const att = bySess.get(String(s.id)) || new Set();
+      const ss = sess.filter(x => appliesTo(x, s) && (!x.active || att.has(x.id)));
+      const present = ss.filter(x => att.has(x.id)).length;
+      return { id:String(s.id), name:s.name || s.id, total:ss.length, present, abs: ss.length ? (ss.length - present) * 100 / ss.length : 0 };
+    }).sort((a,b) => b.abs - a.abs || String(a.name).localeCompare(String(b.name), 'ar'));
+    const S = scheme(sch), gmap = {}; box.rawPub = S.published; grs.forEach(g => gmap[String(g.studentId)] = g);
+    const grades = students.map(s => ({ id:String(s.id), name:s.name || s.id, ...gradeRow(c, { ...S, published:new Set(S.active) }, gmap[String(s.id)]) }))
+      .concat(grs.filter(g => !students.some(s => String(s.id) === String(g.studentId))).map(g => ({ id:String(g.studentId), name:g.studentName || g.studentId, ...gradeRow(c, { ...S, published:new Set(S.active) }, g) })))
+      .sort((a,b) => String(a.name).localeCompare(String(b.name), 'ar'));
+    Object.assign(box, { scheme:S, grades, graded:grs.length, tab:box.tab || 'up', loading:false, rows, sessions:sess.sort((a,b) => b.startedAt - a.startedAt), lessons:les.sort((a,b) => (a.week - b.week) || (a.date - b.date)) });
+  } catch(e){ Object.assign(box, { loading:false, error:'تعذّر تحميل بيانات المادة: ' + (e.code || e.message) }); }
+  render();
+}
+async function saveLesson(cid, f){
+  const ref = fb.doc(fb.collection(fb.db, 'lessons'));
+  const x = { id:ref.id, courseId:cid, title:f.title, week:+f.week || 1, description:f.description || '', link:f.link || null, date:Date.now(), by:U.me.name || U.email };
+  await fb.setDoc(ref, x); return x;
+}
+/* ---------- results (same rules as the attendance app) ---------- */
+const COMPS = ['attendance','assignment','project','lab','quiz','midterm','final'];
+const COMP_AR = { attendance:'الحضور', assignment:'الواجب البيتي', project:'المشروع', lab:'المختبر', quiz:'الامتحان الأسبوعي', midterm:'الامتحان الفصلي', final:'الامتحان النهائي' };
+const DEF_MAX = { attendance:5, assignment:5, project:10, lab:10, quiz:10, midterm:10, final:50 };
+const fsSafe = id => String(id).replace(/\//g, '_');
+const letter = t => t >= 90 ? { t:'امتياز', ok:true } : t >= 80 ? { t:'جيد جداً', ok:true } : t >= 70 ? { t:'جيد', ok:true } : t >= 60 ? { t:'متوسط', ok:true } : t >= 50 ? { t:'مقبول', ok:true } : { t:'راسب', ok:false };
+const fmtN = v => v == null || isNaN(v) ? '—' : (Math.round(v * 100) / 100).toString();
+function scheme(raw){ const mx = {}; Object.entries((raw && raw.max) || {}).forEach(([k,v]) => mx[k] = +v || 0);
+  const max = Object.keys(mx).length ? mx : { ...DEF_MAX };
+  return { max, published:new Set((raw && raw.published) || []), active:COMPS.filter(k => (max[k] || 0) > 0) }; }
+function gradeRow(course, sch, rec){
+  const marks = (rec && rec.marks) || {};
+  const pub = sch.active.filter(k => sch.published.has(k));
+  const sa = pub.filter(k => k !== 'final'), saMax = sch.active.filter(k => k !== 'final').reduce((a,k) => a + (sch.max[k] || 0), 0);
+  const sa3y = sa.reduce((a,k) => a + (+marks[k] || 0), 0);
+  const total = pub.reduce((a,k) => a + (+marks[k] || 0), 0);
+  const complete = pub.length && pub.length === sch.active.length;
+  return { course, sch, marks, pub, sa3y, saMax, saPub: sa.length && sa.length === sch.active.filter(k => k !== 'final').length, final: sch.published.has('final') ? marks.final : undefined, total, complete, grade: complete ? letter(total) : null };
+}
+async function loadResults(term){
+  const me = U.me; U.res = { term, loading:true, rows:[] }; render();
+  try {
+    const [all, recs] = await Promise.all([fsQuery('courses', ['stage','==', +me.stage]), fsQuery('grades', ['studentId','==', String(me.id)])]);
+    const byC = {}; recs.forEach(r => byC[r.courseId] = r);
+    let list = all.filter(c => (!me.deptId || c.deptId === me.deptId) && +c.term === +term);
+    // results published for courses outside the list (e.g. carried courses) still show
+    const extra = Object.keys(byC).filter(id => !list.some(c => c.id === id));
+    if(extra.length){ const more = await Promise.all(extra.map(id => fsGet('courses', id).then(c => c ? { id, ...c } : null).catch(() => null))); list = list.concat(more.filter(c => c && +c.term === +term)); }
+    list.sort((a,b) => String(a.nameAr).localeCompare(String(b.nameAr), 'ar'));
+    const schs = await Promise.all(list.map(c => fsGet('schemes', fsSafe(c.id)).catch(() => null)));
+    U.res = { term, loading:false, rows:list.map((c,i) => gradeRow(c, scheme(schs[i]), byC[c.id])) };
+  } catch(e){ U.res = { term, loading:false, rows:[], error:'تعذّر تحميل الدرجات: ' + (e.code || e.message) }; }
+  render();
+}
+const absStatus = p => p >= U.settings.failPercent ? { cls:'bad', t:'تجاوز حد الغياب' } : p >= U.settings.warnPercent ? { cls:'warn', t:'إنذار' } : { cls:'good', t:'ضمن الحد' };
+/* ---------- Google Classroom feed (Apps Script on the Classroom account) ---------- */
+let GC = store.get('amu-gc-feed', null);
+async function loadClassroom(){
+  const url = window.AMU_CLASSROOM_FEED; if(!url) return;
+  try { const r = await fetch(url, { cache:'no-store' }); if(!r.ok) throw 0; const j = await r.json();
+    if(j && Array.isArray(j.courses)){ GC = j; store.set('amu-gc-feed', j); render(); } } catch(e){}
+}
+const gcKind = it => it.type === 'work' ? (/QUIZ|QUESTION/.test(it.workType) ? 'exam' : 'sheet') : (it.files.some(f => f.kind === 'youtube') ? 'video' : guessKind(it.title + ' ' + (it.topic || '')));
+/* topics/titles never republished on the public page (e.g. student lists posted for the class) */
+const gcSkip = it => (window.AMU_CLASSROOM_SKIP || ['application_data','طلاب','درجات','grades','students']).some(w => (String(it.topic) + ' ' + String(it.title) + ' ' + (it.files || []).map(f => f.title).join(' ')).toLowerCase().includes(w.toLowerCase()));
+function mergeClassroom(d){
+  if(!GC || !Array.isArray(GC.courses)) return d;
+  const key = s => String(s || '').trim().toLowerCase().replace(/\s+/g,' ');
+  GC.courses.forEach((g, gi) => {
+    const cmp = s => String(s || '').toLowerCase().replace(/[^a-z\u0600-\u06ff]/g, '');
+    const gn = cmp(g.name + ' ' + (g.section || '')), gname = cmp(g.name);
+    let c = (g.mapTo && d.courses.find(x => x.id === g.mapTo)) ||
+      d.courses.find(x => cmp(x.nameEn).length > 3 && (gn.includes(cmp(x.nameEn)) || (gname.length > 3 && cmp(x.nameEn).includes(gname)))) ||
+      d.courses.find(x => cmp(x.nameAr).length > 3 && (gn.includes(cmp(x.nameAr)) || (gname.length > 3 && cmp(x.nameAr).includes(gname))));
+    const gTitle = String(g.name || '').trim().length < 6 && g.section ? `${g.name} · ${g.section}` : g.name;
+    if(!c){ c = { id:'gc' + gi, nameEn:/[a-z]/i.test(gTitle) ? gTitle : '', nameAr:/[a-z]/i.test(gTitle) ? '' : gTitle, teacher:g.teacher || '', stage:'', semester:1, hue:HUES[(d.courses.length) % HUES.length], desc:g.section || '', syllabus:[], dates:[], items:[] }; d.courses.push(c); }
+    if(!c.classroom && g.link) c.classroom = g.link;
+    if(!c.classCode && g.code) c.classCode = g.code;
+    if(!c.teacher && g.teacher) c.teacher = g.teacher;
+    if(!c.fromClassroom && (g.items || []).length) c.items = c.items.filter(i => i.url); // drop empty placeholders once Classroom has content
+    c.fromClassroom = true;
+    (g.items || []).filter(it => !gcSkip(it)).forEach(it => {
+      const files = it.files && it.files.length ? it.files : [{ title:'', url:it.link, kind:'post' }];
+      files.forEach((f, fi) => {
+        const id = 'gc-' + it.id + '-' + fi; if(c.items.some(x => x.id === id)) return;
+        c.items.push({ id, kind:gcKind(it), no:'', title: files.length > 1 && f.title ? `${it.title} · ${f.title}` : it.title, titleEn:'', date:String(it.date || '').slice(0,10),
+          url:f.url || it.link || '', note:[it.topic, it.due ? 'التسليم ' + fmtD(it.due) : '', (it.text || '').split('\n')[0].slice(0,120), 'Classroom'].filter(Boolean).join(' · '), gc:true });
+      });
+      if(it.due && !c.dates.some(x => x.date === it.due && x.note === it.title)) c.dates.push({ date:it.due, label:it.type === 'work' ? 'تسليم' : 'موعد', note:it.title });
+    });
+  });
+  return d;
+}
+/* ---------- direct uploads by the course teacher (upload.php → uploads/feed.json) ---------- */
+const UP_API = window.AMU_UPLOAD_API || 'upload.php';
+const UP_FEED = window.AMU_UPLOAD_FEED || 'uploads/feed.json';
+const UP_EXT = ['pdf','doc','docx','xls','xlsx','csv','txt','ppt','pptx'];
+const UP_MAX_MB = 50;
+let UP = store.get('amu-up-feed', null);
+async function loadUploads(){
+  try { const r = await fetch(UP_FEED + '?v=' + Date.now(), { cache:'no-store' });
+    if(r.status === 404){ if(UP){ UP = null; store.del('amu-up-feed'); render(); } return; }
+    if(!r.ok) throw 0; const j = await r.json();
+    if(j && j.courses && typeof j.courses === 'object'){ UP = j; store.set('amu-up-feed', j); render(); } } catch(e){}
+}
+const upExt = s => { const m = String(s || '').match(/\.([a-z0-9]+)(?:[?#]|$)/i); return m ? m[1].toLowerCase() : ''; };
+const fmtSize = b => !b ? '' : b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
+const officeUrl = (u, embed) => `https://view.officeapps.live.com/op/${embed ? 'embed' : 'view'}.aspx?src=` + encodeURIComponent(new URL(u, location.href).href);
+const upItems = cid => ((UP && UP.courses && UP.courses[cid] && UP.courses[cid].items) || []).slice().sort((a,b) => ((+a.week || 0) - (+b.week || 0)) || String(a.date).localeCompare(String(b.date)));
+/* teacher uploads appear under the course exactly like Classroom posts (public, no sign-in needed) */
+function mergeUploads(d){
+  if(!UP || !UP.courses) return d;
+  const cmp = s => String(s || '').toLowerCase().replace(/[^a-z\p{Script=Arabic}]/gu, '');
+  const same = (a, b) => { a = cmp(a); b = cmp(b); return a.length > 3 && b.length > 3 && (a === b || a.includes(b) || b.includes(a)); };
+  Object.entries(UP.courses).forEach(([cid, u]) => {
+    const items = ((u && u.items) || []).filter(it => it && it.file);
+    if(!items.length) return;
+    let c = d.courses.find(x => x.upId === cid) || d.courses.find(x => same(x.nameEn, u.nameEn)) || d.courses.find(x => same(x.nameAr, u.nameAr));
+    if(!c){ c = { id:'up-' + cid, nameEn:u.nameEn || '', nameAr:u.nameAr || '', teacher:u.teacher || '', stage:'', semester:+u.term || 1, hue:HUES[d.courses.length % HUES.length], desc:'', syllabus:[], dates:[], items:[] }; d.courses.push(c); }
+    c.upId = cid;
+    if(!c.teacher && u.teacher) c.teacher = u.teacher;
+    if(!c.fromUploads) c.items = c.items.filter(i => i.url); // drop empty placeholders once the teacher uploads
+    c.fromUploads = true;
+    items.slice().sort((a,b) => ((+a.week || 0) - (+b.week || 0)) || String(a.date).localeCompare(String(b.date))).forEach(it => {
+      const id = 'up-' + it.id; if(c.items.some(x => x.id === id)) return;
+      c.items.push({ id, kind:KINDS[it.kind] ? it.kind : 'syllabus', no:it.week || '', title:it.title || it.name || '', titleEn:'', date:String(it.date || '').slice(0,10),
+        url:it.file, note:[it.note, it.by].filter(Boolean).join(' · '), up:true, ext:it.ext || upExt(it.file), size:+it.size || 0, fname:it.name || '' });
+    });
+  });
+  return d;
+}
+/* merge attendance-app lessons into the lectures catalogue for a signed-in student */
+function viewData(){
+  const d = mergeUploads(mergeClassroom(JSON.parse(JSON.stringify(DATA))));
+  if(U.kind !== 'student' || !U.courses.length) return d;
+  const key = s => String(s || '').trim().toLowerCase().replace(/\s+/g,' ');
+  U.courses.forEach((uc, i) => {
+    let c = d.courses.find(x => x.upId === uc.id) || d.courses.find(x => key(x.nameEn) && key(x.nameEn) === key(uc.nameEn)) || d.courses.find(x => key(x.nameAr) && key(x.nameAr) === key(uc.nameAr));
+    if(!c){ c = { id:'u' + i, nameEn:uc.nameEn || '', nameAr:uc.nameAr || '', teacher:'', stage:'', semester:+uc.term || 1, hue:HUES[i % HUES.length], desc:'', syllabus:[], dates:[], items:[] }; d.courses.push(c); }
+    c.uniId = uc.id;
+    (U.lessons[uc.id] || []).forEach(l => { if(!c.items.some(it => it.id === 'ls-' + l.id)) c.items.push({ id:'ls-' + l.id, kind:guessKind(l.title + ' ' + (l.description||'')), no:l.week || '', title:l.title, titleEn:'', date:ymd(l.date), url:l.link || '', note:[l.description, l.by].filter(Boolean).join(' · ') }); });
+  });
+  if(U.me.stage) d.courses = d.courses.filter(c => c.uniId || c.fromClassroom || c.fromUploads || !c.stage || c.stage === 's' + U.me.stage || DATA.stages.length <= 1);
+  return d;
+}
+async function boot(){
+  const draft = store.get(DRAFT_KEY, null);
+  DATA = normalize(await loadFile());
+  if(draft && store.get('amu-lms-preview-draft', false)){ DATA = normalize(draft); SOURCE = 'draft'; }
+  render();
+  initFirebase();
+  loadClassroom();
+  loadUploads();
+}
+
+/* ---------- derived ---------- */
+const stageName = id => DATA.stages.find(s => s.id === id)?.name || '';
+const available = c => c.items.filter(i => i.url);
+function progress(c){ const a = available(c).filter(i => i.kind === 'lecture' || i.kind === 'sheet'); if(!a.length) return null; const d = a.filter(i => done.has(i.id)).length; return { d, t:a.length, p:Math.round(d / a.length * 100) }; }
+function upcoming(){
+  const t = today(), out = [];
+  DATA.courses.forEach(c => (c.dates||[]).forEach(x => { const d = parseD(x.date); if(d && d >= t) out.push({ ...x, c }); }));
+  return out.sort((a,b) => a.date.localeCompare(b.date));
+}
+function visibleCourses(){ return DATA.courses.filter(c => ui.stage === 'all' || c.stage === ui.stage); }
+function searchItems(q){
+  q = q.trim().toLowerCase(); if(!q) return [];
+  const res = [];
+  visibleCourses().forEach(c => c.items.forEach(i => {
+    const hay = [i.title, i.titleEn, i.note, c.nameAr, c.nameEn, c.teacher, KINDS[i.kind].label].join(' ').toLowerCase();
+    if(hay.includes(q) && (ui.kind === 'all' || i.kind === ui.kind)) res.push({ i, c });
+  }));
+  return res;
+}
+
+/* ---------- icons ---------- */
+const IC = {
+  eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  dl:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>',
+  ok:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg>',
+  search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>',
+  user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg>',
+  gc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="14" rx="2"/><circle cx="12" cy="10" r="2.5"/><path d="M8 16a4 4 0 018 0M3 21h18"/></svg>',
+  back:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>'
+};
+
+/* ---------- render pieces ---------- */
+function itemRow(i, c, showCourse){
+  const L = linkInfo(i.url), k = KINDS[i.kind], isDone = done.has(i.id);
+  const no = i.no !== '' && i.no != null ? String(i.no).padStart(2,'0') : k.tag;
+  return `<div class="row ${isDone?'done':''}">
+    <div class="num k-${i.kind}">${esc(no)}</div>
+    <div style="min-width:0">
+      <h4>${esc(i.title || i.titleEn || k.label)}${isNew(i.date)?'<span class="new">جديد</span>':''}${i.gc?'<span class="gctag">Classroom</span>':''}${i.up?'<span class="uptag">رفع مباشر</span>':''}</h4>
+      <div class="sub">
+        <span class="kind k-${i.kind}">${k.label}</span>
+        ${i.up && i.ext ? `<span class="ext">${esc(i.ext.toUpperCase())}${i.size ? ' · ' + fmtSize(i.size) : ''}</span>` : ''}
+        ${showCourse?`<a href="#c-${esc(c.id)}" style="font-weight:700">${esc(c.nameEn||c.nameAr)}</a>`:''}
+        ${i.titleEn && i.title ? `<span class="en">${esc(i.titleEn)}</span>`:''}
+        ${i.date?`<span>${esc(fmtD(i.date))}</span>`:''}
+        ${i.note?`<span>· ${esc(i.note)}</span>`:''}
+      </div>
+    </div>
+    <div class="acts">
+      ${L ? `${L.embed?`<button class="btn primary" data-view="${esc(c.id)}|${esc(i.id)}">${IC.eye}عرض</button>`:`<a class="btn primary" href="${esc(L.open)}" target="_blank" rel="noopener">${IC.eye}فتح</a>`}
+             ${L.dl?`<a class="btn" href="${esc(L.dl)}"${i.fname ? ` download="${esc(i.fname)}"` : ''} target="_blank" rel="noopener">${IC.dl}تحميل</a>`:''}
+             ${(i.kind==='lecture'||i.kind==='sheet')?`<button class="btn ${isDone?'ok':''}" data-done="${esc(i.id)}" aria-pressed="${isDone}">${IC.ok}${isDone?'تمت الدراسة':'أنهيتها'}</button>`:''}`
+          : `<span class="pending">لم يُرفع الملف بعد</span>`}
+    </div>
+  </div>`;
+}
+function courseCard(c){
+  const pr = progress(c), counts = {};
+  c.items.forEach(i => counts[i.kind] = (counts[i.kind]||0) + 1);
+  const hasNew = c.items.some(i => isNew(i.date));
+  return `<a class="card glass" href="#c-${esc(c.id)}">
+    <div class="card-top">
+      <div class="badge h-${esc(c.hue)}">${esc(initials(c))}</div>
+      <div style="min-width:0;flex:1">
+        <h3>${esc(c.nameEn || c.nameAr)}${hasNew?'<span class="new">جديد</span>':''}</h3>
+        ${c.nameEn && c.nameAr ? `<div class="ar">${esc(c.nameAr)}</div>`:''}
+        <div class="tch">${esc(c.teacher)}${stageName(c.stage)?' · '+esc(stageName(c.stage)):''}${c.semester?' · الفصل '+(c.semester==1?'الأول':c.semester==2?'الثاني':esc(c.semester)):''}</div>
+      </div>
+    </div>
+    ${c.classroom ? `<span class="cnt gcchip">${IC.gc}Google Classroom${c.classCode ? ` · <b class="mono" dir="ltr">${esc(c.classCode)}</b>` : ''}</span>` : ''}
+    <div class="counts">${Object.keys(KINDS).filter(k => counts[k]).map(k => `<span class="cnt">${KINDS[k].plural}<b>${counts[k]}</b></span>`).join('') || '<span class="cnt">لا توجد ملفات بعد</span>'}</div>
+    <div class="prog">${pr ? `<div class="bar"><i style="width:${pr.p}%"></i></div><span class="mono">${pr.d}/${pr.t}</span>` : `<span>${available(c).length ? 'ابدأ الدراسة' : 'بانتظار رفع المحتوى من أستاذ المادة'}</span>`}</div>
+  </a>`;
+}
+function datesStrip(list){
+  if(!list.length) return '';
+  return `<section class="sec"><div class="sec-h"><h2>المواعيد القادمة</h2><small>اختبارات وتسليمات من لوحة القسم</small></div>
+    <div class="dates">${list.map(x => { const d = parseD(x.date), r = relD(x.date);
+      return `<a class="date glass" href="#c-${esc(x.c.id)}"><div class="cal"><small>${MONTHS[d.getMonth()]}</small><b>${d.getDate()}</b></div>
+      <div style="min-width:0"><h4>${esc(x.c.nameEn||x.c.nameAr)}</h4><p>${esc(x.label)}${x.note?' · '+esc(x.note):''}</p><span class="when ${r==='اليوم'?'today':''}">${r}</span></div></a>`; }).join('')}</div></section>`;
+}
+
+function viewHome(){
+  const cs = visibleCourses();
+  const allItems = cs.flatMap(c => c.items.map(i => ({ i, c })));
+  const files = allItems.filter(x => x.i.url).length;
+  const up = upcoming().filter(x => ui.stage === 'all' || x.c.stage === ui.stage);
+  const recent = allItems.filter(x => x.i.url && x.i.date).sort((a,b) => b.i.date.localeCompare(a.i.date)).slice(0,8);
+  const results = searchItems(ui.q);
+  const stageOpts = DATA.stages.length > 1 ? `<select class="select" id="stageSel" aria-label="المرحلة"><option value="all">كل المراحل</option>${DATA.stages.map(s => `<option value="${esc(s.id)}" ${ui.stage===s.id?'selected':''}>${esc(s.name)}</option>`).join('')}</select>` : '';
+  return `
+  <section class="hero">
+    <div class="eyebrow"><i></i><span dir="ltr">05. LECTURES</span></div>
+    <h1>المحاضرات <span>والمناهج</span></h1>
+    <p>تحديثات الدروس الأكاديمية والملازم لكل مادة: افتح المحاضرة على أي جهاز، حمّلها، وتابع ما أنهيته منها.</p>
+    <div class="meta">
+      <span class="pill"><span class="dot"></span>${SOURCE==='cloud'?'متزامن مع السحابة':SOURCE==='draft'?'تعرض مسودتك المحلية':'محدّث'} ${DATA.updated?'· '+esc(fmtD(DATA.updated)):''}</span>
+      ${DATA.department?`<span class="pill">${esc(DATA.department)}</span>`:''}
+      ${DATA.stages.length===1?`<span class="pill">${esc(DATA.stages[0].name)}</span>`:''}
+      ${DATA.year?`<span class="pill mono">${esc(DATA.year)}</span>`:''}
+      <a class="pill gcpill" href="${esc(DATA.classroom || 'https://classroom.google.com/h')}" target="_blank" rel="noopener">${IC.gc}${GC && GC.updated ? 'متزامن مع Classroom · ' + esc(new Date(GC.updated).toLocaleTimeString('ar-IQ',{hour:'numeric',minute:'2-digit'})) : 'Google Classroom'}</a>
+    </div>
+    <div class="stats">
+      <div class="stat glass"><b>${cs.length}</b><span>مادة دراسية</span></div>
+      <div class="stat glass"><b>${allItems.filter(x=>x.i.kind==='lecture').length}</b><span>محاضرة</span></div>
+      <div class="stat glass"><b>${files}</b><span>ملف متاح الآن</span></div>
+      <div class="stat glass"><b>${up.length}</b><span>موعد قادم</span></div>
+    </div>
+    <div class="tools">
+      <label class="search">${IC.search}<input id="q" type="search" placeholder="ابحث عن محاضرة، شيت، مادة أو أستاذ…" value="${esc(ui.q)}" autocomplete="off"></label>
+      ${stageOpts}
+    </div>
+    <div class="chips" style="margin-top:10px">
+      <button class="chip" data-kind="all" aria-pressed="${ui.kind==='all'}">الكل</button>
+      ${Object.entries(KINDS).map(([k,v]) => `<button class="chip" data-kind="${k}" aria-pressed="${ui.kind===k}">${v.plural}</button>`).join('')}
+    </div>
+  </section>
+  ${U.kind === 'student' && U.courses.length ? `<section class="sec"><div class="sec-h"><h2>حضوري هذا الكورس</h2><div class="bar-actions"><a class="btn" href="#att">التفاصيل</a><a class="btn primary" href="#res">النتائج والسعيات</a></div></div><div class="dates">${U.courses.map(c => { const s = U.summary[c.id] || {}; const st = s.total ? absStatus(s.abs) : null; return `<a class="date glass" href="#a-${encodeURIComponent(c.id)}">${ring(s.total ? 100 - s.abs : 100, st ? st.cls : 'good')}<div style="min-width:0"><h4>${esc(c.nameEn || c.nameAr)}</h4><p>${s.total ? `غياب ${pct(s.abs)}% · ${s.present}/${s.total}` : 'لا محاضرات بعد'}</p>${st ? `<span class="st ${st.cls}">${st.t}</span>` : ''}</div></a>`; }).join('')}</div></section>` : (fb && !U.me ? `<section class="sec"><a class="notice" href="#login" style="display:flex;gap:10px;align-items:center;text-decoration:none"><b>جديد:</b> ادخل بحساب تطبيق الحضور لترى نسبة حضورك وغيابك، ونتائجك وسعيك في كل مادة، ودروس أساتذتك المنشورة في التطبيق.</a></section>` : '')}
+  ${ui.q.trim() || ui.kind !== 'all' ? `
+    <section class="sec"><div class="sec-h"><h2>${ui.q.trim()?'نتائج البحث':KINDS[ui.kind].plural}</h2><small>${(ui.q.trim()?results:allItems.filter(x=>x.i.kind===ui.kind)).length} نتيجة</small></div>
+    <div class="list">${(ui.q.trim()?results:allItems.filter(x=>x.i.kind===ui.kind)).map(x => itemRow(x.i, x.c, true)).join('') || '<div class="empty"><b>لا توجد نتائج</b>جرّب كلمة أخرى أو اسم المادة بالإنجليزية.</div>'}</div></section>`
+  : `
+    ${datesStrip(up)}
+    <section class="sec"><div class="sec-h"><h2>المواد الدراسية</h2><small>اضغط على المادة لعرض محاضراتها ومنهاجها</small></div>
+      ${cs.length ? `<div class="grid">${cs.map(courseCard).join('')}</div>` : '<div class="empty"><b>لم تُضف مواد بعد</b>يضيف أستاذ المادة محاضراته من «لوحة الأستاذ».</div>'}
+    </section>
+    ${recent.length ? `<section class="sec"><div class="sec-h"><h2>آخر ما أُضيف</h2><small>أحدث الملفات المرفوعة</small></div><div class="list">${recent.map(x => itemRow(x.i, x.c, true)).join('')}</div></section>` : ''}
+  `}`;
+}
+
+function viewCourse(id){
+  const c = DATA.courses.find(x => x.id === id);
+  if(!c) return `<a class="back" href="#">${IC.back}كل المواد</a><div class="empty" style="margin-top:16px"><b>المادة غير موجودة</b>ربما حُذفت أو تغيّر رابطها.</div>`;
+  const pr = progress(c);
+  const kindsHere = Object.keys(KINDS).filter(k => c.items.some(i => i.kind === k));
+  const tab = kindsHere.includes(ui.ctab) ? ui.ctab : 'all';
+  const items = c.items.filter(i => tab === 'all' || i.kind === tab);
+  const ups = (c.dates||[]).filter(x => parseD(x.date)).sort((a,b) => a.date.localeCompare(b.date));
+  return `
+  <a class="back" href="#">${IC.back}كل المواد</a>
+  <section class="chead glass">
+    <div class="badge h-${esc(c.hue)}">${esc(initials(c))}</div>
+    <div class="info">
+      <h1>${esc(c.nameEn || c.nameAr)}</h1>
+      ${c.nameEn && c.nameAr ? `<div class="muted" style="font-weight:700">${esc(c.nameAr)}</div>`:''}
+      <div class="muted" style="font-size:13px">${esc(c.teacher)}${stageName(c.stage)?' · '+esc(stageName(c.stage)):''}</div>
+      ${pr ? `<div class="prog"><div class="bar"><i style="width:${pr.p}%"></i></div><span class="mono">${pr.p}%</span></div>` : ''}
+    </div>
+    <div class="bar-actions">
+      <a class="btn gc" href="${esc(c.classroom || DATA.classroom || 'https://classroom.google.com/h')}" target="_blank" rel="noopener">${IC.gc}${c.classroom ? 'صف المادة في Classroom' : 'Google Classroom'}</a>
+      ${c.classCode ? `<button class="btn" data-copycode="${esc(c.classCode)}" title="نسخ رمز الصف">رمز الصف <b class="mono" dir="ltr">${esc(c.classCode)}</b></button>` : ''}
+      <button class="btn" data-share="${esc(c.id)}">مشاركة رابط المادة</button>
+    </div>
+  </section>
+
+  ${c.desc ? `<p class="muted" style="max-width:70ch">${esc(c.desc)}</p>` : ''}
+  <div class="cols">
+    <div>
+      ${kindsHere.length > 1 ? `<div class="tabs chips"><button class="chip" data-ctab="all" aria-pressed="${tab==='all'}">الكل (${c.items.length})</button>${kindsHere.map(k => `<button class="chip" data-ctab="${k}" aria-pressed="${tab===k}">${KINDS[k].plural} (${c.items.filter(i=>i.kind===k).length})</button>`).join('')}</div>` : ''}
+      <div class="list" style="margin-top:12px">${items.map(i => itemRow(i, c, false)).join('') || '<div class="empty"><b>لم تُرفع محاضرات لهذه المادة بعد</b>ستظهر هنا فور نشرها من أستاذ المادة.</div>'}</div>
+    </div>
+    <aside class="side">
+      ${c.uniId && U.summary[c.uniId] ? (() => { const s = U.summary[c.uniId], st = s.total ? absStatus(s.abs) : null; return `<a class="box glass" href="#a-${encodeURIComponent(c.uniId)}" style="display:flex;gap:12px;align-items:center;text-decoration:none">${ring(s.total ? 100 - s.abs : 100, st ? st.cls : 'good')}<div><h3 style="margin:0">حضوري في المادة</h3><div class="muted" style="font-size:13px">${s.total ? `حاضر ${s.present} من ${s.total} · غياب ${pct(s.abs)}%` : 'لا محاضرات مسجّلة بعد'}</div>${st ? `<span class="st ${st.cls}">${st.t}</span>` : ''}</div></a>`; })() : ''}
+      <div class="box glass"><h3>المنهاج الدراسي</h3>
+        ${c.syllabus.length ? `<ol class="weeks">${c.syllabus.map((t,n) => `<li><span class="w">W${String(n+1).padStart(2,'0')}</span><span>${esc(t)}</span></li>`).join('')}</ol>` : '<p class="muted" style="margin:0;font-size:13px">لم يُنشر المنهاج الأسبوعي بعد.</p>'}
+      </div>
+      <div class="box glass"><h3>المواعيد</h3>
+        ${ups.length ? `<div class="list">${ups.map(x => `<div style="display:flex;gap:10px;align-items:center"><div class="cal"><small>${MONTHS[parseD(x.date).getMonth()]}</small><b>${parseD(x.date).getDate()}</b></div><div style="font-size:13px"><b>${esc(x.label)}</b>${x.note?'<br><span class="muted">'+esc(x.note)+'</span>':''}<br><span class="when ${relD(x.date)==='اليوم'?'today':''}">${relD(x.date)}</span></div></div>`).join('')}</div>` : '<p class="muted" style="margin:0;font-size:13px">لا توجد مواعيد مسجّلة.</p>'}
+      </div>
+    </aside>
+  </div>`;
+}
+
+/* ---------- attendance & account views ---------- */
+const fmtMs = ms => { const d = new Date(+ms); return `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} · ${d.toLocaleTimeString('ar-IQ',{hour:'numeric',minute:'2-digit'})}`; };
+const pct = v => (Math.round(v * 10) / 10).toString();
+function ring(p, cls){ const r = 22, C = 2 * Math.PI * r, v = Math.max(0, Math.min(100, p));
+  return `<svg class="ring ${cls}" viewBox="0 0 56 56" width="56" height="56" aria-hidden="true"><circle cx="28" cy="28" r="${r}" fill="none" stroke="var(--line-soft)" stroke-width="6"/><circle cx="28" cy="28" r="${r}" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-dasharray="${C * v / 100} ${C}" transform="rotate(-90 28 28)"/><text x="28" y="32" direction="ltr" text-anchor="middle" font-size="13" font-weight="700" fill="var(--fg)" font-family="JetBrains Mono, monospace">${Math.round(v)}%</text></svg>`; }
+function viewLogin(){
+  if(!fb) return `<a class="back" href="#">${IC.back}رجوع</a><div class="empty" style="margin-top:16px"><b>${U.ready ? 'الربط مع تطبيق الحضور غير متاح هنا' : 'جارٍ الاتصال بقاعدة بيانات الجامعة…'}</b>${U.ready ? 'افتح النظام من it-basra.com/amu/lectures/ لتسجيل الدخول.' : ''}</div>`;
+  return `<a class="back" href="#">${IC.back}رجوع</a>
+  <section class="sec glass box" style="max-width:480px;margin-inline:auto">
+    <div class="eyebrow"><i></i><span dir="ltr">UNIVERSITY ACCOUNT</span></div>
+    <h2 style="font-size:22px;margin-top:4px">الدخول بحساب تطبيق الحضور</h2>
+    <p class="muted" style="font-size:13px;margin:6px 0 14px">الطالب: الرقم المعرفي وكلمة المرور. التدريسي: اسم المستخدم (مثل doc01) وكلمة المرور. نفس حسابك في تطبيق الحضور والكنترول.</p>
+    <form id="uniLogin" class="form" style="grid-template-columns:1fr">
+      <label class="f">الرقم المعرفي أو اسم المستخدم<input class="in" id="uUser" required autocomplete="username" dir="ltr" inputmode="text"></label>
+      <label class="f">كلمة المرور<input class="in" id="uPass" type="password" required autocomplete="current-password" dir="ltr"></label>
+      <button class="btn primary" id="uBtn" type="submit" style="height:46px">${U.busy ? 'جارٍ الدخول…' : 'دخول'}</button>
+      <p class="muted" style="color:var(--rose);margin:0;font-size:13px" id="uErr">${esc(U.err)}</p>
+    </form>
+    <p class="muted" style="font-size:12px;margin:12px 0 0">أول مرة؟ فعّل حسابك وغيّر كلمة المرور الأولية من <a href="https://drdshsw2022-byte.github.io/almaaqal/" target="_blank" rel="noopener"><b>تطبيق الحضور</b></a>، ثم ادخل هنا.</p>
+  </section>`;
+}
+function accountBar(){
+  const me = U.me;
+  return `<section class="chead glass" style="margin-top:18px">
+    <div class="badge h-sky">${esc((me.name || '?').trim().split(/\s+/).slice(0,2).map(w => w[0]).join(''))}</div>
+    <div class="info"><h1 style="direction:rtl;font-size:clamp(20px,3.4vw,26px)">${esc(me.name || U.email)}</h1>
+      <div class="muted" style="font-size:13px">${U.kind === 'student' ? `<span class="mono">${esc(me.id)}</span> · ${esc(STAGES[me.stage] || '')}${U.deptName ? ' · ' + esc(U.deptName) : ''}` : esc(U.email)} · ${U.settings.currentTerm == 2 ? 'الكورس الثاني' : 'الكورس الأول'}</div></div>
+    <div class="bar-actions">${U.kind === 'student' ? `<a class="btn ${location.hash === '#att' ? 'primary' : ''}" href="#att">الحضور والغياب</a><a class="btn ${location.hash === '#res' ? 'primary' : ''}" href="#res">النتائج والسعيات</a>` : ''}<a class="btn" href="https://drdshsw2022-byte.github.io/almaaqal/" target="_blank" rel="noopener">فتح تطبيق الحضور</a><button class="btn danger" id="uOut">خروج</button></div>
+  </section>`;
+}
+function attCard(c){
+  const s = U.summary[c.id] || { total:0, present:0, absent:0, abs:0 };
+  const st = s.total ? absStatus(s.abs) : null;
+  return `<a class="card glass" href="#a-${encodeURIComponent(c.id)}" style="gap:10px">
+    <div class="card-top" style="align-items:center">
+      ${ring(s.total ? 100 - s.abs : 100, st ? st.cls : 'good')}
+      <div style="min-width:0;flex:1"><h3>${esc(c.nameEn || c.nameAr)}</h3>${c.nameEn && c.nameAr ? `<div class="ar">${esc(c.nameAr)}</div>` : ''}
+        <div class="tch">${s.total ? `حضر ${s.present} من ${s.total} · غياب ${pct(s.abs)}%` : 'لم تُسجَّل محاضرات بعد'}</div></div>
+    </div>
+    ${st ? `<div><span class="st ${st.cls}">${st.t}</span> <span class="muted" style="font-size:11px">الإنذار عند ${U.settings.warnPercent}% · الحد ${U.settings.failPercent}%</span></div>` : ''}
+  </a>`;
+}
+function viewAtt(cid){
+  if(!U.user || !U.me) return viewLogin();
+  if(U.kind === 'staff'){ location.hash = '#staff'; return ''; }
+  if(cid){
+    const c = U.courses.find(x => x.id === cid), s = U.summary[cid];
+    if(!c || !s) return `<a class="back" href="#att">${IC.back}حضوري</a><div class="empty" style="margin-top:16px"><b>المادة غير موجودة</b></div>`;
+    const st = s.total ? absStatus(s.abs) : null;
+    return `<a class="back" href="#att">${IC.back}حضوري</a>
+    <section class="chead glass">${ring(s.total ? 100 - s.abs : 100, st ? st.cls : 'good')}
+      <div class="info"><h1>${esc(c.nameEn || c.nameAr)}</h1>${c.nameAr && c.nameEn ? `<div class="muted" style="font-weight:700">${esc(c.nameAr)}</div>` : ''}
+      <div class="muted" style="font-size:13px">حاضر ${s.present} · غائب ${s.absent} · من ${s.total} محاضرة${st ? ` · <span class="st ${st.cls}">${st.t}</span>` : ''}</div></div></section>
+    <section class="sec"><div class="sec-h"><h2>سجل المحاضرات</h2><small>كما سجّله التدريسي في تطبيق الحضور</small></div>
+    <div class="list">${s.sessions.map(x => { const ok = s.attended.has(x.id); return `<div class="row" style="grid-template-columns:auto minmax(0,1fr) auto"><div class="num ${ok ? 'k-syllabus' : 'k-video'}">${ok ? '✓' : '✗'}</div><div style="min-width:0"><h4>${esc(x.title || 'محاضرة')}</h4><div class="sub"><span>${esc(fmtMs(x.startedAt))}</span>${x.doctorName ? `<span>· ${esc(x.doctorName)}</span>` : ''}</div></div><span class="st ${ok ? 'good' : 'bad'}">${ok ? 'حاضر' : 'غائب'}</span></div>`; }).join('') || '<div class="empty"><b>لا توجد محاضرات مسجّلة لهذه المادة بعد</b></div>'}</div></section>`;
+  }
+  const tot = Object.values(U.summary).reduce((a,s) => ({ t:a.t + s.total, p:a.p + s.present }), { t:0, p:0 });
+  const flagged = U.courses.filter(c => { const s = U.summary[c.id]; return s && s.total && s.abs >= U.settings.warnPercent; });
+  return `${accountBar()}
+  <section class="sec"><div class="sec-h"><h2>الحضور والغياب</h2><small>مرتبط مباشرة بتطبيق الحضور · ${tot.t ? `حضرت ${tot.p} من ${tot.t} محاضرة` : 'لا توجد محاضرات بعد'}</small></div>
+  ${flagged.length ? `<div class="notice" style="margin-bottom:12px;border-color:var(--rose);background:var(--rose-soft)"><b style="color:var(--rose)">تنبيه:</b> نسبة غيابك بلغت حد الإنذار في: ${flagged.map(c => esc(c.nameEn || c.nameAr)).join('، ')}.</div>` : ''}
+  ${U.courses.length ? `<div class="grid">${U.courses.map(attCard).join('')}</div>` : '<div class="empty"><b>لا توجد مواد لمرحلتك في هذا الكورس</b>تأكد من تعيين قسمك في تطبيق الحضور.</div>'}
+  </section>
+  <section class="sec"><div class="bar-actions"><a class="btn primary" href="#">محاضرات موادي</a><button class="btn" id="uRefresh">تحديث البيانات</button></div></section>`;
+}
+function viewResults(){
+  if(!U.user || !U.me) return viewLogin();
+  if(U.kind === 'staff'){ location.hash = '#staff'; return ''; }
+  if(!U.res) setTimeout(() => loadResults(U.settings.currentTerm), 0);
+  const R = U.res || { loading:true, rows:[], term:U.settings.currentTerm };
+  const done = R.rows.filter(r => r.complete), avg = done.length ? done.reduce((a,r) => a + r.total, 0) / done.length : null;
+  const head = `<th style="min-width:150px">المادة</th>${COMPS.map(k => `<th style="text-align:center">${COMP_AR[k].replace(' ', '<br>')}<br><span class="mono" style="opacity:.6">${k === 'final' ? '50' : DEF_MAX[k]}</span></th>`).join('')}<th style="text-align:center">السعي<br><span class="mono" style="opacity:.6">50</span></th><th style="text-align:center">الدرجة<br>النهائية</th><th>التقدير</th>`;
+  const cell = (r, k) => (r.sch.max[k] || 0) <= 0 ? '<td class="c muted">—</td>' : !r.sch.published.has(k) ? '<td class="c muted" title="لم ينشرها التدريسي بعد">…</td>' : `<td class="c mono">${fmtN(r.marks[k])}</td>`;
+  return `${accountBar()}
+  <section class="sec"><div class="sec-h"><h2>النتائج والسعيات</h2>
+    <div class="chips"><button class="chip" data-rterm="1" aria-pressed="${+R.term === 1}">الكورس الأول</button><button class="chip" data-rterm="2" aria-pressed="${+R.term === 2}">الكورس الثاني</button></div></div>
+  ${R.loading ? '<div class="empty"><b>جارٍ تحميل الدرجات…</b></div>' : R.error ? `<div class="empty"><b>${esc(R.error)}</b></div>` : !R.rows.length ? '<div class="empty"><b>لا توجد مواد لهذا الكورس</b>تأكد من تعيين قسمك في تطبيق الحضور.</div>' : `
+  <div class="stats">
+    <div class="stat glass"><b>${R.rows.length}</b><span>مادة</span></div>
+    <div class="stat glass"><b>${R.rows.filter(r => r.pub.length).length}</b><span>فيها درجات منشورة</span></div>
+    <div class="stat glass"><b>${done.length}</b><span>نتيجة نهائية مكتملة</span></div>
+    <div class="stat glass"><b>${avg == null ? '—' : fmtN(avg)}</b><span>المعدل في المواد المكتملة</span></div>
+  </div>
+  <div class="grid" style="margin-top:14px">${R.rows.map(r => `<div class="card glass" style="gap:10px">
+    <div class="card-top" style="align-items:center">
+      <div class="badge ${r.grade ? (r.grade.ok ? 'h-emerald' : 'h-rose') : 'h-amber'}" style="width:auto;min-width:56px;padding:0 8px;font-size:16px">${r.pub.length ? fmtN(r.total) : '…'}</div>
+      <div style="min-width:0;flex:1"><h3>${esc(r.course.nameEn || r.course.nameAr)}</h3>${r.course.nameEn && r.course.nameAr ? `<div class="ar">${esc(r.course.nameAr)}</div>` : ''}</div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <span class="cnt">السعي <b>${r.sa3y || r.pub.some(k => k !== 'final') ? fmtN(r.sa3y) + ' / ' + fmtN(r.saMax) : '…'}</b></span>
+      <span class="cnt">النهائي <b>${r.final !== undefined ? fmtN(r.final) + ' / ' + fmtN(r.sch.max.final || 0) : '…'}</b></span>
+      <span class="st ${r.grade ? (r.grade.ok ? 'good' : 'bad') : 'warn'}">${r.grade ? r.grade.t : r.pub.length ? 'جزئي' : 'لم تُنشر'}</span>
+    </div>
+  </div>`).join('')}</div>
+  <section class="sec"><div class="sec-h"><h2>سجل النتائج التفصيلي</h2><small>«…» لم ينشرها التدريسي بعد · «—» لا يوجد هذا المكوّن أو لم يُرصد</small></div>
+    <div class="tablewrap glass"><table class="ed res" style="min-width:880px"><thead><tr>${head}</tr></thead><tbody>
+    ${R.rows.map(r => `<tr><td style="font-weight:700">${esc(r.course.nameAr || r.course.nameEn)}</td>${COMPS.map(k => cell(r, k)).join('')}<td class="c mono" style="font-weight:700">${r.pub.some(k => k !== 'final') ? fmtN(r.sa3y) : '—'}</td><td class="c mono" style="font-weight:800">${r.pub.length ? fmtN(r.total) : '—'}</td><td>${r.grade ? `<span class="st ${r.grade.ok ? 'good' : 'bad'}">${r.grade.t}</span>` : `<span class="muted">${r.pub.length ? 'جزئي' : 'لم تُنشر'}</span>`}</td></tr>`).join('')}
+    </tbody></table></div>
+    <p class="muted" style="font-size:12px;margin:8px 0 0">تُرصد الدرجات في تطبيق الحضور، والدرجة النهائية تُنشر من نظام الكنترول بعد مصادقة رئيس اللجنة. التقدير: امتياز 90 · جيد جداً 80 · جيد 70 · متوسط 60 · مقبول 50.</p>
+  </section>`}
+  </section>
+  <section class="sec"><div class="bar-actions"><button class="btn" id="resRefresh">تحديث الدرجات</button><a class="btn" href="#att">حضوري</a></div></section>`;
+}
+function viewStaff(){
+  if(!U.user || !U.me) return viewLogin();
+  if(U.kind === 'student'){ location.hash = '#att'; return ''; }
+  const c = U.courses.find(x => x.id === U.staffCourse), box = c ? U.staffData[c.id] : null;
+  if(c && !box) setTimeout(() => loadStaffCourse(c.id), 0);
+  const w = U.settings.warnPercent, f = U.settings.failPercent;
+  return `${accountBar()}
+  <section class="sec"><div class="sec-h"><h2>موادي</h2><small>المواد المسندة إليك في تطبيق الحضور</small></div>
+    ${U.courses.length ? `<div class="ctabs">${U.courses.map(x => `<button class="chip" data-scourse="${esc(x.id)}" aria-pressed="${x.id === U.staffCourse}">${esc(x.nameEn || x.nameAr)} <span class="mono" style="font-size:11px;opacity:.7">${esc(STAGES[x.stage] ? 'S' + x.stage : '')}·T${esc(x.term)}</span></button>`).join('')}</div>` : '<div class="empty"><b>لا توجد مواد مسندة لحسابك</b>يُسند المدير المواد من تطبيق الحضور.</div>'}
+  </section>
+  ${c ? (box && !box.loading ? (box.error ? `<div class="empty" style="margin-top:12px"><b>${esc(box.error)}</b></div>` : `
+  <div class="chips" style="margin-top:14px"><button class="chip" data-stab="up" aria-pressed="${box.tab === 'up'}">المنهاج والملفات</button><button class="chip" data-stab="att" aria-pressed="${box.tab === 'att'}">الحضور والدروس</button><button class="chip" data-stab="gr" aria-pressed="${box.tab === 'gr'}">الدرجات والسعي</button></div>
+  ${box.tab === 'up' ? staffUploads(c) : box.tab === 'gr' ? staffGrades(c, box) : `
+  <div class="stats" style="margin-top:16px">
+    <div class="stat glass"><b>${box.sessions.length}</b><span>محاضرة مسجّلة</span></div>
+    <div class="stat glass"><b>${box.rows.length}</b><span>طالب في المادة</span></div>
+    <div class="stat glass"><b>${box.rows.filter(r => r.total && r.abs >= w && r.abs < f).length}</b><span>بلغ الإنذار (${w}%)</span></div>
+    <div class="stat glass"><b>${box.rows.filter(r => r.total && r.abs >= f).length}</b><span>تجاوز الحد (${f}%)</span></div>
+  </div>
+  <div class="cols">
+    <section><div class="sec-h" style="margin-top:6px"><h2>غياب الطلبة</h2><small>الأعلى غياباً أولاً</small></div>
+      <div class="tablewrap glass"><table class="ed" style="min-width:520px"><thead><tr><th>الطالب</th><th style="width:110px">الرقم</th><th style="width:90px">الحضور</th><th style="width:150px">الغياب</th></tr></thead><tbody>
+      ${box.rows.map(r => { const st = r.total ? absStatus(r.abs) : null; return `<tr><td style="font-weight:700">${esc(r.name)}</td><td class="mono" style="font-size:12px">${esc(r.id)}</td><td class="mono">${r.present}/${r.total}</td><td>${st ? `<span class="st ${st.cls}">${pct(r.abs)}%</span>` : '<span class="muted">—</span>'}</td></tr>`; }).join('') || '<tr><td colspan="4" class="muted" style="text-align:center;padding:18px">لا يوجد طلبة مسجّلون لهذه المادة</td></tr>'}
+      </tbody></table></div>
+    </section>
+    <aside class="side">
+      <div class="box glass"><h3>نشر درس جديد</h3>
+        <p class="muted" style="font-size:12px;margin:-4px 0 10px">يظهر فوراً للطلبة في صفحة المحاضرات وفي تبويب «الدروس» بتطبيق الحضور.</p>
+        <form id="lesForm" class="form" style="grid-template-columns:1fr 90px">
+          <label class="f">العنوان<input class="in" id="lsTitle" required placeholder="المحاضرة الرابعة"></label>
+          <label class="f">الأسبوع<input class="in" id="lsWeek" inputmode="numeric" value="${(box.lessons.reduce((m,l) => Math.max(m, +l.week || 0), 0) || 0) + 1}"></label>
+          <label class="f full">الرابط<input class="in" id="lsLink" dir="ltr" placeholder="https://drive.google.com/file/d/…/view"></label>
+          <label class="f full">وصف أو ملاحظة<input class="in" id="lsDesc"></label>
+          <button class="btn primary full" type="submit" style="height:42px">نشر الدرس</button>
+        </form>
+      </div>
+      <div class="box glass"><h3>الدروس المنشورة (${box.lessons.length})</h3>
+        <div class="list">${box.lessons.map(l => `<div style="display:flex;gap:8px;align-items:center;font-size:13px"><span class="w mono" style="font-size:11px;color:var(--gold);background:var(--gold-soft);border-radius:6px;padding:1px 7px">W${String(l.week||1).padStart(2,'0')}</span><span style="flex:1;min-width:0">${l.link ? `<a href="${esc(l.link)}" target="_blank" rel="noopener">${esc(l.title)}</a>` : esc(l.title)}</span><button class="btn danger" style="height:30px;padding:0 8px" data-dellesson="${esc(l.id)}">${ui.confirm === 'l' + l.id ? 'تأكيد' : 'حذف'}</button></div>`).join('') || '<p class="muted" style="margin:0;font-size:13px">لا توجد دروس بعد.</p>'}</div>
+      </div>
+    </aside>
+  </div>`}`) : '<div class="empty" style="margin-top:16px"><b>جارٍ تحميل بيانات المادة…</b></div>') : ''}`;
+}
+/* ---------- teacher: upload / update the course files (Word, Excel, PDF, PowerPoint, text) ---------- */
+function upForm(c){
+  const f = U.upForm || (U.upForm = {});
+  if(f.cid !== c.id) Object.assign(f, { cid:c.id, edit:null, mode:'file', file:null, busy:false, pct:0, err:'', kind:'syllabus', week:'', title:'', note:'', text:'' });
+  return f;
+}
+function collectUp(f){
+  if(!f || !$('#upForm')) return;
+  [['kind','upKind'],['week','upWeek'],['title','upTitle'],['note','upNote'],['text','upText']].forEach(([k, id]) => { const el = $('#' + id); if(el) f[k] = el.value; });
+}
+function staffUploads(c){
+  const f = upForm(c); // typed values are kept in f by the input listener, so re-renders never lose them
+  const list = upItems(c.id), ed = f.edit ? list.find(x => x.id === f.edit) : null;
+  if(f.edit && !ed) f.edit = null;
+  const week = f.week !== '' ? f.week : (list.reduce((m,x) => Math.max(m, +x.week || 0), 0) || 0) + 1;
+  const upIc = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4m0 0l-4 4m4-4l4 4M5 20h14"/></svg>';
+  return `<div class="cols" style="margin-top:16px">
+  <section>
+    <div class="sec-h" style="margin-top:6px"><h2>${ed ? 'تحديث: ' + esc(ed.title) : 'رفع منهاج أو ملف للمادة'}</h2><small>يظهر للطلبة فوراً في صفحة المادة بشارة «رفع مباشر»، كما تظهر منشورات Classroom</small></div>
+    <form id="upForm" class="form glass box" novalidate>
+      <label class="f">النوع<select class="in" id="upKind">${Object.entries(KINDS).map(([k,v]) => `<option value="${k}" ${f.kind === k ? 'selected' : ''}>${v.label}</option>`).join('')}</select></label>
+      <label class="f">الأسبوع<input class="in" id="upWeek" inputmode="numeric" value="${esc(week)}"></label>
+      <label class="f full">العنوان<input class="in" id="upTitle" value="${esc(f.title)}" placeholder="مثال: منهاج المادة · المحاضرة الأولى"></label>
+      <label class="f full">ملاحظة للطلبة (اختياري)<input class="in" id="upNote" value="${esc(f.note)}"></label>
+      <div class="full chips"><button type="button" class="chip" data-upmode="file" aria-pressed="${f.mode !== 'text'}">رفع ملف</button><button type="button" class="chip" data-upmode="text" aria-pressed="${f.mode === 'text'}">كتابة نص</button></div>
+      ${f.mode === 'text'
+        ? `<label class="f full">${ed ? 'نص جديد يحلّ محلّ الملف الحالي (اتركه فارغاً لتعديل العنوان فقط)' : 'النص'}<textarea class="in" id="upText" style="min-height:220px" dir="auto" placeholder="الصق المنهاج أو المحاضرة هنا…">${esc(f.text)}</textarea></label>`
+        : `<label class="drop full" id="upDrop">${upIc}<input type="file" id="upFile" accept="${UP_EXT.map(e => '.' + e).join(',')}" hidden>
+            <b>${f.file ? 'الملف المختار' : ed ? 'اختر ملفاً جديداً ليحلّ محلّ الحالي (اختياري)' : 'اسحب الملف هنا أو اضغط للاختيار'}</b>
+            ${f.file ? `<span class="fname">${esc(f.file.name)} · ${fmtSize(f.file.size)}</span>` : ed ? `<span class="fname">${esc(ed.name)} · ${fmtSize(ed.size)}</span>` : ''}
+            <span>PDF · Word · Excel / CSV · PowerPoint · TXT · حتى ${UP_MAX_MB} MB</span></label>`}
+      ${f.busy ? `<div class="full"><div class="upbar"><i id="upPctBar" style="width:${f.pct}%"></i></div><div class="muted" style="font-size:12px;margin-top:4px" id="upPctTxt">جارٍ الرفع… ${f.pct}%</div></div>` : ''}
+      ${f.err ? `<p class="full" style="color:var(--rose);margin:0;font-size:13px;font-weight:700">${esc(f.err)}</p>` : ''}
+      <div class="full bar-actions"><button class="btn primary" type="submit" style="height:42px" ${f.busy ? 'disabled' : ''}>${f.busy ? 'جارٍ الرفع…' : ed ? 'حفظ التحديث' : 'رفع ونشر للطلبة'}</button>${ed ? '<button type="button" class="btn" data-upcancel="1">إلغاء التحديث</button>' : ''}</div>
+    </form>
+  </section>
+  <aside class="side">
+    <div class="box glass"><h3>ملفات المادة المنشورة (${list.length})</h3>
+      <div class="list">${list.map(x => `<div class="upitem">
+        <div style="display:flex;gap:8px;align-items:center"><span class="num k-${KINDS[x.kind] ? x.kind : 'syllabus'}" style="width:34px;height:34px;font-size:11px">${esc(x.week ? String(x.week).padStart(2,'0') : (KINDS[x.kind] || KINDS.syllabus).tag)}</span>
+          <div style="min-width:0;flex:1"><b style="font-size:13px;display:block">${esc(x.title)}</b><div class="muted" style="font-size:11px"><span class="ext">${esc(String(x.ext || '').toUpperCase())}</span> ${fmtSize(x.size)} · ${esc(fmtD(String(x.date || '').slice(0,10)))}</div></div></div>
+        <div class="bar-actions"><button class="btn" data-upview="${esc(x.id)}">عرض</button><button class="btn" data-upedit="${esc(x.id)}">تحديث</button><button class="btn danger" data-updel="${esc(x.id)}">${ui.confirm === 'u' + x.id ? 'تأكيد الحذف' : 'حذف'}</button></div>
+      </div>`).join('') || '<p class="muted" style="margin:0;font-size:13px">لم تُرفع ملفات بعد. أول ملف ترفعه يظهر للطلبة في صفحة المادة مباشرة.</p>'}</div>
+    </div>
+    <div class="box glass"><h3>كيف يراها الطالب</h3><p class="muted" style="margin:0;font-size:13px">تظهر الملفات تحت مادة ${esc(c.nameEn || c.nameAr)} في صفحة المحاضرات، مع زر «عرض» يفتح ملفات Word وExcel وPDF والنص داخل الصفحة، وزر «تحميل». لا يحتاج الطالب إلى Classroom.</p></div>
+  </aside>
+  </div>`;
+}
+function pickUpFile(file){
+  const f = U.upForm; if(!f || !file) return; collectUp(f);
+  const e = upExt(file.name);
+  if(!UP_EXT.includes(e)){ f.file = null; f.err = 'نوع الملف غير مدعوم. المسموح: ' + UP_EXT.join('، ').toUpperCase(); }
+  else if(file.size > UP_MAX_MB * 1048576){ f.file = null; f.err = `حجم الملف أكبر من ${UP_MAX_MB} MB.`; }
+  else if(!file.size){ f.file = null; f.err = 'الملف فارغ.'; }
+  else { f.file = file; f.err = ''; if(!String(f.title).trim()) f.title = file.name.replace(/\.[^.]+$/, '').replace(/[_]+/g, ' ').trim(); }
+  render();
+}
+async function upRequest(fd, onProgress){
+  const user = fb && fb.auth && fb.auth.currentUser; if(!user) throw new Error('انتهت الجلسة، سجّل الدخول من جديد.');
+  fd.append('token', await user.getIdToken());
+  return new Promise((ok, no) => {
+    const x = new XMLHttpRequest(); x.open('POST', UP_API);
+    if(onProgress) x.upload.onprogress = e => { if(e.lengthComputable) onProgress(Math.round(e.loaded * 100 / e.total)); };
+    x.onload = () => { let j = null; try { j = JSON.parse(x.responseText); } catch(e){}
+      if(x.status === 200 && j && j.ok) return ok(j);
+      no(new Error((j && j.error) || (x.status === 404 ? 'ملف upload.php غير موجود على الاستضافة.' : x.status === 413 ? 'حجم الملف أكبر من المسموح على الاستضافة.' : 'تعذّر الاتصال بخادم الرفع (' + x.status + ').'))); };
+    x.onerror = () => no(new Error('لا يوجد اتصال بالإنترنت.'));
+    x.send(fd);
+  });
+}
+const setFeed = j => { if(j && j.feed && j.feed.courses){ UP = j.feed; store.set('amu-up-feed', UP); } };
+async function submitUpload(){
+  const f = U.upForm, c = U.courses.find(x => x.id === U.staffCourse); if(!f || !c || f.busy) return;
+  collectUp(f);
+  const hasText = f.mode === 'text' && String(f.text).trim(), hasFile = f.mode !== 'text' && f.file;
+  if(!String(f.title).trim()){ f.err = 'اكتب عنوان الملف.'; render(); $('#upTitle')?.focus(); return; }
+  if(!f.edit && !hasText && !hasFile){ f.err = f.mode === 'text' ? 'اكتب النص أولاً.' : 'اختر ملفاً أولاً.'; render(); return; }
+  const fd = new FormData();
+  fd.append('action', f.edit ? 'update' : 'upload'); if(f.edit) fd.append('id', f.edit);
+  fd.append('courseId', c.id); fd.append('nameEn', c.nameEn || ''); fd.append('nameAr', c.nameAr || ''); fd.append('term', c.term || ''); fd.append('teacher', U.me.name || '');
+  fd.append('kind', f.kind); fd.append('week', f.week); fd.append('title', String(f.title).trim()); fd.append('note', String(f.note).trim());
+  if(hasText) fd.append('text', f.text); else if(hasFile) fd.append('file', f.file, f.file.name);
+  const wasEdit = !!f.edit;
+  f.busy = true; f.err = ''; f.pct = 0; render();
+  try {
+    setFeed(await upRequest(fd, p => { f.pct = p; const b = $('#upPctBar'), t = $('#upPctTxt'); if(b) b.style.width = p + '%'; if(t) t.textContent = p < 100 ? `جارٍ الرفع… ${p}%` : 'جارٍ الحفظ…'; }));
+    Object.assign(f, { edit:null, file:null, text:'', title:'', note:'', week:'', busy:false, pct:0, err:'' });
+    toast(wasEdit ? 'حُدّث الملف للطلبة' : 'نُشر الملف للطلبة');
+  } catch(err){ f.busy = false; f.err = err.message; }
+  render();
+}
+function staffGrades(c, box){
+  const S = box.scheme, rows = box.grades.filter(r => Object.keys(r.marks).length), act = S.active;
+  const totals = rows.map(r => r.total), fin = rows.filter(r => r.marks.final != null), pass = fin.filter(r => r.total >= 50).length;
+  const dist = ['امتياز','جيد جداً','جيد','متوسط','مقبول','راسب'].map(t => [t, fin.filter(r => letter(r.total).t === t).length]);
+  const pubTxt = act.map(k => `<span class="st ${box.rawPub && box.rawPub.has(k) ? 'good' : 'warn'}">${COMP_AR[k]} ${fmtN(S.max[k])}</span>`).join(' ');
+  return `<div class="stats" style="margin-top:16px">
+    <div class="stat glass"><b>${box.graded}</b><span>طالب له درجات مرصودة</span></div>
+    <div class="stat glass"><b>${rows.length ? fmtN(totals.reduce((a,b) => a + b, 0) / rows.length) : '—'}</b><span>متوسط المجموع</span></div>
+    <div class="stat glass"><b>${fin.length ? Math.round(pass * 100 / fin.length) + '%' : '—'}</b><span>نسبة النجاح (بعد النهائي)</span></div>
+    <div class="stat glass"><b>${rows.length ? fmtN(Math.max(...totals)) : '—'}</b><span>أعلى مجموع</span></div>
+  </div>
+  <div class="notice" style="margin-top:12px">توزيع الدرجات: ${act.map(k => `<b>${COMP_AR[k]}</b> ${fmtN(S.max[k])}`).join(' · ')}. الأخضر منشور للطلبة، والأصفر غير منشور. الرصد والنشر من تطبيق الحضور، والنهائي من الكنترول.<div style="margin-top:6px">${pubTxt}</div></div>
+  ${fin.length ? `<div class="notice" style="margin-top:10px;background:transparent">التقديرات (${fin.length} طالب لهم درجة نهائية): ${dist.map(([t,n]) => `<b>${t}</b> ${n}`).join(' · ')}</div>` : rows.length ? '<div class="notice" style="margin-top:10px;background:transparent">لم تُرصد الدرجة النهائية بعد، فالتقديرات تظهر بعد نشرها من الكنترول.</div>' : ''}
+  <div class="tablewrap glass" style="margin-top:12px"><table class="ed res" style="min-width:${260 + act.length * 80}px"><thead><tr><th>الطالب</th><th style="width:110px">الرقم</th>${act.map(k => `<th style="text-align:center">${COMP_AR[k].replace(' ', '<br>')}<br><span class="mono" style="opacity:.6">${fmtN(S.max[k])}</span></th>`).join('')}<th style="text-align:center">السعي</th><th style="text-align:center">المجموع</th><th>التقدير</th></tr></thead><tbody>
+  ${box.grades.map(r => { const has = Object.keys(r.marks).length; const g = letter(r.total); return `<tr><td style="font-weight:700">${esc(r.name)}</td><td class="mono" style="font-size:12px">${esc(r.id)}</td>${act.map(k => `<td class="c mono">${r.marks[k] == null ? '<span class="muted">—</span>' : fmtN(r.marks[k])}</td>`).join('')}<td class="c mono">${has ? fmtN(r.sa3y) : '—'}</td><td class="c mono" style="font-weight:800">${has ? fmtN(r.total) : '—'}</td><td>${!has ? '<span class="muted">لم تُرصد</span>' : r.marks.final == null ? '<span class="st warn">قبل النهائي</span>' : `<span class="st ${g.ok ? 'good' : 'bad'}">${g.t}</span>`}</td></tr>`; }).join('') || '<tr><td colspan="20" class="muted" style="text-align:center;padding:18px">لا يوجد طلبة</td></tr>'}
+  </tbody></table></div>`;
+}
+
+/* ---------- admin ---------- */
+function viewAdmin(){
+  const cloud = false;
+  if(!ui.aCourse || !DATA.courses.find(c => c.id === ui.aCourse)) ui.aCourse = DATA.courses[0]?.id || null;
+  const c = DATA.courses.find(x => x.id === ui.aCourse);
+  return `
+  <a class="back" href="#">${IC.back}عرض المنصة كما يراها الطالب</a>
+  <section class="hero" style="padding-top:12px">
+    <div class="eyebrow"><i></i><span dir="ltr">ADMIN PANEL</span></div>
+    <h1 style="font-size:clamp(24px,4vw,34px)">لوحة <span>الأستاذ</span></h1>
+  </section>
+  <div class="notice">${cloud
+    ? `<b>وضع النشر الفوري:</b> أي حفظ يصل لكل الطلبة مباشرة. الحساب: <span class="mono">${esc(fbUser.email||'')}</span> <button class="btn" id="logout" style="height:30px;margin-inline-start:8px">خروج</button>`
+    : `<b>وضع الملف:</b> تعديلاتك تُحفظ كمسودة على هذا الجهاز. بعد الانتهاء اضغط «تصدير data.json» وارفع الملف إلى مجلد <span class="mono">amu/lectures/</span> على الاستضافة ليظهر لكل الطلبة. <br>أستاذ المادة يستطيع أيضاً نشر الدروس مباشرة بحسابه في تطبيق الحضور من صفحة <a href="#staff"><b>موادي</b></a>، فتظهر للطلبة هنا وفي التطبيق، ويرفع ملفات المنهاج (Word وExcel وPDF والنص) من تبويب «المنهاج والملفات» هناك.`}</div>
+
+  <section class="sec">
+    <div class="sec-h"><h2>بيانات عامة</h2></div>
+    <div class="form glass box">
+      <label class="f">القسم<input class="in" data-g="department" value="${esc(DATA.department||'')}"></label>
+      <label class="f">السنة الدراسية<input class="in" data-g="year" value="${esc(DATA.year||'')}"></label>
+      <label class="f full">رابط Google Classroom العام<input class="in" data-g="classroom" value="${esc(DATA.classroom||'')}" dir="ltr" placeholder="https://classroom.google.com/h"></label>
+      <label class="f full">المراحل (سطر لكل مرحلة بالصيغة: المعرّف | الاسم)<textarea class="in" id="stagesTa" style="min-height:70px">${esc(DATA.stages.map(s => s.id + ' | ' + s.name).join('\n'))}</textarea></label>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-h"><h2>المواد</h2>
+      <div class="bar-actions"><button class="btn" id="addCourse">+ مادة جديدة</button></div></div>
+    <div class="ctabs">${DATA.courses.map(x => `<button class="chip" data-acourse="${esc(x.id)}" aria-pressed="${x.id===ui.aCourse}">${esc(x.nameEn||x.nameAr||'مادة بلا اسم')}</button>`).join('')}</div>
+  </section>
+
+  ${c ? `
+  <section class="sec glass box">
+    <div class="form">
+      <label class="f">اسم المادة بالإنجليزية<input class="in" data-c="nameEn" value="${esc(c.nameEn)}" dir="ltr"></label>
+      <label class="f">اسم المادة بالعربية<input class="in" data-c="nameAr" value="${esc(c.nameAr)}"></label>
+      <label class="f">أستاذ المادة<input class="in" data-c="teacher" value="${esc(c.teacher)}"></label>
+      <label class="f">المرحلة<select class="in" data-c="stage">${DATA.stages.map(s => `<option value="${esc(s.id)}" ${c.stage===s.id?'selected':''}>${esc(s.name)}</option>`).join('')}</select></label>
+      <label class="f">الفصل الدراسي<select class="in" data-c="semester"><option value="1" ${c.semester==1?'selected':''}>الأول</option><option value="2" ${c.semester==2?'selected':''}>الثاني</option></select></label>
+      <label class="f">لون المادة<select class="in" data-c="hue">${HUES.map(h => `<option ${c.hue===h?'selected':''}>${h}</option>`).join('')}</select></label>
+      <label class="f full">وصف مختصر<input class="in" data-c="desc" value="${esc(c.desc)}"></label>
+      <label class="f">رابط صف Google Classroom<input class="in" data-c="classroom" value="${esc(c.classroom||'')}" dir="ltr" placeholder="https://classroom.google.com/c/…"></label>
+      <label class="f">رمز الانضمام للصف<input class="in" data-c="classCode" value="${esc(c.classCode||'')}" dir="ltr" placeholder="abc1d2e"></label>
+      <label class="f">المنهاج الأسبوعي (سطر لكل أسبوع)<textarea class="in" id="sylTa" placeholder="مقدمة في...&#10;...">${esc(c.syllabus.join('\n'))}</textarea></label>
+      <label class="f">المواعيد (سطر لكل موعد: 2026-11-03 | اختبار | ملاحظة)<textarea class="in" id="datesTa" dir="auto">${esc((c.dates||[]).map(d => [d.date,d.label,d.note].filter(v => v !== undefined).join(' | ')).join('\n'))}</textarea></label>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-h"><h2>المحاضرات والملفات</h2><small>الرابط: Google Drive أو YouTube أو PDF على الاستضافة (مثل files/lec1.pdf)</small></div>
+    <div class="list">${c.items.map((i,n) => `<div class="icard glass" data-row="${n}">
+        <div class="icard-h"><span class="num k-${i.kind}">${esc(String(i.no||'').padStart(2,'0')||KINDS[i.kind].tag)}</span><b>${esc(i.title||i.titleEn||'عنصر جديد')}</b>
+          <span style="flex:1"></span><button class="btn" data-move="${n}|-1" aria-label="نقل للأعلى">↑</button><button class="btn" data-move="${n}|1" aria-label="نقل للأسفل">↓</button><button class="btn danger" data-delitem="${n}">${ui.confirm==='i'+n?'تأكيد الحذف':'حذف'}</button></div>
+        <div class="iform">
+          <label class="f">النوع<select class="in" id="it-${n}-kind" data-i="kind">${Object.entries(KINDS).map(([k,v]) => `<option value="${k}" ${i.kind===k?'selected':''}>${v.label}</option>`).join('')}</select></label>
+          <label class="f">الرقم<input class="in" id="it-${n}-no" data-i="no" value="${esc(i.no)}" inputmode="numeric"></label>
+          <label class="f">تاريخ النشر<input class="in" id="it-${n}-date" data-i="date" type="date" value="${esc(i.date)}"></label>
+          <label class="f">العنوان<input class="in" id="it-${n}-title" data-i="title" value="${esc(i.title)}"></label>
+          <label class="f">العنوان بالإنجليزية<input class="in" id="it-${n}-titleEn" data-i="titleEn" value="${esc(i.titleEn)}" dir="ltr"></label>
+          <label class="f">ملاحظة<input class="in" id="it-${n}-note" data-i="note" value="${esc(i.note)}"></label>
+          <label class="f wide">رابط الملف<input class="in" id="it-${n}-url" data-i="url" value="${esc(i.url)}" dir="ltr" placeholder="https://drive.google.com/file/d/…/view"></label>
+        </div></div>`).join('') || '<div class="empty"><b>لا توجد ملفات</b>أضف أول محاضرة من الزر أدناه.</div>'}</div>
+    <div class="bar-actions" style="margin-top:10px">
+      <button class="btn" id="addItem">+ إضافة محاضرة / ملف</button>
+      <span class="sp" style="flex:1"></span>
+      <button class="btn danger" id="delCourse">${ui.confirm==='course'?'اضغط مرة أخرى لحذف المادة':'حذف المادة'}</button>
+    </div>
+  </section>` : '<div class="empty" style="margin-top:12px"><b>لا توجد مواد</b>أضف أول مادة من زر «مادة جديدة».</div>'}
+
+  <section class="sec glass box savebar">
+    <div class="bar-actions">
+      <button class="btn primary" id="saveBtn" style="height:42px">${cloud?'نشر للطلبة الآن':'حفظ المسودة'}</button>
+      ${cloud?'':`<button class="btn" id="exportBtn">تصدير data.json</button><button class="btn" id="copyBtn">نسخ JSON</button>`}
+      <label class="btn" style="cursor:pointer">استيراد JSON<input type="file" id="importIn" accept="application/json,.json" hidden></label>
+      ${cloud?'':`<label class="btn" style="gap:6px"><input type="checkbox" id="prevDraft" ${store.get('amu-lms-preview-draft',false)?'checked':''}> معاينة المسودة في واجهة الطالب</label>
+      <button class="btn danger" id="discardBtn">${ui.confirm==='discard'?'تأكيد تجاهل المسودة':'تجاهل المسودة'}</button>`}
+    </div>
+  </section>`;
+}
+
+function collectAdmin(){
+  const v = $('#view');
+  v.querySelectorAll('[data-g]').forEach(el => DATA[el.dataset.g] = el.value.trim());
+  const st = $('#stagesTa'); if(st){ DATA.stages = st.value.split('\n').map(l => l.split('|').map(s => s.trim())).filter(p => p[0]).map(p => ({ id:p[0], name:p[1]||p[0] })); }
+  const c = DATA.courses.find(x => x.id === ui.aCourse); if(!c) return;
+  v.querySelectorAll('[data-c]').forEach(el => c[el.dataset.c] = el.dataset.c === 'semester' ? Number(el.value) : el.value.trim());
+  if(c.classroom && !/^https:\/\/classroom\.google\.com\//.test(c.classroom)) c.classroom = /^[a-z0-9]{5,8}$/i.test(c.classroom) ? (c.classCode = c.classCode || c.classroom, '') : '';
+  const sy = $('#sylTa'); if(sy) c.syllabus = sy.value.split('\n').map(s => s.trim()).filter(Boolean);
+  const dt = $('#datesTa'); if(dt) c.dates = dt.value.split('\n').map(l => l.split('|').map(s => s.trim())).filter(p => /^\d{4}-\d{2}-\d{2}$/.test(p[0])).map(p => ({ date:p[0], label:p[1]||'موعد', note:p[2]||'' }));
+  v.querySelectorAll('[data-row]').forEach(tr => { const it = c.items[+tr.dataset.row]; if(!it) return;
+    tr.querySelectorAll('[data-i]').forEach(el => it[el.dataset.i] = el.value.trim()); });
+}
+function exportJSON(){ DATA.updated = new Date().toISOString().slice(0,10); return JSON.stringify({ version:1, ...DATA }, null, 2); }
+async function saveAll(){
+  collectAdmin(); DATA.updated = new Date().toISOString().slice(0,10);
+  store.set(DRAFT_KEY, DATA); toast('حُفظت المسودة على هذا الجهاز');
+}
+
+/* ---------- viewer ---------- */
+function openViewer(cid, iid){
+  const src = VD || DATA; const c = src.courses.find(x => x.id === cid), i = c?.items.find(x => x.id === iid); if(!i) return;
+  showViewer(i, `${i.title || i.titleEn} · ${c.nameEn || c.nameAr}`);
+  if(i.kind === 'lecture' || i.kind === 'sheet'){ /* opening counts as seen, not done */ const s = new Set(store.get(SEEN_KEY, [])); s.add(i.id); store.set(SEEN_KEY, [...s]); }
+}
+function showViewer(i, title){
+  const L = linkInfo(i.url); if(!L) return;
+  $('#vTitle').textContent = title;
+  $('#vOpen').href = L.open; $('#vDl').hidden = !L.dl;
+  if(L.dl){ $('#vDl').href = L.dl; if(i.fname) $('#vDl').setAttribute('download', i.fname); else $('#vDl').removeAttribute('download'); }
+  if(L.up) renderDoc(L.up, i.url);
+  else $('#vBody').innerHTML = `<iframe src="${esc(L.embed)}" title="${esc(i.title)}" allow="fullscreen; autoplay; encrypted-media" allowfullscreen></iframe><div class="vnote">إذا لم يظهر الملف هنا، اضغط «فتح في تبويب».</div>`;
+  $('#viewer').hidden = false; document.body.style.overflow = 'hidden';
+}
+/* Word / Excel / text files uploaded by the teacher are rendered inside the page */
+const LIBS = {};
+const LIB_MAMMOTH = 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js';
+const LIB_XLSX = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+const LIB_PDF = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+const LIB_PDF_WORKER = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const PDF_ASSETS = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/';
+function loadLib(src, name){
+  return LIBS[src] || (LIBS[src] = new Promise((ok, no) => { if(window[name]) return ok(window[name]);
+    const s = document.createElement('script'); s.src = src; s.async = true;
+    s.onload = () => window[name] ? ok(window[name]) : no(new Error('lib'));
+    s.onerror = () => { delete LIBS[src]; no(new Error('lib')); };
+    document.head.appendChild(s); }));
+}
+async function renderDoc(ext, url){
+  const body = $('#vBody'), tok = renderDoc.t = (renderDoc.t || 0) + 1;
+  if(['doc','ppt','pptx'].includes(ext)){
+    body.innerHTML = `<iframe src="${esc(officeUrl(url, true))}" title="عرض الملف" allowfullscreen></iframe><div class="vnote">يُعرض عبر Microsoft Office Online. إذا لم يظهر اضغط «تحميل».</div>`; return; }
+  body.innerHTML = '<div class="vload">جارٍ فتح الملف…</div>';
+  try {
+    const r = await fetch(url); if(!r.ok) throw new Error('HTTP ' + r.status);
+    const buf = await r.arrayBuffer(); let html;
+    if(ext === 'pdf'){ // drawn page by page, so it also opens on phones (which only offer to download a PDF inside a frame)
+      const lib = await loadLib(LIB_PDF, 'pdfjsLib'); lib.GlobalWorkerOptions.workerSrc = LIB_PDF_WORKER;
+      // fonts the teacher's PDF does not embed (Calibri, Arabic Office fonts…) are drawn glyph by glyph with the device fonts, so spacing and Arabic stay readable
+      const pdf = await lib.getDocument({ data:new Uint8Array(buf), disableFontFace:true, useSystemFonts:true, cMapUrl:PDF_ASSETS + 'cmaps/', cMapPacked:true, standardFontDataUrl:PDF_ASSETS + 'standard_fonts/' }).promise;
+      if(tok !== renderDoc.t || $('#viewer').hidden) return;
+      body.innerHTML = '<div class="vdoc vpdf"></div>'; const box = body.firstChild;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      for(let n = 1; n <= pdf.numPages; n++){
+        if(tok !== renderDoc.t) return;
+        const pg = await pdf.getPage(n), w = Math.min(box.clientWidth - 24, 1000), base = pg.getViewport({ scale:1 });
+        const vp = pg.getViewport({ scale:w / base.width * dpr }), cv = document.createElement('canvas');
+        cv.width = Math.floor(vp.width); cv.height = Math.floor(vp.height); cv.style.width = Math.floor(vp.width / dpr) + 'px';
+        box.appendChild(cv); await pg.render({ canvasContext:cv.getContext('2d'), viewport:vp }).promise;
+      }
+      return;
+    }
+    const text = () => { const t = new TextDecoder('utf-8').decode(buf); return t.charCodeAt(0) === 0xFEFF ? t.slice(1) : t; };
+    if(ext === 'txt') html = `<pre dir="auto">${esc(text())}</pre>`;
+    else if(ext === 'docx'){ const m = await loadLib(LIB_MAMMOTH, 'mammoth'); const res = await m.convertToHtml({ arrayBuffer:buf }); html = `<div dir="auto">${res.value || '<p>الملف فارغ.</p>'}</div>`; }
+    else {
+      const X = await loadLib(LIB_XLSX, 'XLSX');
+      const wb = ext === 'csv' ? X.read(text(), { type:'string' }) : X.read(new Uint8Array(buf), { type:'array' });
+      const names = wb.SheetNames;
+      html = (names.length > 1 ? `<div class="sheets">${names.map((s,n) => `<button type="button" data-xsheet="${n}" aria-pressed="${n === 0}">${esc(s)}</button>`).join('')}</div>` : '')
+        + names.map((s,n) => `<div class="xl" data-sheet="${n}" ${n ? 'hidden' : ''}>${X.utils.sheet_to_html(wb.Sheets[s], { header:'', footer:'' })}</div>`).join('');
+    }
+    if(tok !== renderDoc.t || $('#viewer').hidden) return;
+    body.innerHTML = `<div class="vdoc">${html}</div>`;
+  } catch(e){ if(tok === renderDoc.t && ext === 'pdf') body.innerHTML = `<iframe src="${esc(url)}" title="عرض الملف" allowfullscreen></iframe><div class="vnote">إذا لم يظهر الملف هنا، اضغط «تحميل».</div>`; else if(tok === renderDoc.t) body.innerHTML = '<div class="vload">تعذّر عرض الملف هنا. اضغط «تحميل» أو «فتح في تبويب».</div>'; }
+}
+function closeViewer(){ renderDoc.t = (renderDoc.t || 0) + 1; $('#viewer').hidden = true; $('#vBody').innerHTML = ''; document.body.style.overflow = ''; }
+
+/* ---------- router & render ---------- */
+function render(){
+  if(!DATA) { $('#view').innerHTML = '<div class="empty" style="margin-top:40px"><b>جارٍ تحميل المحاضرات…</b></div>'; return; }
+  const h = location.hash.slice(1);
+  const v = $('#view');
+  const keepFocus = document.activeElement && document.activeElement.id === 'q';
+  const pos = keepFocus ? document.activeElement.selectionStart : null;
+  const acct = $('#acctBtn');
+  if(acct){ acct.innerHTML = U.me ? `${IC.user}<span class="hide-sm">${esc((U.me.name || '').split(/\s+/).slice(0,2).join(' ') || 'حسابي')}</span>` : `${IC.user}<span class="hide-sm">دخول</span>`; acct.href = U.me ? (U.kind === 'staff' ? '#staff' : '#att') : '#login'; }
+  if(h === 'admin') v.innerHTML = viewAdmin();
+  else if(h === 'login'){ if(U.me){ location.hash = U.kind === 'staff' ? '#staff' : '#att'; return; } v.innerHTML = viewLogin(); }
+  else if(h === 'att') v.innerHTML = viewAtt(null);
+  else if(h.startsWith('a-')) v.innerHTML = viewAtt(decodeURIComponent(h.slice(2)));
+  else if(h === 'staff') v.innerHTML = viewStaff();
+  else if(h === 'res') v.innerHTML = viewResults();
+  else { const saved = DATA; VD = DATA = viewData(); try { v.innerHTML = h.startsWith('c-') ? viewCourse(decodeURIComponent(h.slice(2))) : viewHome(); } finally { DATA = saved; } }
+  if(keepFocus){ const q = $('#q'); if(q){ q.focus(); try { q.setSelectionRange(pos,pos); } catch(e){} } }
+}
+let lastHash = location.hash;
+window.addEventListener('hashchange', () => { ui.confirm = null; if(lastHash.startsWith('#c-') !== location.hash.startsWith('#c-')) ui.ctab = 'all'; lastHash = location.hash; render(); window.scrollTo(0,0); });
+
+/* ---------- events ---------- */
+document.addEventListener('input', e => {
+  if(e.target.closest && e.target.closest('#upForm')) collectUp(U.upForm);
+  if(e.target.id === 'q'){ ui.q = e.target.value; clearTimeout(render._t); render._t = setTimeout(render, 120); }
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if(t.id === 'upFile'){ if(t.files[0]) pickUpFile(t.files[0]); t.value = ''; return; }
+  if(t.closest && t.closest('#upForm')) collectUp(U.upForm);
+  if(t.id === 'stageSel'){ ui.stage = t.value; render(); }
+  if(t.id === 'prevDraft'){ store.set('amu-lms-preview-draft', t.checked); toast(t.checked ? 'ستظهر المسودة في واجهة الطالب على هذا الجهاز فقط' : 'تعرض الواجهة الملف المنشور'); }
+  if(t.id === 'importIn' && t.files[0]){ const r = new FileReader(); r.onload = () => { try { DATA = normalize(JSON.parse(r.result)); ui.aCourse = null; render(); toast('تم الاستيراد، اضغط حفظ لتثبيته'); } catch(err){ toast('الملف ليس JSON صالحاً'); } }; r.readAsText(t.files[0]); }
+  if(t.matches('[data-c="nameEn"],[data-c="nameAr"],[data-c="hue"]')){ collectAdmin(); render(); }
+});
+document.addEventListener('submit', async e => {
+  if(e.target.id === 'upForm'){ e.preventDefault(); submitUpload(); return; }
+  if(e.target.id === 'uniLogin'){ e.preventDefault(); if(U.busy) return;
+    U.busy = true; U.err = ''; $('#uBtn').textContent = 'جارٍ الدخول…'; $('#uBtn').disabled = true;
+    try { await uniLogin($('#uUser').value, $('#uPass').value); } catch(err){ U.err = err.message; }
+    U.busy = false; if(U.err) render(); }
+  if(e.target.id === 'lesForm'){ e.preventDefault(); const cid = U.staffCourse; const t = $('#lsTitle').value.trim(); if(!t) return;
+    try { const x = await saveLesson(cid, { title:t, week:$('#lsWeek').value, link:$('#lsLink').value.trim(), description:$('#lsDesc').value.trim() }); U.staffData[cid].lessons.push(x); toast('نُشر الدرس للطلبة'); render(); }
+    catch(err){ toast('تعذّر النشر: ' + (err.code === 'permission-denied' ? 'المادة ليست مسندة لحسابك' : (err.code || err.message))); } }
+});
+document.addEventListener('click', async e => {
+  const b = e.target.closest('button, [data-view]'); if(!b) return;
+  const d = b.dataset;
+  if(d.xsheet !== undefined){ $('#vBody').querySelectorAll('[data-sheet]').forEach(el => el.hidden = el.dataset.sheet !== d.xsheet); $('#vBody').querySelectorAll('[data-xsheet]').forEach(el => el.setAttribute('aria-pressed', String(el.dataset.xsheet === d.xsheet))); return; }
+  if(d.upmode){ collectUp(U.upForm); U.upForm.mode = d.upmode; U.upForm.err = ''; render(); return; }
+  if(d.upcancel){ Object.assign(U.upForm, { edit:null, file:null, text:'', title:'', note:'', week:'', err:'' }); render(); return; }
+  if(d.upview){ const x = upItems(U.staffCourse).find(y => y.id === d.upview); if(x) showViewer({ url:x.file, fname:x.name, title:x.title }, x.title); return; }
+  if(d.upedit){ const x = upItems(U.staffCourse).find(y => y.id === d.upedit);
+    if(x){ Object.assign(U.upForm, { edit:x.id, kind:x.kind, week:String(x.week ?? ''), title:x.title || '', note:x.note || '', file:null, text:'', mode:'file', err:'' }); render(); $('#upForm')?.scrollIntoView({ behavior:'smooth', block:'start' }); }
+    return; }
+  if(d.updel){ const key = 'u' + d.updel; if(ui.confirm !== key){ ui.confirm = key; render(); return; }
+    ui.confirm = null; b.disabled = true; const fd = new FormData(); fd.append('action', 'delete'); fd.append('id', d.updel); fd.append('courseId', U.staffCourse);
+    try { setFeed(await upRequest(fd)); if(U.upForm && U.upForm.edit === d.updel) U.upForm.edit = null; toast('حُذف الملف'); } catch(err){ toast(err.message); }
+    render(); return; }
+  if(d.kind){ ui.kind = d.kind; render(); return; }
+  if(d.ctab){ ui.ctab = d.ctab; render(); return; }
+  if(d.view){ const k = d.view.lastIndexOf('|'); openViewer(d.view.slice(0, k), d.view.slice(k + 1)); return; } // course ids may contain |
+  if(d.done){ done.has(d.done) ? done.delete(d.done) : done.add(d.done); store.set(DONE_KEY, [...done]); render(); return; }
+  if(d.copycode){ const ok = await copy(d.copycode); if(ok) toast('نُسخ الرمز. في Classroom اضغط + ثم «الانضمام إلى صف»'); return; }
+  if(d.share){ copy(location.href.split('#')[0] + '#c-' + d.share); return; }
+  if(b.id === 'vClose'){ closeViewer(); return; }
+  if(b.id === 'uOut'){ try { await fb.signOut(fb.auth); } catch(x){} U.courses = []; U.summary = {}; U.lessons = {}; U.staffData = {}; U.res = null; location.hash = ''; toast('تم تسجيل الخروج'); return; }
+  if(b.id === 'uRefresh'){ b.disabled = true; try { await loadStudentData(); toast('تم التحديث'); } catch(x){ toast('تعذّر التحديث'); } render(); return; }
+  if(d.rterm){ loadResults(+d.rterm); return; }
+  if(b.id === 'resRefresh'){ loadResults(U.res ? U.res.term : U.settings.currentTerm); return; }
+  if(d.stab){ const bx = U.staffData[U.staffCourse]; if(bx){ bx.tab = d.stab; render(); } return; }
+  if(d.scourse){ U.staffCourse = d.scourse; ui.confirm = null; render(); return; }
+  if(d.dellesson){ const key = 'l' + d.dellesson; if(ui.confirm !== key){ ui.confirm = key; render(); return; }
+    try { await fb.deleteDoc(fb.doc(fb.db, 'lessons', d.dellesson)); const bx = U.staffData[U.staffCourse]; bx.lessons = bx.lessons.filter(l => l.id !== d.dellesson); toast('حُذف الدرس'); } catch(x){ toast('تعذّر الحذف'); }
+    ui.confirm = null; render(); return; }
+  if(b.id === 'themeBtn'){ const cur = document.documentElement.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'); const nx = cur === 'light' ? 'dark' : 'light'; document.documentElement.setAttribute('data-theme', nx); store.set(THEME_KEY, nx); return; }
+  if(b.id === 'installBtn'){ if(deferredPrompt){ deferredPrompt.prompt(); deferredPrompt = null; b.hidden = true; } return; }
+  /* admin */
+  if(d.acourse){ collectAdmin(); ui.aCourse = d.acourse; ui.confirm = null; render(); return; }
+  if(b.id === 'addCourse'){ collectAdmin(); const c = { id:uid('c'), nameEn:'', nameAr:'مادة جديدة', teacher:'', stage:DATA.stages[0]?.id||'', semester:1, hue:HUES[DATA.courses.length % HUES.length], desc:'', syllabus:[], dates:[], items:[] }; DATA.courses.push(c); ui.aCourse = c.id; render(); return; }
+  if(b.id === 'addItem'){ collectAdmin(); const c = DATA.courses.find(x => x.id === ui.aCourse); const n = c.items.filter(i => i.kind === 'lecture').length + 1; c.items.push({ id:uid(c.id.slice(0,4)), kind:'lecture', no:n, title:'', titleEn:`Lecture ${n}`, date:new Date().toISOString().slice(0,10), url:'', note:'' }); render(); return; }
+  if(d.move){ collectAdmin(); const [n, dir] = d.move.split('|').map(Number); const c = DATA.courses.find(x => x.id === ui.aCourse); const m = n + dir; if(m >= 0 && m < c.items.length){ [c.items[n], c.items[m]] = [c.items[m], c.items[n]]; render(); } return; }
+  if(d.delitem !== undefined){ collectAdmin(); const key = 'i' + d.delitem; if(ui.confirm === key){ DATA.courses.find(x => x.id === ui.aCourse).items.splice(+d.delitem, 1); ui.confirm = null; } else ui.confirm = key; render(); return; }
+  if(b.id === 'delCourse'){ collectAdmin(); if(ui.confirm === 'course'){ DATA.courses = DATA.courses.filter(x => x.id !== ui.aCourse); ui.aCourse = null; ui.confirm = null; } else ui.confirm = 'course'; render(); return; }
+  if(b.id === 'saveBtn'){ await saveAll(); render(); return; }
+  if(b.id === 'copyBtn'){ collectAdmin(); copy(exportJSON()); return; }
+  if(b.id === 'exportBtn'){ collectAdmin(); const blob = new Blob([exportJSON()], { type:'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'data.json'; document.body.appendChild(a); a.click(); a.remove(); toast('إذا لم يبدأ التنزيل استخدم «نسخ JSON»'); return; }
+  if(b.id === 'discardBtn'){ if(ui.confirm === 'discard'){ store.del(DRAFT_KEY); store.set('amu-lms-preview-draft', false); ui.confirm = null; DATA = normalize(await loadFile()); SOURCE = 'file'; toast('عُدنا إلى الملف المنشور'); } else ui.confirm = 'discard'; render(); return; }
+});
+document.addEventListener('keydown', e => { if(e.key === 'Escape' && !$('#viewer').hidden) closeViewer(); });
+$('#viewer').addEventListener('click', e => { if(e.target.id === 'viewer') closeViewer(); });
+const dropZone = e => e.target && e.target.closest ? e.target.closest('#upDrop') : null;
+document.addEventListener('dragover', e => { const z = dropZone(e); if(z){ e.preventDefault(); z.classList.add('over'); } });
+document.addEventListener('dragleave', e => { const z = dropZone(e); if(z && !z.contains(e.relatedTarget)) z.classList.remove('over'); });
+document.addEventListener('drop', e => { const z = dropZone(e); if(z){ e.preventDefault(); z.classList.remove('over'); pickUpFile(e.dataTransfer.files[0]); } });
+
+/* theme, install, offline */
+const savedTheme = store.get(THEME_KEY, null); if(savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; $('#installBtn').hidden = false; });
+try { if('serviceWorker' in navigator && location.protocol === 'https:' && !/claude\.ai|claudeusercontent/.test(location.host)) navigator.serviceWorker.register('sw.js').catch(() => {}); } catch(e){}
+
+render();
+boot();
+})();
+</script>
+
+
+<!-- التنقل الموحّد بين أنظمة جامعة المعقل (القائمة في amu/amu-nav.js) -->
+<script>(function(d){var s=d.createElement('script');s.src='https://it-basra.com/amu/amu-nav.js?v='+new Date().toISOString().slice(0,10);s.defer=true;d.body.appendChild(s)})(document)</script>
+</body>
+</html>
