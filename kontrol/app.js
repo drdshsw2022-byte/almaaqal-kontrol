@@ -308,22 +308,45 @@ const UNSUB=[];
 function fbSub(path,fn,qf){let ref=FB.collection(FB.db,path);if(qf)ref=qf(ref);UNSUB.push(FB.onSnapshot(ref,fn,err=>{console.warn(path,err);if(err&&err.code==='permission-denied')toast('لا تملك صلاحية قراءة «'+path+'». راجع قواعد Firestore.','bad')}))}
 const intoRaw=m=>snap=>{snap.docChanges().forEach(ch=>{if(ch.type==='removed')m.delete(ch.doc.id);else m.set(ch.doc.id,ch.doc.data())});rebuild()};
 const intoS=c=>snap=>{snap.docChanges().forEach(ch=>{if(ch.type==='removed')S[c].delete(ch.doc.id);else S[c].set(ch.doc.id,{...ch.doc.data(),id:ch.doc.id})});sched()};
+/* توفير قراءات Firestore (حد الخطة المجانية 50 ألف قراءة يومياً):
+   البيانات المشتركة مع تطبيق الحضور (الكليات، الأقسام، المواد، الطلبة، الكادر) ودرجات السعي لا تتغير كثيراً،
+   فتُقرأ من الذاكرة المحلية للمتصفح إن كانت حديثة، ومن السيرفر مرة كل REF_TTL فقط، أو عند الضغط على «تحديث البيانات».
+   بيانات الكنترول نفسها (k_*) تبقى مباشرة. */
+const REF_TTL={colleges:6*3600e3,departments:6*3600e3,courses:3*3600e3,students:3*3600e3,staff:3*3600e3,grades:3600e3};
+let REF_GEN=0,REF_AT=0;
+// المفتاح مرتبط بالمستخدم: لا تُعرض بيانات حمّلها حساب آخر على الجهاز نفسه دون تحقق السيرفر من صلاحية الحساب الحالي
+const refKey=k=>'kref_'+(FB&&FB.projectId||'')+'_'+((FB&&FB.auth&&FB.auth.currentUser&&FB.auth.currentUser.uid)||'x')+'_'+k;
+function refFresh(k,ttl){try{return Date.now()-(+localStorage.getItem(refKey(k))||0)<ttl}catch(e){return false}}
+function refMark(k){try{localStorage.setItem(refKey(k),String(Date.now()))}catch(e){}}
+async function refGet(k,q,ttl,force){
+  if(!force&&refFresh(k,ttl)){try{const c=await FB.getDocsFromCache(q);if(!c.empty)return c}catch(e){}}
+  const r=await FB.getDocs(q);refMark(k);return r}
+async function fbLoadRef(path,m,force){
+  const gen=REF_GEN;
+  try{const snap=await refGet(path,FB.collection(FB.db,path),REF_TTL[path],force);if(gen!==REF_GEN)return;
+    m.clear();snap.forEach(d=>m.set(d.id,d.data()));REF_AT=Date.now();rebuild()}
+  catch(err){console.warn(path,err);if(err&&err.code==='permission-denied')toast('لا تملك صلاحية قراءة «'+path+'». راجع قواعد Firestore.','bad')}}
+function fbLoadRefs(force){['colleges','departments','courses','students','staff'].forEach(c=>fbLoadRef(c,RAW[c],force))}
+ACT.fbsync=async()=>{if(MODE!=='fb')return;toast('جارٍ تحديث البيانات من قاعدة Firebase…');fbLoadRefs(true);GW.key='';watchGrades(true);renderNav()};
 function fbSubscribe(){
-  fbSub('colleges',intoRaw(RAW.colleges));fbSub('departments',intoRaw(RAW.departments));fbSub('courses',intoRaw(RAW.courses));fbSub('students',intoRaw(RAW.students));fbSub('staff',intoRaw(RAW.staff));fbSub('k_staffx',intoRaw(RAW.staffx));
+  REF_GEN++;fbLoadRefs(false);fbSub('k_staffx',intoRaw(RAW.staffx));
   ['halls','exams','slots','envelopes','incidents','meta'].forEach(c=>fbSub(KCOL[c],intoS(c)));
   fbSub('k_audit',intoS('audit'),r=>FB.query(r,FB.orderBy('ts','desc'),FB.limit(500)));
   fbSub('k_appeals',intoS('appeals'));if(can('grade'))fbSub('k_marks',intoRaw(RAW.kmarks));
   if(can('ctrl'))fbSub('k_codes',intoS('codes'));
   if(can('chair')||KGRANT){fbSub('k_roles',intoRaw(RAW.kroles));kreqSubscribe()}
 }
-let GW={key:'',uns:[]};
-function watchGrades(){ // السعي: سجلات التدريسيين في تطبيق الحضور لمواد الفصل الحالي
-  const ids=[...S.courses.values()].filter(semOk).map(c=>c.id).sort();const key=ids.join(',');if(key===GW.key)return;
-  GW.key=key;GW.uns.forEach(u=>u());GW.uns=[];RAW.sgrades=new Map();
-  for(let i=0;i<ids.length;i+=30){const chunk=ids.slice(i,i+30);GW.uns.push(FB.onSnapshot(FB.query(FB.collection(FB.db,'grades'),FB.where('courseId','in',chunk)),snap=>{
-    snap.docChanges().forEach(ch=>{const g=ch.doc.data();if(!g.courseId||!g.studentId)return;if(!RAW.sgrades.has(g.courseId))RAW.sgrades.set(g.courseId,new Map());const m=RAW.sgrades.get(g.courseId);if(ch.type==='removed')m.delete(g.studentId);else m.set(g.studentId,g.marks||{})});rebuild()},err=>console.warn('grades',err)))}
+let GW={key:'',uns:[],gen:0};
+function watchGrades(force){ // السعي: سجلات التدريسيين في تطبيق الحضور لمواد الفصل الحالي (تُحدَّث كل ساعة أو عند الطلب)
+  const ids=[...S.courses.values()].filter(semOk).map(c=>c.id).sort();const key=ids.join(',');if(key===GW.key&&!force)return;
+  GW.key=key;GW.uns.forEach(u=>u());GW.uns=[];const gen=++GW.gen;const next=new Map();let left=Math.ceil(ids.length/30);if(!left){RAW.sgrades=next;rebuild();return}
+  for(let i=0;i<ids.length;i+=30){const chunk=ids.slice(i,i+30);
+    refGet('grades_'+chunk.join(','),FB.query(FB.collection(FB.db,'grades'),FB.where('courseId','in',chunk)),REF_TTL.grades,force).then(snap=>{
+      if(gen!==GW.gen)return;
+      snap.forEach(d=>{const g=d.data();if(!g.courseId||!g.studentId)return;if(!next.has(g.courseId))next.set(g.courseId,new Map());next.get(g.courseId).set(g.studentId,g.marks||{})});
+    }).catch(err=>console.warn('grades',err)).finally(()=>{if(gen===GW.gen&&--left===0){RAW.sgrades=next;rebuild()}})}
 }
-function fbUnsubscribe(){UNSUB.splice(0).forEach(u=>{try{u()}catch(e){}});GW.uns.forEach(u=>{try{u()}catch(e){}});GW={key:'',uns:[]};
+function fbUnsubscribe(){UNSUB.splice(0).forEach(u=>{try{u()}catch(e){}});GW.uns.forEach(u=>{try{u()}catch(e){}});GW={key:'',uns:[],gen:GW.gen+1};REF_GEN++;
   Object.values(RAW).forEach(m=>m.clear&&m.clear());COLLS.forEach(c=>S[c]=new Map())}
 /* الدخول بحسابات تطبيق الحضور نفسها: كلمة مصادقة مشتقة من كلمة المستخدم كما في التطبيق */
 async function resolveStaffEmail(authEmail){const e=String(authEmail||'').toLowerCase();if(!e.endsWith('@pw.almaaqal.app'))return e;
@@ -436,7 +459,7 @@ function renderNav(){
   $('#nav').innerHTML=(MODE==='auth'||MODE==='down')?'':VIEWS.map(([g,items])=>[g,items.filter(([k])=>viewOk(k))]).filter(([,items])=>items.length).map(([g,items])=>`<div class="grp">${g}</div>`+items.map(([k,l])=>`<a href="#${k}" class="${UI.view===k?'on':''}" data-nav="${k}">${l}${c[k]?`<span class="badge ${k==='appeals'?'am':''}">${c[k]}</span>`:''}</a>`).join('')).join('');
   
   const me=$('#me');if(me){me.hidden=!(MODE==='fb'&&MEPROF);if(MEPROF)me.innerHTML=`<b>${esc(MEPROF.name)}</b><span class="mut">${esc(KRANKS[KRANK]||KROLES[KROLE]||'')}</span>${MEPROF.isK?'<button class="btn sm" data-act="kpass">تغيير كلمة المرور</button>':''}<button class="btn sm" data-act="logout">تسجيل الخروج</button>`}
-  $('#mode').innerHTML=MODE==='fb'?(navigator.onLine?`<span class="dot on"></span>متصل بقاعدة Firebase${RO?' · اطلاع فقط':''}`:`<span class="dot loc"></span>دون اتصال — التعديلات تُحفظ وتُزامَن لاحقاً`):MODE==='auth'?`<span class="dot"></span>بانتظار تسجيل الدخول`:MODE==='down'?`<span class="dot"></span>تعذر الاتصال بقاعدة البيانات`:MODE==='cloud'?`<span class="dot on"></span>متصل — بيانات مشتركة${RO?' · اطلاع فقط':''}`:MODE==='local'?`<span class="dot loc"></span>وضع محلي على هذا الجهاز`:`<span class="dot"></span>جارٍ الاتصال…`;
+  $('#mode').innerHTML=MODE==='fb'?(navigator.onLine?`<span class="dot on"></span>متصل بقاعدة Firebase${RO?' · اطلاع فقط':''} <button class="btn sm" data-act="fbsync" title="بيانات الطلبة والمواد والكادر ودرجات السعي تُحدَّث تلقائياً كل ساعة إلى 3 ساعات لتوفير القراءات. اضغط لتحديثها الآن.">↻ تحديث البيانات</button>`:`<span class="dot loc"></span>دون اتصال — التعديلات تُحفظ وتُزامَن لاحقاً`):MODE==='auth'?`<span class="dot"></span>بانتظار تسجيل الدخول`:MODE==='down'?`<span class="dot"></span>تعذر الاتصال بقاعدة البيانات`:MODE==='cloud'?`<span class="dot on"></span>متصل — بيانات مشتركة${RO?' · اطلاع فقط':''}`:MODE==='local'?`<span class="dot loc"></span>وضع محلي على هذا الجهاز`:`<span class="dot"></span>جارٍ الاتصال…`;
 }
 function render(){
   if(editing()){deferred=true;return}
@@ -895,6 +918,7 @@ async function apStep(f){
     if(upd.outcome==='changed'&&MODE==='fb'){const c=S.courses.get(a.course);const gk=c&&groupKey(c.dept,c.stage);const L=gk&&(S.meta.get('locks')||{})[gk.replace('|','_')];
       if(L&&L.published){const g=a.round==='2'?0:(num((G(a.course)[a.student]||{}).grace)||0);const s=S.students.get(a.student)||{};
         await settle(FB.setDoc(FB.doc(FB.db,'grades',fsSafe(a.course+'_'+a.student)),{courseId:a.course,studentId:a.student,studentName:s.name||'',marks:{final:Math.round((upd.finalFin+g)*100)/100},updatedAt:now},{merge:true}));pub=' · حُدّثت الدرجة المنشورة للطالب'}}
+    if(MODE==='fb')watchGrades(true);
     await log('قرار اعتراض',`${a.ref||a.id} · ${label.students(S.students.get(a.student))} · ${label.courses(S.courses.get(a.course))} · ${APOUT[upd.outcome]}${upd.finalFin!=null?` · النهائي ${a.oldFin??'—'} ← ${upd.finalFin} · المجموع قبل ${r1(a.oldTotal)}`:''} · السبب: ${upd.decisionReason}${pub}`);
   }else await log('اعتراض: '+APST[upd.st],`${a.ref||a.id} · ${note}`);
   toast('حُفظ: '+APST[upd.st]);setTimeout(()=>{if(!$('#modal').hidden)apModal()},120);
@@ -1049,7 +1073,7 @@ async function demoSeed(prog){
   const mops=Object.entries(marks).map(([cid,rows])=>[D('k_marks',fsSafe(cid)),man.kmarksCreated.includes(cid)?{rows,demo:true}:{rows},{merge:true}]);
   await fbCommit(mops,prog,'الدرجات');
   await fbCommit([[D('k_meta','demo'),man]],null,'');
-  prog('انتظار وصول البيانات…');
+  prog('انتظار وصول البيانات…');fbLoadRefs(true);
   await waitFor(()=>man.exams.every(id=>S.exams.has(id))&&man.students.every(id=>S.students.has(id))&&man.halls.every(id=>S.halls.has(id))&&Object.keys(marks).every(c=>RAW.kmarks.has(c)),60000);
   await new Promise(r=>setTimeout(r,800));
   const hallIds=man.halls;
@@ -1084,7 +1108,7 @@ async function demoPurge(prog){
   [['appeals','k_appeals'],['incidents','k_incidents'],['exams','k_exams'],['halls','k_halls'],['slots','k_slots'],['codes','k_codes']].forEach(([c,k])=>arr(c).filter(isDemo).forEach(x=>{if(!ops.some(o=>o[0].path===k+'/'+x.id))ops.push([D(k,x.id),null,'del'])}));
   await fbCommit(ops,prog,'الحذف');
   for(const [cid,sids] of Object.entries(m.kmarksRows||{})){const ref=D('k_marks',fsSafe(cid));const args=sids.flatMap(s=>[new FB.FieldPath('rows',s),FB.deleteField()]);if(args.length)await FB.updateDoc(ref,...args).catch(()=>{})}
-  await FB.deleteDoc(D('k_meta','demo'));
+  await FB.deleteDoc(D('k_meta','demo'));fbLoadRefs(true);GW.key='';watchGrades(true);
   await log('حذف البيانات التجريبية',`${ops.length} سجل`);return ops.length;
 }
 function demoRunUI(fn,title){$('#modal').innerHTML=`<div class="dlg"><h3>${esc(title)}</h3><p class="mut" id="dprog">جارٍ التحضير…</p><p class="mut" style="font-size:12px">لا تغلق الصفحة حتى ينتهي.</p></div>`;$('#modal').hidden=false;
@@ -1196,6 +1220,7 @@ ACT.syncstruct=async()=>{
     if(!IS_TOP)throw new Error('تعديل هيكل الجامعة لمدير النظام أو رئيس الجامعة.');
     const ops=planStructure(RAW.colleges,RAW.departments);if(!ops.length)return toast('الهيكل مكتمل');
     const b=FB.writeBatch(FB.db);ops.forEach(o=>b.set(FB.doc(FB.db,o.c,o.id),o.data,{merge:true}));await settle(b.commit());
+    fbLoadRef('colleges',RAW.colleges,true);fbLoadRef('departments',RAW.departments,true);
     await log('مزامنة هيكل الجامعة',ops.map(o=>o.label).join('، '));toast(`أُضيف ${ops.length} سجل إلى هيكل الجامعة`);return}
   const dm=new Map(arr('depts').map(d=>[d.id,{name:d.name,collegeId:d.college?'x':''}]));
   const cname=Object.fromEntries(UNIV_STRUCT.map(c=>[c.id,c.name]));
